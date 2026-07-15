@@ -122,3 +122,17 @@
   font-size: 0.82rem;
   color: var(--text-muted);
 }
+.step-unit {
+  margin-top: 0.75rem;
+}
+.step-unit + .step-unit {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.step-unit .step-panel {
+  margin-top: 0.4rem;
+}
+.step-unit-table {
+  margin-bottom: 0;
+}

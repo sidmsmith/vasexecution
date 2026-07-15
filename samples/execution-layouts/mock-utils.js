@@ -94,6 +94,54 @@
     return svc.steps.map((st) => stepPanelHtml(svc, st.id)).join("");
   }
 
+  /** Single-step table row (same columns as compact table). */
+  function singleStepTable(svc, st, opts) {
+    const showHead = !(opts && opts.hideHead);
+    const head = showHead
+      ? `<thead>
+        <tr>
+          <th class="step-select-col"></th>
+          <th>Step</th>
+          <th>Description</th>
+          <th>Req</th>
+          <th>Rem</th>
+          <th>Comp</th>
+          <th>Qty</th>
+          <th>Status</th>
+        </tr>
+      </thead>`
+      : "";
+    return `<table class="steps-table compact step-unit-table">
+      ${head}
+      <tbody>
+        <tr>
+          <td class="step-select-col"><input type="checkbox" class="step-select" aria-label="Select ${esc(
+            st.id
+          )}" /></td>
+          <td>${esc(st.id)}</td>
+          <td class="step-desc">${esc(st.desc)}</td>
+          <td>${st.req}</td>
+          <td>${st.rem}</td>
+          <td>${st.comp}</td>
+          <td><input type="number" class="form-control qty-input" value="${st.rem}" /></td>
+          <td><span class="badge text-bg-secondary">${esc(svc.Status)}</span></td>
+        </tr>
+      </tbody>
+    </table>`;
+  }
+
+  /** Step 1 → instructions → Step 2 → instructions (interleaved). */
+  function interleavedSteps(svc) {
+    return svc.steps
+      .map(
+        (st, i) => `<div class="step-unit" data-step-id="${esc(st.id)}">
+      ${singleStepTable(svc, st, { hideHead: i > 0 })}
+      ${stepPanelHtml(svc, st.id)}
+    </div>`
+      )
+      .join("");
+  }
+
   function capturePlaceholder(label) {
     return `<div class="capture-placeholder">${esc(
       label || "Signature · Photos (camera) · Markup pad — unchanged from today"
@@ -126,6 +174,7 @@
     const m = window.MOCK;
     const layouts = [
       ["layout-2-all-panels.html", "2 All panels"],
+      ["layout-2b-interleaved.html", "2b Interleaved"],
       ["layout-3-active-step.html", "3 Active step"],
       ["layout-4-step-tabs.html", "4 Tabs"],
       ["layout-5-service-step-nav.html", "5 Nav"]
@@ -163,6 +212,8 @@
     typeCfg,
     stepInstructions,
     compactStepsTable,
+    singleStepTable,
+    interleavedSteps,
     sharedBlock,
     stepPanelHtml,
     allStepPanels,
