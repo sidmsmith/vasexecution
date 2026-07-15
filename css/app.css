@@ -378,7 +378,7 @@ body {
   margin-top: 0;
 }
 
-/* Soft tinted chips (preferred look); force label color past Bootstrap .badge */
+/* Soft tinted chips; black label for contrast on light themes */
 .badge.status-chip {
   display: inline-block;
   font-weight: 700;
@@ -387,20 +387,18 @@ body {
   letter-spacing: 0.01em;
   padding: 0.28em 0.65em;
   border: 1px solid transparent;
-  -webkit-text-fill-color: currentColor;
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111;
 }
 .badge.status-created {
-  color: #fecaca !important;
   background: rgba(220, 38, 38, 0.28) !important;
   border-color: rgba(248, 113, 113, 0.55);
 }
 .badge.status-complete {
-  color: #bbf7d0 !important;
   background: rgba(22, 163, 74, 0.28) !important;
   border-color: rgba(74, 222, 128, 0.55);
 }
 .badge.status-other {
-  color: #fde68a !important;
   background: rgba(217, 119, 6, 0.28) !important;
   border-color: rgba(251, 191, 36, 0.55);
 }
