@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-07-15T02:54:03.689Z",
+  "updatedAt": "2026-07-15T03:12:42.911Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -14,7 +14,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_1b6aa0c5",
@@ -23,16 +24,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_01dbd541",
-          "type": "text",
-          "text": "Create UPC tag for the item",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_0af767ff",
@@ -41,7 +34,15 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
+        },
+        {
+          "id": "img_zfl4r1hg",
+          "type": "image",
+          "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1752528139/sidney/cabinairfilter.png",
+          "caption": "",
+          "scale": 45
         },
         {
           "id": "ins_d8c026f6",
@@ -50,32 +51,56 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_20f09590",
-          "text": "Create UPC Tag for the item"
+          "text": "Create UPC Tag for the item",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_1b6aa0c5",
-          "text": "Apply the UPC Tag once it has been printed"
-        },
-        {
-          "id": "ins_01dbd541",
-          "text": "Create UPC tag for the item"
+          "text": "Apply the UPC Tag once it has been printed",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_0af767ff",
-          "text": "Confirm the UPC matches the item before applying the tag."
+          "text": "Confirm the UPC matches the item before applying the tag.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_d8c026f6",
-          "text": "Place the tag on a flat, clean surface of the item."
+          "text": "Place the tag on a flat, clean surface of the item.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
-      "images": [],
+      "images": [
+        {
+          "id": "img_zfl4r1hg",
+          "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1752528139/sidney/cabinairfilter.png",
+          "caption": "",
+          "scale": 45
+        }
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -106,7 +131,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_a3a9a675",
@@ -115,7 +141,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_76d8ae40",
@@ -124,7 +151,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_c1c8545f",
@@ -133,7 +161,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_ce118e56",
@@ -142,7 +171,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_8f6833d3",
@@ -151,33 +181,64 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_99638c77",
-          "text": "Measure part to determine size of packaging"
+          "text": "Measure part to determine size of packaging",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_a3a9a675",
-          "text": "Build crate according to part dimensions"
+          "text": "Build crate according to part dimensions",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_76d8ae40",
-          "text": "Pack parts into crate"
+          "text": "Pack parts into crate",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_c1c8545f",
-          "text": "Build Packaging"
+          "text": "Build Packaging",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_ce118e56",
-          "text": "Measure the part before building the crate."
+          "text": "Measure the part before building the crate.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_8f6833d3",
-          "text": "Pack parts securely and do not leave voids."
+          "text": "Pack parts securely and do not leave voids.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -211,7 +272,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_206c8f79",
@@ -220,7 +282,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_c33428d0",
@@ -229,7 +292,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_e402ec6f",
@@ -238,7 +302,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_6c272987",
@@ -247,7 +312,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_b60cb84d",
@@ -256,33 +322,64 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_1199b754",
-          "text": "Print Price Ticket"
+          "text": "Print Price Ticket",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_206c8f79",
-          "text": "Apply UPC Tag"
+          "text": "Apply UPC Tag",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_c33428d0",
-          "text": "Print Dicks Price Tickets"
+          "text": "Print Dicks Price Tickets",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_e402ec6f",
-          "text": "Print and attach label"
+          "text": "Print and attach label",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_6c272987",
-          "text": "Apply Labels"
+          "text": "Apply Labels",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_b60cb84d",
-          "text": "Complete all Dicks Sporting Goods ticket and label steps."
+          "text": "Complete all Dicks Sporting Goods ticket and label steps.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -316,7 +413,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_02822004",
@@ -325,7 +423,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_e6f28e90",
@@ -334,7 +433,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_b55f3faf",
@@ -343,7 +443,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_58a1ab2a",
@@ -352,29 +453,55 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_a68d84fa",
-          "text": "Engrave with appropriate letter"
+          "text": "Engrave with appropriate letter",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_02822004",
-          "text": "Gift Pack in blue box"
+          "text": "Gift Pack in blue box",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_e6f28e90",
-          "text": "Tie gift pack box with white ribbon"
+          "text": "Tie gift pack box with white ribbon",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_b55f3faf",
-          "text": "Confirm engraving letters/artwork against the order notes."
+          "text": "Confirm engraving letters/artwork against the order notes.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_58a1ab2a",
-          "text": "Protect finished surface before packing."
+          "text": "Protect finished surface before packing.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -408,7 +535,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_d7960a9b",
@@ -417,7 +545,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_03294106",
@@ -426,21 +555,37 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_3357f58c",
-          "text": "handle with care"
+          "text": "handle with care",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_d7960a9b",
-          "text": "Handle with care"
+          "text": "Handle with care",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_03294106",
-          "text": "Follow site SOPs for this generic VAS instruction."
+          "text": "Follow site SOPs for this generic VAS instruction.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -474,7 +619,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_b2c84cfb",
@@ -483,7 +629,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_25b78824",
@@ -492,7 +639,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_fe6f10a8",
@@ -501,7 +649,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_dd473c1f",
@@ -510,7 +659,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_c4810a50",
@@ -519,7 +669,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_85ff4b51",
@@ -528,7 +679,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_4088df1c",
@@ -537,7 +689,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_233431ff",
@@ -546,45 +699,91 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_68d7593c",
-          "text": "Measure the box"
+          "text": "Measure the box",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_b2c84cfb",
-          "text": "Cut the paper"
+          "text": "Cut the paper",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_25b78824",
-          "text": "Cover the package"
+          "text": "Cover the package",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_fe6f10a8",
-          "text": "Wrap"
+          "text": "Wrap",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_dd473c1f",
-          "text": "Tie the bow neatly"
+          "text": "Tie the bow neatly",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_c4810a50",
-          "text": "Use the holiday bows"
+          "text": "Use the holiday bows",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_85ff4b51",
-          "text": "Tie the bow"
+          "text": "Tie the bow",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_4088df1c",
-          "text": "Use approved wrap paper and ribbon for the brand."
+          "text": "Use approved wrap paper and ribbon for the brand.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_233431ff",
-          "text": "Ensure ribbon is snug and ends are trimmed neatly."
+          "text": "Ensure ribbon is snug and ends are trimmed neatly.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -618,7 +817,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_9fc66334",
@@ -627,17 +827,28 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_5ae82885",
-          "text": "Wrap the pallet tightly from base to top for stability."
+          "text": "Wrap the pallet tightly from base to top for stability.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_9fc66334",
-          "text": "Do not obscure critical barcode labels under wrap."
+          "text": "Do not obscure critical barcode labels under wrap.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -671,7 +882,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_336be81a",
@@ -680,7 +892,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_529b9f0f",
@@ -689,7 +902,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_3fe96b5f",
@@ -698,7 +912,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_ebcfdc7d",
@@ -707,7 +922,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_7a0a01ef",
@@ -716,33 +932,64 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_2f9d1ece",
-          "text": "Etched with a picture"
+          "text": "Etched with a picture",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_336be81a",
-          "text": "Take crystal vase"
+          "text": "Take crystal vase",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_529b9f0f",
-          "text": "Place item in empty box"
+          "text": "Place item in empty box",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_3fe96b5f",
-          "text": "Etched with Picture"
+          "text": "Etched with Picture",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_ebcfdc7d",
-          "text": "Verify etching artwork matches the approved picture."
+          "text": "Verify etching artwork matches the approved picture.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_7a0a01ef",
-          "text": "Place finished item in an empty protective box."
+          "text": "Place finished item in an empty protective box.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -776,7 +1023,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_ae58d155",
@@ -785,7 +1033,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_f47a8fa8",
@@ -794,7 +1043,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_6fdbdc4f",
@@ -803,25 +1053,46 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_c32a7023",
-          "text": "Print price ticket and stamp on the item"
+          "text": "Print price ticket and stamp on the item",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_ae58d155",
-          "text": "Print Price Ticket"
+          "text": "Print Price Ticket",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_f47a8fa8",
-          "text": "Verify price and SKU on the ticket before attaching."
+          "text": "Verify price and SKU on the ticket before attaching.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_6fdbdc4f",
-          "text": "Stamp or affix the ticket where the customer can see it."
+          "text": "Stamp or affix the ticket where the customer can see it.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -855,7 +1126,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_35720e67",
@@ -864,7 +1136,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "img_lgzs7yar",
@@ -877,11 +1150,21 @@
       "instructions": [
         {
           "id": "ins_487be94a",
-          "text": "Insert or drop a promotion flyer"
+          "text": "Insert or drop a promotion flyer",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_35720e67",
-          "text": "Insert or affix one flyer per oLPN as required."
+          "text": "Insert or affix one flyer per oLPN as required.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [
@@ -922,7 +1205,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_5d55d841",
@@ -931,7 +1215,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_43cc2f6b",
@@ -940,7 +1225,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_482b7dfb",
@@ -949,7 +1235,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_46777adc",
@@ -958,29 +1245,55 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_d5b80c64",
-          "text": "Repack"
+          "text": "Repack",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_5d55d841",
-          "text": "Repack into 4 packs of 3"
+          "text": "Repack into 4 packs of 3",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_43cc2f6b",
-          "text": "Shrink wrap each pack"
+          "text": "Shrink wrap each pack",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_482b7dfb",
-          "text": "Repack to the specified pack quantity before sealing."
+          "text": "Repack to the specified pack quantity before sealing.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_46777adc",
-          "text": "Shrink wrap each finished pack."
+          "text": "Shrink wrap each finished pack.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -1014,7 +1327,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_de3b060b",
@@ -1023,7 +1337,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_80b2b9b5",
@@ -1032,7 +1347,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_8f9cb5c6",
@@ -1041,7 +1357,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_8b89a176",
@@ -1050,29 +1367,55 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_d7b7cf0b",
-          "text": "View all of the VAS services that have already been performed in the History Inquiry"
+          "text": "View all of the VAS services that have already been performed in the History Inquiry",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_de3b060b",
-          "text": "Undo all of the VAS services that have already been performed"
+          "text": "Undo all of the VAS services that have already been performed",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_80b2b9b5",
-          "text": "Reverse VAS"
+          "text": "Reverse VAS",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_8f9cb5c6",
-          "text": "Review VAS history before reversing completed work."
+          "text": "Review VAS history before reversing completed work.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_8b89a176",
-          "text": "Document why the reverse is required."
+          "text": "Document why the reverse is required.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -1106,7 +1449,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_d55c8baa",
@@ -1115,7 +1459,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_16798acb",
@@ -1124,7 +1469,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_26f3df4d",
@@ -1133,7 +1479,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_96ed1879",
@@ -1142,29 +1489,55 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_40da4a66",
-          "text": "Engrave-S"
+          "text": "Engrave-S",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_d55c8baa",
-          "text": "Gift Pack in blue box"
+          "text": "Gift Pack in blue box",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_16798acb",
-          "text": "Engrave with S"
+          "text": "Engrave with S",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_26f3df4d",
-          "text": "Engrave with the specified letter set for this order."
+          "text": "Engrave with the specified letter set for this order.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_96ed1879",
-          "text": "Gift pack in the approved blue box when complete."
+          "text": "Gift pack in the approved blue box when complete.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -1198,7 +1571,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_e3b661a6",
@@ -1207,7 +1581,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_b187fc7f",
@@ -1216,7 +1591,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_ef1b2488",
@@ -1225,25 +1601,46 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_6e39cfe7",
-          "text": "Repack into 4 packs of 3"
+          "text": "Repack into 4 packs of 3",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_e3b661a6",
-          "text": "Shrink wrap each pack"
+          "text": "Shrink wrap each pack",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_b187fc7f",
-          "text": "Repack into the required inner packs before labeling."
+          "text": "Repack into the required inner packs before labeling.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_ef1b2488",
-          "text": "Shrink wrap each pack after filling."
+          "text": "Shrink wrap each pack after filling.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -1279,7 +1676,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#cc1919",
+          "fontSize": 119
         },
         {
           "id": "img_55415293",
@@ -1295,17 +1693,28 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_ed5a6ed4",
-          "text": "Photograph the finished work if branding or tagging is visible."
+          "text": "Photograph the finished work if branding or tagging is visible.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#cc1919",
+          "fontSize": 119
         },
         {
           "id": "ins_6049596f",
-          "text": "Confirm item 6000121 (HMTS Accessories) before starting item-level VAS."
+          "text": "Confirm item 6000121 (HMTS Accessories) before starting item-level VAS.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [
@@ -1346,7 +1755,8 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_df3bbba0",
@@ -1355,17 +1765,28 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_8a3f138f",
-          "text": "Use holiday wrap materials for DEMO-GIFT-001."
+          "text": "Use holiday wrap materials for DEMO-GIFT-001.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         },
         {
           "id": "ins_df3bbba0",
-          "text": "Include a blank gift receipt in the package."
+          "text": "Include a blank gift receipt in the package.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
@@ -1399,13 +1820,19 @@
           "bold": false,
           "italic": false,
           "underline": false,
-          "color": "#000000"
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "instructions": [
         {
           "id": "ins_33e7173e",
-          "text": "Hang price ticket on the right sleeve for DEMO-TICKET-100."
+          "text": "Hang price ticket on the right sleeve for DEMO-TICKET-100.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
         }
       ],
       "images": [],
