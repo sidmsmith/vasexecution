@@ -44,8 +44,8 @@
           </select>
         </div>
         <div class="toolbar-actions">
-          <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="addItemBtn" title="Add an ItemId overlay">
-            <i class="fa-solid fa-plus"></i> Add Item
+          <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="addEntryBtn" title="Add VAS Type or Item">
+            <i class="fa-solid fa-plus"></i> <span id="addEntryBtnLabel">Add VAS Type</span>
           </button>
           <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="exportBtn" title="Download local draft as JSON">
             <i class="fa-solid fa-download"></i> Export
@@ -91,15 +91,30 @@
               </div>
               <p class="text-muted small mb-0 mt-1">Shown on the Main/detail nav and service header. Leave blank to use the default gift icon.</p>
             </div>
+            <div class="mb-3" id="stepPickerWrap" style="display:none">
+              <label class="form-label" for="stepSelect">Step <span class="text-muted fw-normal">(AssignedServiceStepId)</span></label>
+              <div class="entry-select-row gap-2">
+                <div class="field-grow">
+                  <select id="stepSelect" class="form-select object-type-select" aria-label="Assigned service step"></select>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="addStepBtn" title="Add step by AssignedServiceStepId">
+                  <i class="fa-solid fa-plus"></i> Add step
+                </button>
+                <button type="button" class="btn btn-link btn-sm delete-all-questions-btn mb-0" id="removeStepBtn" disabled>
+                  <i class="fa-solid fa-trash-can"></i> Remove step
+                </button>
+              </div>
+              <p class="text-muted small mb-0 mt-1">Instructions below apply to this step on the execution page (overrides MAWM step instructions when present).</p>
+            </div>
             <div class="mb-2">
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <label class="form-label mb-0">Content (instructions &amp; images)</label>
+                <label class="form-label mb-0" id="contentSectionLabel">Step content (instructions &amp; images)</label>
                 <div class="d-flex gap-1">
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="addInstrBtn">Add text</button>
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="addImageBtn">Add image</button>
                 </div>
               </div>
-              <p class="text-muted small mb-1">Drag to reorder. Images can sit above or below text — treat them as instruction steps.</p>
+              <p class="text-muted small mb-1" id="contentSectionHint">Select or add a step first. Drag blocks to reorder.</p>
               <div id="contentList"></div>
             </div>
             <div class="mb-2 section-toggles">

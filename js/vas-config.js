@@ -289,6 +289,27 @@
     return url || DEFAULT_TYPE_ICON_URL;
   }
 
+  function normalizeStepEntry(raw, stepId) {
+    const src = raw && typeof raw === "object" ? raw : {};
+    const content = normalizeContent(src);
+    return {
+      title: String(src.title || stepId || "").trim() || String(stepId || ""),
+      content
+    };
+  }
+
+  /** steps keyed by AssignedServiceStepId. */
+  function normalizeSteps(raw) {
+    const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+    const out = {};
+    Object.keys(src).forEach((key) => {
+      const id = String(key || "").trim();
+      if (!id) return;
+      out[id] = normalizeStepEntry(src[key], id);
+    });
+    return out;
+  }
+
   function normalizeEntry(raw, fallbackTitle) {
     const src = raw && typeof raw === "object" ? raw : {};
     const content = normalizeContent(src);
@@ -300,6 +321,7 @@
       content,
       instructions: legacy.instructions,
       images: legacy.images,
+      steps: normalizeSteps(src.steps),
       sections: normalizeSections(src.sections)
     };
   }
@@ -369,6 +391,23 @@
     return config.items[String(itemId)] || null;
   }
 
+  /** Step config under a VAS Type; key = AssignedServiceStepId. */
+  function getStepConfig(typeCfg, assignedServiceStepId) {
+    if (!typeCfg || !assignedServiceStepId) return null;
+    const steps = typeCfg.steps || {};
+    return steps[String(assignedServiceStepId)] || null;
+  }
+
+  /** True when step has at least one usable content block. */
+  function stepHasContent(stepCfg) {
+    if (!stepCfg || !Array.isArray(stepCfg.content)) return false;
+    return stepCfg.content.some((b) => {
+      if (!b) return false;
+      if (b.type === "image") return !!String(b.url || "").trim();
+      return !!String(b.text || "").trim();
+    });
+  }
+
   /** OR-merge section enabled flags from type + item (show both content; shared capture). */
   function mergedSections(typeCfg, itemCfg) {
     const a = normalizeSections(typeCfg && typeCfg.sections);
@@ -416,6 +455,10 @@
     loadVasConfigForOrg,
     getTypeConfig,
     getItemConfig,
+    getStepConfig,
+    stepHasContent,
+    normalizeStepEntry,
+    normalizeSteps,
     mergedSections,
     contentToLegacy,
     sanitizeColor,

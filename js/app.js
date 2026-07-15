@@ -572,13 +572,25 @@
       )}</td>`;
   }
 
-  function stepInstructionsPanelHtml(step, extraClass) {
+  function stepInstructionsPanelHtml(svc, step, extraClass) {
+    const stepId = step.AssignedServiceStepId || "";
+    const cls = ["step-panel", extraClass].filter(Boolean).join(" ");
+    const typeCfg = window.VasConfig
+      ? window.VasConfig.getTypeConfig(vasConfig, svc.ProvidedServiceId)
+      : null;
+    const stepCfg = window.VasConfig
+      ? window.VasConfig.getStepConfig(typeCfg, stepId)
+      : null;
+    if (window.VasConfig && window.VasConfig.stepHasContent(stepCfg)) {
+      return `<div class="${cls}" data-step-panel="${esc(stepId)}">
+        <h5>Step: ${esc(stepCfg.title || stepId)}</h5>
+        ${renderContentBlocks(stepCfg.content)}
+      </div>`;
+    }
     const lines = Array.isArray(step.Instructions)
       ? step.Instructions.map((t) => String(t || "").trim()).filter(Boolean)
       : [];
     if (!lines.length) return "";
-    const stepId = step.AssignedServiceStepId || "";
-    const cls = ["step-panel", extraClass].filter(Boolean).join(" ");
     return `<div class="${cls}" data-step-panel="${esc(stepId)}">
       <h5>Step: ${esc(stepId)}</h5>
       <ul class="vas-instruction-list mb-0">
@@ -620,7 +632,7 @@
             stepId === activeStepId
               ? "instruction-panel active"
               : "instruction-panel";
-          return stepInstructionsPanelHtml(step, cls);
+          return stepInstructionsPanelHtml(svc, step, cls);
         })
         .join("");
       return `<table class="steps-table compact">
@@ -650,7 +662,7 @@
               </tr>
             </tbody>
           </table>
-          ${stepInstructionsPanelHtml(step)}
+          ${stepInstructionsPanelHtml(svc, step)}
         </div>`;
       })
       .join("");

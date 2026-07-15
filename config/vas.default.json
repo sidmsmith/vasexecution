@@ -92,7 +92,8 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-apply-upc-tags.svg"
+      "iconUrl": "/assets/icons/vas-type-apply-upc-tags.svg",
+      "steps": {}
     },
     "Build Packaging Material": {
       "title": "Build Packaging Material",
@@ -198,37 +199,13 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-build-packaging-material.svg"
+      "iconUrl": "/assets/icons/vas-type-build-packaging-material.svg",
+      "steps": {}
     },
     "Dicks VAS Activities": {
       "title": "Dicks VAS Activities",
       "description": "VAS Activities required for Dicks Sporting Goods",
-      "instructions": [
-        {
-          "id": "ins_1199b754",
-          "text": "Print Price Ticket"
-        },
-        {
-          "id": "ins_206c8f79",
-          "text": "Apply UPC Tag"
-        },
-        {
-          "id": "ins_c33428d0",
-          "text": "Print Dicks Price Tickets"
-        },
-        {
-          "id": "ins_e402ec6f",
-          "text": "Print and attach label"
-        },
-        {
-          "id": "ins_6c272987",
-          "text": "Apply Labels"
-        },
-        {
-          "id": "ins_b60cb84d",
-          "text": "Complete all Dicks Sporting Goods ticket and label steps."
-        }
-      ],
+      "instructions": [],
       "images": [],
       "sections": {
         "signature": {
@@ -248,63 +225,70 @@
           "mode": "photo"
         }
       },
-      "content": [
-        {
-          "id": "ins_1199b754",
-          "type": "text",
-          "text": "Print Price Ticket",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
+      "content": [],
+      "iconUrl": "/assets/icons/vas-type-dicks-vas-activities.svg",
+      "steps": {
+        "Print Dicks Price Tickets": {
+          "title": "Print Dicks Price Tickets",
+          "content": [
+            {
+              "id": "ins_mig_0u4zlem4_0",
+              "type": "text",
+              "text": "Print Price Ticket",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_mig_m2lcqvvr_1",
+              "type": "text",
+              "text": "Apply UPC Tag",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_mig_w9bs1il2_2",
+              "type": "text",
+              "text": "Print Dicks Price Tickets",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
         },
-        {
-          "id": "ins_206c8f79",
-          "type": "text",
-          "text": "Apply UPC Tag",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_c33428d0",
-          "type": "text",
-          "text": "Print Dicks Price Tickets",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_e402ec6f",
-          "type": "text",
-          "text": "Print and attach label",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_6c272987",
-          "type": "text",
-          "text": "Apply Labels",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_b60cb84d",
-          "type": "text",
-          "text": "Complete all Dicks Sporting Goods ticket and label steps.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
+        "Apply Labels": {
+          "title": "Apply Labels",
+          "content": [
+            {
+              "id": "ins_mig_5gxtcgw3_0",
+              "type": "text",
+              "text": "Print and attach label",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_mig_xn9g66jr_1",
+              "type": "text",
+              "text": "Apply Labels",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
         }
-      ],
-      "iconUrl": "/assets/icons/vas-type-dicks-vas-activities.svg"
+      }
     },
     "Engravement": {
       "title": "Engravement",
@@ -397,7 +381,8 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-engravement.svg"
+      "iconUrl": "/assets/icons/vas-type-engravement.svg",
+      "steps": {}
     },
     "Generic Instruction": {
       "title": "Generic Instruction",
@@ -464,49 +449,13 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-generic-instruction.svg"
+      "iconUrl": "/assets/icons/vas-type-generic-instruction.svg",
+      "steps": {}
     },
     "Gift Wrap": {
       "title": "Gift Wrap",
       "description": "Gift Wrap",
-      "instructions": [
-        {
-          "id": "ins_68d7593c",
-          "text": "Measure the box"
-        },
-        {
-          "id": "ins_b2c84cfb",
-          "text": "Cut the paper"
-        },
-        {
-          "id": "ins_25b78824",
-          "text": "Cover the package"
-        },
-        {
-          "id": "ins_fe6f10a8",
-          "text": "Wrap"
-        },
-        {
-          "id": "ins_dd473c1f",
-          "text": "Tie the bow neatly"
-        },
-        {
-          "id": "ins_c4810a50",
-          "text": "Use the holiday bows"
-        },
-        {
-          "id": "ins_85ff4b51",
-          "text": "Tie the bow"
-        },
-        {
-          "id": "ins_4088df1c",
-          "text": "Use approved wrap paper and ribbon for the brand."
-        },
-        {
-          "id": "ins_233431ff",
-          "text": "Ensure ribbon is snug and ends are trimmed neatly."
-        }
-      ],
+      "instructions": [],
       "images": [],
       "sections": {
         "signature": {
@@ -526,90 +475,80 @@
           "mode": "photo"
         }
       },
-      "content": [
-        {
-          "id": "ins_68d7593c",
-          "type": "text",
-          "text": "Measure the box",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
+      "content": [],
+      "iconUrl": "/assets/icons/vas-type-gift-wrap.svg",
+      "steps": {
+        "Wrap": {
+          "title": "Wrap",
+          "content": [
+            {
+              "id": "ins_mig_jhcj30sn_0",
+              "type": "text",
+              "text": "Measure the box",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_mig_n0zcora1_1",
+              "type": "text",
+              "text": "Cut the paper",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_mig_cz72ltj4_2",
+              "type": "text",
+              "text": "Cover the package",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
         },
-        {
-          "id": "ins_b2c84cfb",
-          "type": "text",
-          "text": "Cut the paper",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_25b78824",
-          "type": "text",
-          "text": "Cover the package",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_fe6f10a8",
-          "type": "text",
-          "text": "Wrap",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_dd473c1f",
-          "type": "text",
-          "text": "Tie the bow neatly",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_c4810a50",
-          "type": "text",
-          "text": "Use the holiday bows",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_85ff4b51",
-          "type": "text",
-          "text": "Tie the bow",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_4088df1c",
-          "type": "text",
-          "text": "Use approved wrap paper and ribbon for the brand.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_233431ff",
-          "type": "text",
-          "text": "Ensure ribbon is snug and ends are trimmed neatly.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
+        "Tie Bow": {
+          "title": "Tie Bow",
+          "content": [
+            {
+              "id": "ins_mig_j3p8ixnd_0",
+              "type": "text",
+              "text": "Tie the bow neatly",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_mig_h4koe2us_1",
+              "type": "text",
+              "text": "Use the holiday bows",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_mig_t5guobxb_2",
+              "type": "text",
+              "text": "Ensure ribbon is snug and ends are trimmed neatly.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
         }
-      ],
-      "iconUrl": "/assets/icons/vas-type-gift-wrap.svg"
+      }
     },
     "Pallet Shrink Wrap": {
       "title": "Pallet Shrink Wrap",
@@ -663,7 +602,8 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-pallet-shrink-wrap.svg"
+      "iconUrl": "/assets/icons/vas-type-pallet-shrink-wrap.svg",
+      "steps": {}
     },
     "Picture": {
       "title": "Picture",
@@ -769,7 +709,8 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-picture.svg"
+      "iconUrl": "/assets/icons/vas-type-picture.svg",
+      "steps": {}
     },
     "Print Price Ticket": {
       "title": "Print Price Ticket",
@@ -849,7 +790,8 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-print-price-ticket.svg"
+      "iconUrl": "/assets/icons/vas-type-print-price-ticket.svg",
+      "steps": {}
     },
     "Promotion Flyer": {
       "title": "Promotion Flyer",
@@ -929,7 +871,8 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-promotion-flyer.svg"
+      "iconUrl": "/assets/icons/vas-type-promotion-flyer.svg",
+      "steps": {}
     },
     "Repack": {
       "title": "Repack",
@@ -1022,7 +965,8 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-repack.svg"
+      "iconUrl": "/assets/icons/vas-type-repack.svg",
+      "steps": {}
     },
     "Reverse VAS": {
       "title": "Reverse VAS",
@@ -1115,7 +1059,8 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-reverse-vas.svg"
+      "iconUrl": "/assets/icons/vas-type-reverse-vas.svg",
+      "steps": {}
     },
     "TF-Engravement": {
       "title": "TF-Engravement",
@@ -1208,7 +1153,8 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-tf-engravement.svg"
+      "iconUrl": "/assets/icons/vas-type-tf-engravement.svg",
+      "steps": {}
     },
     "Walmart-Repack": {
       "title": "Walmart-Repack",
@@ -1288,7 +1234,8 @@
           "color": "#000000"
         }
       ],
-      "iconUrl": "/assets/icons/vas-type-walmart-repack.svg"
+      "iconUrl": "/assets/icons/vas-type-walmart-repack.svg",
+      "steps": {}
     }
   },
   "items": {

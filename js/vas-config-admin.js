@@ -6,6 +6,7 @@
   let draft = null;
   let tab = "types"; // types | items
   let selectedKey = null;
+  let selectedStepId = null;
   let previewThemeScope = null;
   let previewDeviceLogo = null;
   let previewMode = "mobile"; // mobile | desktop
@@ -31,6 +32,12 @@
     edIconUrlWrap: document.getElementById("edIconUrlWrap"),
     edIconUrl: document.getElementById("edIconUrl"),
     edIconPreview: document.getElementById("edIconPreview"),
+    stepPickerWrap: document.getElementById("stepPickerWrap"),
+    stepSelect: document.getElementById("stepSelect"),
+    addStepBtn: document.getElementById("addStepBtn"),
+    removeStepBtn: document.getElementById("removeStepBtn"),
+    contentSectionLabel: document.getElementById("contentSectionLabel"),
+    contentSectionHint: document.getElementById("contentSectionHint"),
     contentList: document.getElementById("contentList"),
     secSig: document.getElementById("secSig"),
     secPhotos: document.getElementById("secPhotos"),
@@ -39,6 +46,8 @@
     previewNote: document.getElementById("previewNote"),
     configTabSelect: document.getElementById("configTabSelect"),
     deleteKeyBtn: document.getElementById("deleteKeyBtn"),
+    addEntryBtn: document.getElementById("addEntryBtn"),
+    addEntryBtnLabel: document.getElementById("addEntryBtnLabel"),
     previewThemeBtn: document.getElementById("previewThemeBtn"),
     previewDesktopBtn: document.getElementById("previewDesktopBtn"),
     previewMobileBtn: document.getElementById("previewMobileBtn")
@@ -98,6 +107,28 @@
     return draft[bucket()][selectedKey] || null;
   }
 
+  function stepKeys(entry) {
+    return Object.keys((entry && entry.steps) || {}).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" })
+    );
+  }
+
+  /** Content owner currently being edited (step for types, entry for items). */
+  function contentOwner() {
+    const entry = currentEntry();
+    if (!entry) return null;
+    if (tab === "items") return entry;
+    if (!selectedStepId) return null;
+    if (!entry.steps) entry.steps = {};
+    if (!entry.steps[selectedStepId]) {
+      entry.steps[selectedStepId] = VasConfig.normalizeStepEntry(
+        { title: selectedStepId, content: [] },
+        selectedStepId
+      );
+    }
+    return entry.steps[selectedStepId];
+  }
+
   function nid(prefix) {
     return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
   }
@@ -113,6 +144,7 @@
           content: [],
           instructions: [],
           images: [],
+          steps: {},
           sections: {
             signature: { ...VasConfig.DEFAULT_SECTIONS.signature },
             photos: { ...VasConfig.DEFAULT_SECTIONS.photos },
@@ -182,11 +214,19 @@
     entry.description = els.edDescription.value.trim() || entry.title;
     if (tab === "types") {
       entry.iconUrl = VasConfig.normalizeIconUrl(els.edIconUrl?.value || "");
+      if (!entry.steps) entry.steps = {};
+      const owner = contentOwner();
+      if (owner) {
+        owner.content = readContentFromDom(false);
+        owner.title = selectedStepId;
+      }
+      // Type-level content is no longer edited here (legacy may still exist on disk).
+    } else {
+      entry.content = readContentFromDom(false);
+      const legacy = VasConfig.contentToLegacy(entry.content);
+      entry.instructions = legacy.instructions;
+      entry.images = legacy.images;
     }
-    entry.content = readContentFromDom(false);
-    const legacy = VasConfig.contentToLegacy(entry.content);
-    entry.instructions = legacy.instructions;
-    entry.images = legacy.images;
     entry.sections = {
       signature: {
         enabled: els.secSig.checked,
@@ -242,25 +282,75 @@
         e.stopPropagation();
         item.classList.remove("drag-over");
         const to = +item.dataset.idx;
-        const entry = currentEntry();
-        if (!entry || dragFrom == null || dragFrom === to) return;
+        const owner = contentOwner();
+        if (!owner || dragFrom == null || dragFrom === to) return;
         const next = readContentFromDom(true);
         const [moved] = next.splice(dragFrom, 1);
         next.splice(to, 0, moved);
-        entry.content = next;
-        const legacy = VasConfig.contentToLegacy(
-          next.filter((b) =>
-            b.type === "image" ? !!b.url : !!String(b.text || "").trim()
-          )
-        );
-        entry.instructions = legacy.instructions;
-        entry.images = legacy.images;
-        entry.title = els.edTitle.value.trim() || selectedKey;
-        entry.description = els.edDescription.value.trim() || entry.title;
+        owner.content = next;
+        if (tab === "items") {
+          const entry = currentEntry();
+          const legacy = VasConfig.contentToLegacy(
+            next.filter((b) =>
+              b.type === "image" ? !!b.url : !!String(b.text || "").trim()
+            )
+          );
+          entry.instructions = legacy.instructions;
+          entry.images = legacy.images;
+          entry.title = els.edTitle.value.trim() || selectedKey;
+          entry.description = els.edDescription.value.trim() || entry.title;
+        }
         renderEditor();
         renderPreview();
       });
     });
+  }
+
+  function renderStepSelect() {
+    const entry = currentEntry();
+    if (!els.stepPickerWrap || !els.stepSelect) return;
+    const show = tab === "types" && !!entry;
+    els.stepPickerWrap.style.display = show ? "" : "none";
+    if (!show) {
+      selectedStepId = null;
+      return;
+    }
+    if (!entry.steps) entry.steps = {};
+    const keys = stepKeys(entry);
+    if (!selectedStepId || !keys.includes(selectedStepId)) {
+      selectedStepId = keys[0] || null;
+    }
+    if (!keys.length) {
+      els.stepSelect.innerHTML =
+        '<option value="">No steps — use Add step</option>';
+      els.stepSelect.disabled = true;
+      selectedStepId = null;
+      if (els.removeStepBtn) els.removeStepBtn.disabled = true;
+      return;
+    }
+    els.stepSelect.disabled = false;
+    els.stepSelect.innerHTML = keys
+      .map(
+        (key) =>
+          `<option value="${esc(key)}"${
+            key === selectedStepId ? " selected" : ""
+          }>${esc(key)}</option>`
+      )
+      .join("");
+    if (els.removeStepBtn) els.removeStepBtn.disabled = !selectedStepId;
+  }
+
+  function updateAddEntryLabel() {
+    if (els.addEntryBtnLabel) {
+      els.addEntryBtnLabel.textContent =
+        tab === "types" ? "Add VAS Type" : "Add Item";
+    }
+    if (els.addEntryBtn) {
+      els.addEntryBtn.title =
+        tab === "types"
+          ? "Add a ProvidedServiceId / VAS Type"
+          : "Add an ItemId overlay";
+    }
   }
 
   function renderEntrySelect() {
@@ -281,7 +371,9 @@
           : '<option value="">No Items — use Add Item</option>';
       els.entrySelect.disabled = true;
       selectedKey = null;
+      selectedStepId = null;
       els.deleteKeyBtn.disabled = true;
+      updateAddEntryLabel();
       return;
     }
     if (!selectedKey || !keys.includes(selectedKey)) {
@@ -297,6 +389,7 @@
       )
       .join("");
     els.deleteKeyBtn.disabled = !selectedKey;
+    updateAddEntryLabel();
   }
 
   function renderEditor() {
@@ -318,14 +411,36 @@
         tab === "types" ? entry.iconUrl || VasConfig.DEFAULT_TYPE_ICON_URL : "";
       syncIconPreview();
     }
-    const content = entry.content || [];
-    els.contentList.innerHTML = content
-      .map((block, idx) => {
-        if (block.type === "image") {
-          const scale = VasConfig.normalizeImageScale(block.scale);
-          return `<div class="content-row image-row draggable-item" data-idx="${idx}" data-type="image" data-id="${esc(
-            block.id
-          )}">
+    renderStepSelect();
+    updateAddEntryLabel();
+
+    if (els.contentSectionLabel) {
+      els.contentSectionLabel.textContent =
+        tab === "types"
+          ? "Step content (instructions & images)"
+          : "Content (instructions & images)";
+    }
+    if (els.contentSectionHint) {
+      els.contentSectionHint.textContent =
+        tab === "types"
+          ? selectedStepId
+            ? `Editing step “${selectedStepId}”. Drag blocks to reorder.`
+            : "Select or add a step first. Drag blocks to reorder."
+          : "Drag to reorder. Images can sit above or below text.";
+    }
+
+    const owner = contentOwner();
+    const content = owner ? owner.content || [] : [];
+    const canEditContent = tab === "items" || !!selectedStepId;
+    els.contentList.innerHTML = !canEditContent
+      ? `<p class="text-muted small mb-0">Add a step (AssignedServiceStepId) to attach instructions.</p>`
+      : content
+          .map((block, idx) => {
+            if (block.type === "image") {
+              const scale = VasConfig.normalizeImageScale(block.scale);
+              return `<div class="content-row image-row draggable-item" data-idx="${idx}" data-type="image" data-id="${esc(
+                block.id
+              )}">
             <span class="grip" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
             <div class="content-fields">
               <div class="text-format-bar image-scale-bar">
@@ -348,13 +463,14 @@
             </div>
             ${deleteBtnHtml("rm-content")}
           </div>`;
-        }
-        const color =
-          VasConfig.sanitizeColor(block.color) || VasConfig.DEFAULT_TEXT_COLOR;
-        const fontSize = VasConfig.normalizeFontSize(block.fontSize);
-        return `<div class="content-row instruction-row draggable-item" data-idx="${idx}" data-type="text" data-id="${esc(
-          block.id
-        )}">
+            }
+            const color =
+              VasConfig.sanitizeColor(block.color) ||
+              VasConfig.DEFAULT_TEXT_COLOR;
+            const fontSize = VasConfig.normalizeFontSize(block.fontSize);
+            return `<div class="content-row instruction-row draggable-item" data-idx="${idx}" data-type="text" data-id="${esc(
+              block.id
+            )}">
             <span class="grip" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
             <div class="content-fields">
               <div class="text-format-bar">
@@ -375,8 +491,9 @@
             </div>
             ${deleteBtnHtml("rm-content")}
           </div>`;
-      })
-      .join("");
+          })
+          .join("");
+
     els.contentList.querySelectorAll(".rm-content").forEach((btn) => {
       btn.onclick = () => {
         btn.closest(".content-row")?.remove();
@@ -421,7 +538,7 @@
           renderPreview();
         };
       });
-    bindContentDrag();
+    if (canEditContent) bindContentDrag();
 
     els.secSig.checked = !!(entry.sections?.signature?.enabled);
     els.secPhotos.checked = !!(entry.sections?.photos?.enabled);
@@ -441,7 +558,13 @@
   }
 
   function buildCardHtml(entry, sections) {
-    const contentHtml = (entry.content || [])
+    const previewContent =
+      tab === "types"
+        ? selectedStepId && entry.steps?.[selectedStepId]
+          ? entry.steps[selectedStepId].content || []
+          : []
+        : entry.content || [];
+    const contentHtml = previewContent
       .map((block) => {
         if (block.type === "image") {
           return VasConfig.renderContentImageHtml(block, esc);
@@ -458,17 +581,23 @@
             VasConfig.typeIconUrl(entry)
           )}" alt="" onerror="this.remove()" />`
         : "";
+    const contentTitle =
+      tab === "types"
+        ? selectedStepId
+          ? `Step: ${selectedStepId}`
+          : "Step instructions"
+        : "Item instructions";
     return `
       <article class="service-card">
         <div class="service-header preview-service-header">
           <div>
             <div class="service-title">${esc(entry.title)}</div>
-            <div class="service-meta mb-0">${esc(entry.description || "")}</div>
+            <div class="text-muted small mb-0">${esc(entry.description || "")}</div>
           </div>
           ${iconHtml}
         </div>
         <div class="vas-config-block ${tab === "items" ? "item-block" : "type-block"}">
-          <h4>${tab === "types" ? "VAS Type" : "Item"} instructions</h4>
+          <h4>${esc(contentTitle)}</h4>
           ${contentHtml ? `<div class="vas-content-list">${contentHtml}</div>` : "<p class='text-muted'>No content</p>"}
         </div>
         <div class="capture-sections">
@@ -663,6 +792,8 @@
     els.configTabSelect.value = tab;
     const keys = Object.keys(draft?.[bucket()] || {});
     selectedKey = keys[0] || null;
+    selectedStepId = null;
+    updateAddEntryLabel();
     renderEntrySelect();
     renderEditor();
     renderPreview();
@@ -673,20 +804,76 @@
   els.entrySelect.onchange = () => {
     syncEditorToDraft();
     selectedKey = els.entrySelect.value || null;
+    selectedStepId = null;
     els.deleteKeyBtn.disabled = !selectedKey;
     renderEditor();
     renderPreview();
   };
+
+  if (els.stepSelect) {
+    els.stepSelect.onchange = () => {
+      syncEditorToDraft();
+      selectedStepId = els.stepSelect.value || null;
+      renderEditor();
+      renderPreview();
+    };
+  }
+
+  if (els.addStepBtn) {
+    els.addStepBtn.onclick = () => {
+      syncEditorToDraft();
+      const entry = currentEntry();
+      if (!entry || tab !== "types") return;
+      const raw = prompt(
+        "AssignedServiceStepId for this step (must match MAWM):"
+      );
+      const stepId = String(raw || "").trim();
+      if (!stepId) return;
+      if (!entry.steps) entry.steps = {};
+      if (entry.steps[stepId]) {
+        selectedStepId = stepId;
+        status(`Step “${stepId}” already exists — selected it`, "info");
+      } else {
+        entry.steps[stepId] = VasConfig.normalizeStepEntry(
+          { title: stepId, content: [] },
+          stepId
+        );
+        selectedStepId = stepId;
+      }
+      renderEditor();
+      renderPreview();
+    };
+  }
+
+  if (els.removeStepBtn) {
+    els.removeStepBtn.onclick = () => {
+      syncEditorToDraft();
+      const entry = currentEntry();
+      if (!entry || !selectedStepId || tab !== "types") return;
+      if (!confirm(`Remove step “${selectedStepId}”?`)) return;
+      delete entry.steps[selectedStepId];
+      selectedStepId = stepKeys(entry)[0] || null;
+      renderEditor();
+      renderPreview();
+    };
+  }
 
   els.previewDesktopBtn.onclick = () => setPreviewMode("desktop");
   els.previewMobileBtn.onclick = () => setPreviewMode("mobile");
 
   document.getElementById("addInstrBtn").onclick = () => {
     syncEditorToDraft();
-    const entry = currentEntry();
-    if (!entry) return;
-    if (!Array.isArray(entry.content)) entry.content = [];
-    entry.content.push({
+    const owner = contentOwner();
+    if (!owner) {
+      return status(
+        tab === "types"
+          ? "Add or select a step before adding content"
+          : "Select an item first",
+        "error"
+      );
+    }
+    if (!Array.isArray(owner.content)) owner.content = [];
+    owner.content.push({
       id: nid("ins"),
       type: "text",
       text: "",
@@ -701,10 +888,17 @@
   };
   document.getElementById("addImageBtn").onclick = () => {
     syncEditorToDraft();
-    const entry = currentEntry();
-    if (!entry) return;
-    if (!Array.isArray(entry.content)) entry.content = [];
-    entry.content.push({
+    const owner = contentOwner();
+    if (!owner) {
+      return status(
+        tab === "types"
+          ? "Add or select a step before adding content"
+          : "Select an item first",
+        "error"
+      );
+    }
+    if (!Array.isArray(owner.content)) owner.content = [];
+    owner.content.push({
       id: nid("img"),
       type: "image",
       url: "",
@@ -731,21 +925,35 @@
     if (!confirm(`Remove ${selectedKey} from draft?`)) return;
     delete draft[bucket()][selectedKey];
     selectedKey = Object.keys(draft[bucket()])[0] || null;
+    selectedStepId = null;
     renderEntrySelect();
     renderEditor();
     renderPreview();
   };
 
-  document.getElementById("addItemBtn").onclick = () => {
-    const itemId = prompt("ItemId to add:");
-    if (!itemId || !itemId.trim()) return;
-    switchTab("items");
-    selectedKey = itemId.trim();
-    ensureEntry(selectedKey);
-    renderEntrySelect();
-    renderEditor();
-    renderPreview();
-  };
+  if (els.addEntryBtn) {
+    els.addEntryBtn.onclick = () => {
+      if (tab === "types") {
+        const raw = prompt("ProvidedServiceId / VAS Type name:");
+        const key = String(raw || "").trim();
+        if (!key) return;
+        selectedKey = key;
+        ensureEntry(selectedKey);
+        selectedStepId = null;
+        renderEntrySelect();
+        renderEditor();
+        renderPreview();
+        return;
+      }
+      const itemId = prompt("ItemId to add:");
+      if (!itemId || !itemId.trim()) return;
+      selectedKey = itemId.trim();
+      ensureEntry(selectedKey);
+      renderEntrySelect();
+      renderEditor();
+      renderPreview();
+    };
+  }
 
   document.getElementById("exportBtn").onclick = () => {
     syncEditorToDraft();
