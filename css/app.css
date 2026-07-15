@@ -330,17 +330,17 @@ body {
   border-collapse: collapse;
   margin-top: 0.5rem;
 }
-/* Give Requested / Remaining / Completed / Qty / Status more room */
+/* Equal metric columns; center headers + values so gaps look even */
 .steps-table col.col-select { width: 2.25rem; }
 .steps-table col.col-step { width: 12%; }
 .steps-table col.col-desc { width: auto; }
-.steps-table col.col-num { width: 7.25rem; }
-.steps-table col.col-qty { width: 8.5rem; }
-.steps-table col.col-status { width: 9rem; }
+.steps-table col.col-num { width: 7.75rem; }
+.steps-table col.col-qty { width: 8rem; }
+.steps-table col.col-status { width: 7.75rem; }
 .steps-table th,
 .steps-table td {
   border-top: 1px solid var(--border);
-  padding: 0.45rem 0.5rem;
+  padding: 0.45rem 0.55rem;
   vertical-align: middle;
   word-wrap: break-word;
   overflow-wrap: anywhere;
@@ -353,18 +353,21 @@ body {
   color: var(--table-header-text, var(--text-muted));
   white-space: nowrap;
 }
+.steps-table th.step-num,
 .steps-table td.step-num,
-.steps-table th:nth-child(4),
-.steps-table th:nth-child(5),
-.steps-table th:nth-child(6) {
-  text-align: right;
-}
+.steps-table th.step-qty,
 .steps-table td.step-qty,
+.steps-table th.step-status,
 .steps-table td.step-status {
   text-align: center;
 }
 .steps-table td.step-status {
   overflow: visible;
+}
+.steps-table td.step-qty .qty-input {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
 .steps-table tr.step-instructions-row > td {
   border-top: none;
@@ -375,7 +378,7 @@ body {
   margin-top: 0;
 }
 
-/* Solid chips so label stays readable on any theme */
+/* Soft tinted chips (preferred look); force label color past Bootstrap .badge */
 .badge.status-chip {
   display: inline-block;
   font-weight: 700;
@@ -384,25 +387,27 @@ body {
   letter-spacing: 0.01em;
   padding: 0.28em 0.65em;
   border: 1px solid transparent;
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff;
+  -webkit-text-fill-color: currentColor;
 }
 .badge.status-created {
-  background: #dc2626 !important;
-  border-color: #f87171;
+  color: #fecaca !important;
+  background: rgba(220, 38, 38, 0.28) !important;
+  border-color: rgba(248, 113, 113, 0.55);
 }
 .badge.status-complete {
-  background: #16a34a !important;
-  border-color: #4ade80;
+  color: #bbf7d0 !important;
+  background: rgba(22, 163, 74, 0.28) !important;
+  border-color: rgba(74, 222, 128, 0.55);
 }
 .badge.status-other {
-  background: #d97706 !important;
-  border-color: #fbbf24;
+  color: #fde68a !important;
+  background: rgba(217, 119, 6, 0.28) !important;
+  border-color: rgba(251, 191, 36, 0.55);
 }
 
 .qty-input {
   width: 100%;
-  max-width: 6.5rem;
+  max-width: 5.75rem;
   padding: 0.25rem 0.4rem;
   font-size: 0.9rem;
 }

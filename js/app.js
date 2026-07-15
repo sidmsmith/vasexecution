@@ -533,11 +533,11 @@
         <th class="step-select-col" aria-label="Select step"></th>
         <th>Step</th>
         <th>Description</th>
-        <th>Requested</th>
-        <th>Remaining</th>
-        <th>Completed</th>
-        <th>Qty to complete</th>
-        <th>Status</th>
+        <th class="step-num">Requested</th>
+        <th class="step-num">Remaining</th>
+        <th class="step-num">Completed</th>
+        <th class="step-qty">Qty to complete</th>
+        <th class="step-status">Status</th>
       </tr>
     </thead>`;
   }
