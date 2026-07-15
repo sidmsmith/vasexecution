@@ -341,12 +341,59 @@
     }
   }
 
+  function parseHexColor(value) {
+    const raw = String(value || "").trim();
+    const hex = raw.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (!hex) return null;
+    let h = hex[1];
+    if (h.length === 3) {
+      h = h
+        .split("")
+        .map((c) => c + c)
+        .join("");
+    }
+    return {
+      r: parseInt(h.slice(0, 2), 16),
+      g: parseInt(h.slice(2, 4), 16),
+      b: parseInt(h.slice(4, 6), 16)
+    };
+  }
+
+  /** WCAG relative luminance (0–1) for #rgb / #rrggbb. */
+  function relativeLuminance(color) {
+    const rgb = parseHexColor(color);
+    if (!rgb) return 0.15; // assume dark if unknown
+    const channel = (c) => {
+      const s = c / 255;
+      return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    };
+    return (
+      0.2126 * channel(rgb.r) +
+      0.7152 * channel(rgb.g) +
+      0.0722 * channel(rgb.b)
+    );
+  }
+
+  /** Chip label that contrasts with card/page background. */
+  function statusChipForeground(colors) {
+    const bg =
+      (colors && (colors["--card-bg"] || colors["--bg-dark"])) || "#1e1e1e";
+    // Light surfaces → near-black label; dark surfaces → near-white label
+    return relativeLuminance(bg) > 0.45 ? "#111111" : "#f5f5f5";
+  }
+
+  function applyContrastVars(target, colors) {
+    if (!target || !target.style) return;
+    target.style.setProperty("--status-chip-fg", statusChipForeground(colors));
+  }
+
   function applyThemeToScope(themeKey, scopeEl, logoEl) {
     const theme = themes[themeKey];
     if (!theme || !scopeEl) return themeKey;
     Object.entries(theme.colors).forEach(([property, value]) => {
       scopeEl.style.setProperty(property, value);
     });
+    applyContrastVars(scopeEl, theme.colors);
     scopeEl.style.background = theme.colors['--bg-dark'] || '#121212';
     scopeEl.style.color = theme.colors['--text'] || '#e0e0e0';
     if (logoEl) {
@@ -407,6 +454,7 @@
     Object.entries(theme.colors).forEach(([property, value]) => {
       root.style.setProperty(property, value);
     });
+    applyContrastVars(root, theme.colors);
     if (themeLogo) {
       if (theme.logo) {
         themeLogo.src = theme.logo;
