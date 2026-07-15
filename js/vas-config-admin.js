@@ -146,7 +146,10 @@
             row.querySelector(".fmt-underline")?.classList.contains("active") || false,
           color:
             VasConfig.sanitizeColor(colorEl?.value || "") ||
-            VasConfig.DEFAULT_TEXT_COLOR
+            VasConfig.DEFAULT_TEXT_COLOR,
+          fontSize: VasConfig.normalizeFontSize(
+            row.querySelector(".txt-scale")?.value
+          )
         };
       }
     ).filter((b) => {
@@ -315,6 +318,7 @@
         }
         const color =
           VasConfig.sanitizeColor(block.color) || VasConfig.DEFAULT_TEXT_COLOR;
+        const fontSize = VasConfig.normalizeFontSize(block.fontSize);
         return `<div class="content-row instruction-row draggable-item" data-idx="${idx}" data-type="text" data-id="${esc(
           block.id
         )}">
@@ -327,6 +331,11 @@
                 <button type="button" class="fmt-btn fmt-underline${block.underline ? " active" : ""}" title="Underline" aria-label="Underline"><u>U</u></button>
                 <label class="fmt-color-wrap" title="Text color">
                   <input type="color" class="fmt-color" value="${esc(color)}" aria-label="Text color" />
+                </label>
+                <label class="img-scale-label txt-scale-label">
+                  Size
+                  <input type="range" class="img-scale txt-scale" min="50" max="150" step="1" value="${fontSize}" aria-label="Text size percent" />
+                  <span class="img-scale-value txt-scale-value">${fontSize}%</span>
                 </label>
               </div>
               <textarea class="form-control">${esc(block.text)}</textarea>
@@ -349,16 +358,18 @@
         renderPreview();
       };
     });
-    els.contentList.querySelectorAll(".img-scale").forEach((range) => {
-      const label = range
-        .closest(".img-scale-label")
-        ?.querySelector(".img-scale-value");
-      range.oninput = () => {
-        if (label) label.textContent = `${range.value}%`;
-        syncEditorToDraft();
-        renderPreview();
-      };
-    });
+    els.contentList
+      .querySelectorAll(".img-scale, .txt-scale")
+      .forEach((range) => {
+        const label = range
+          .closest(".img-scale-label")
+          ?.querySelector(".img-scale-value");
+        range.oninput = () => {
+          if (label) label.textContent = `${range.value}%`;
+          syncEditorToDraft();
+          renderPreview();
+        };
+      });
     els.contentList
       .querySelectorAll(
         "textarea, input.img-url, input.img-caption, input.fmt-color"
@@ -424,7 +435,7 @@
               ? `<div class="capture-section signature-section" data-capture="signature">
                   <div class="capture-section-header">
                     <label>${esc(sections.signature.label)}</label>
-                    <button type="button" class="btn btn-sm btn-secondary sig-clear">Clear Signature</button>
+                    <button type="button" class="btn btn-sm btn-secondary pad-clear-btn sig-clear">Clear Signature</button>
                   </div>
                   <div class="signature-pad-wrapper is-empty">
                     <div class="signature-pad-placeholder"><i class="fa-solid fa-signature"></i><span>Sign here</span></div>
@@ -449,8 +460,8 @@
                     <label>${esc(sections.markupPad.label)}</label>
                     <div class="damage-pad-controls">
                       <button type="button" class="btn btn-sm btn-secondary damage-pad-photo-btn markup-camera"><i class="fas fa-camera"></i></button>
-                      <button type="button" class="btn btn-sm btn-secondary markup-clear-photo" style="display:none">Clear Photo</button>
-                      <button type="button" class="btn btn-sm btn-secondary markup-clear">Clear Marks</button>
+                      <button type="button" class="btn btn-sm btn-secondary pad-clear-btn markup-clear-photo" style="display:none">Clear Photo</button>
+                      <button type="button" class="btn btn-sm btn-secondary pad-clear-btn markup-clear">Clear Marks</button>
                     </div>
                   </div>
                   <div class="damage-pad-wrapper markup-pad is-empty show-empty-placeholder">
@@ -640,7 +651,8 @@
       bold: false,
       italic: false,
       underline: false,
-      color: VasConfig.DEFAULT_TEXT_COLOR
+      color: VasConfig.DEFAULT_TEXT_COLOR,
+      fontSize: 100
     });
     renderEditor();
     renderPreview();

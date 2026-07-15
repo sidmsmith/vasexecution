@@ -325,9 +325,22 @@
         fileInput.value = "";
       };
     }
-    if (cameraBtn && fileInput) {
+    if (cameraBtn) {
       cameraBtn.classList.add("visible");
-      cameraBtn.onclick = () => fileInput.click();
+      cameraBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (cameraModalApi?.modal) {
+          openLiveCamera({
+            purpose: "markup",
+            title: "Markup Photo",
+            showGallery: false,
+            onMarkupCapture: (dataUrl) => setPhotoFromDataUrl(dataUrl)
+          });
+        } else if (fileInput) {
+          fileInput.click();
+        }
+      };
     }
 
     sizeTo(root.clientWidth || section.clientWidth || 480, 180);
@@ -393,23 +406,220 @@
     notifyPhotos();
   }
 
-  function wireCameraButton(cameraBtn, fileInput, countEl) {
-    if (!cameraBtn || !fileInput || cameraBtn.dataset.camBound) return;
+  let cameraStream = null;
+  let cameraModalApi = null;
+  let cameraModalPurpose = "session";
+  let markupCaptureHandler = null;
+  let suppressModalReset = false;
+
+  function stopCameraStream() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((t) => t.stop());
+      cameraStream = null;
+    }
+    if (cameraModalApi?.videoEl) {
+      cameraModalApi.videoEl.srcObject = null;
+    }
+  }
+
+  async function startCameraStream() {
+    stopCameraStream();
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("Camera not supported in this browser");
+    }
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false
+    });
+    if (cameraModalApi?.videoEl) {
+      cameraModalApi.videoEl.srcObject = cameraStream;
+      await cameraModalApi.videoEl.play();
+    }
+  }
+
+  function renderCameraGallery() {
+    const { galleryEl, galleryEmptyEl } = cameraModalApi || {};
+    if (!galleryEl) return;
+    if (!sessionPhotos.length) {
+      galleryEl.innerHTML = "";
+      if (galleryEmptyEl) {
+        galleryEmptyEl.style.display = "";
+        galleryEmptyEl.textContent = "No photos captured yet.";
+        galleryEl.appendChild(galleryEmptyEl);
+      }
+      return;
+    }
+    if (galleryEmptyEl) galleryEmptyEl.style.display = "none";
+    galleryEl.innerHTML = sessionPhotos
+      .map(
+        (p, idx) =>
+          `<div class="photo-thumb" data-idx="${idx}">
+            <img src="${p.dataUrl}" alt="" />
+            <button type="button" class="photo-remove" data-idx="${idx}" aria-label="Remove photo">&times;</button>
+          </div>`
+      )
+      .join("");
+    galleryEl.querySelectorAll(".photo-remove").forEach((btn) => {
+      btn.onclick = () => {
+        sessionPhotos.splice(Number(btn.dataset.idx), 1);
+        notifyPhotos();
+        renderCameraGallery();
+      };
+    });
+  }
+
+  async function openLiveCamera(opts) {
+    const {
+      purpose = "session",
+      title = "Photos",
+      showGallery = true,
+      onMarkupCapture = null
+    } = opts || {};
+    if (!cameraModalApi?.modal) {
+      cameraModalApi?.fileInput?.click();
+      return;
+    }
+    cameraModalPurpose = purpose;
+    markupCaptureHandler = onMarkupCapture;
+    if (cameraModalApi.titleEl) cameraModalApi.titleEl.textContent = title;
+    if (cameraModalApi.galleryEl) {
+      cameraModalApi.galleryEl.style.display = showGallery ? "" : "none";
+    }
+    if (showGallery) renderCameraGallery();
+    cameraModalApi.modal.show();
+    try {
+      await startCameraStream();
+    } catch (err) {
+      console.warn("[CAMERA] getUserMedia failed, using file fallback:", err);
+      stopCameraStream();
+      suppressModalReset = true;
+      cameraModalApi.modal.hide();
+      cameraModalApi.fileInput?.click();
+      // Allow the next genuine close to reset state
+      setTimeout(() => {
+        suppressModalReset = false;
+      }, 0);
+    }
+  }
+
+  function wireCameraButton(opts) {
+    const cfg =
+      opts && typeof opts === "object" && opts.cameraBtn
+        ? opts
+        : {
+            cameraBtn: arguments[0],
+            fileInput: arguments[1],
+            countEl: arguments[2]
+          };
+    const {
+      cameraBtn,
+      fileInput,
+      countEl,
+      modalEl,
+      videoEl,
+      canvasEl,
+      captureBtn,
+      galleryEl,
+      galleryEmptyEl,
+      fileFallbackBtn
+    } = cfg;
+    if (!cameraBtn || cameraBtn.dataset.camBound) return;
     cameraBtn.dataset.camBound = "1";
-    cameraBtn.onclick = () => fileInput.click();
-    fileInput.onchange = () => {
-      const files = Array.from(fileInput.files || []);
-      files.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = () => addSessionPhoto(reader.result);
-        reader.readAsDataURL(file);
-      });
-      fileInput.value = "";
+
+    const titleEl = modalEl?.querySelector(".modal-title") || null;
+    cameraModalApi = {
+      cameraBtn,
+      fileInput,
+      countEl,
+      modalEl,
+      videoEl,
+      canvasEl,
+      captureBtn,
+      galleryEl,
+      galleryEmptyEl,
+      fileFallbackBtn,
+      titleEl,
+      modal:
+        modalEl && window.bootstrap?.Modal
+          ? window.bootstrap.Modal.getOrCreateInstance(modalEl)
+          : null
     };
+
+    cameraBtn.onclick = () =>
+      openLiveCamera({
+        purpose: "session",
+        title: "Photos",
+        showGallery: true
+      });
+
+    if (fileInput && !fileInput.dataset.camFileBound) {
+      fileInput.dataset.camFileBound = "1";
+      fileInput.onchange = () => {
+        const files = Array.from(fileInput.files || []);
+        files.forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (cameraModalPurpose === "markup" && markupCaptureHandler) {
+              const handler = markupCaptureHandler;
+              cameraModalPurpose = "session";
+              markupCaptureHandler = null;
+              handler(reader.result);
+              return;
+            }
+            addSessionPhoto(reader.result);
+            renderCameraGallery();
+          };
+          reader.readAsDataURL(file);
+        });
+        fileInput.value = "";
+      };
+    }
+
+    if (fileFallbackBtn && !fileFallbackBtn.dataset.camBound) {
+      fileFallbackBtn.dataset.camBound = "1";
+      fileFallbackBtn.onclick = () => fileInput?.click();
+    }
+
+    if (captureBtn && !captureBtn.dataset.camBound) {
+      captureBtn.dataset.camBound = "1";
+      captureBtn.onclick = () => {
+        const video = videoEl;
+        const canvas = canvasEl;
+        if (!video || !canvas || !video.videoWidth || !video.videoHeight) return;
+        const ctx = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+        if (cameraModalPurpose === "markup" && markupCaptureHandler) {
+          markupCaptureHandler(dataUrl);
+          markupCaptureHandler = null;
+          cameraModalPurpose = "session";
+          cameraModalApi.modal?.hide();
+          return;
+        }
+        addSessionPhoto(dataUrl);
+        renderCameraGallery();
+      };
+    }
+
+    if (modalEl && !modalEl.dataset.camBound) {
+      modalEl.dataset.camBound = "1";
+      modalEl.addEventListener("hidden.bs.modal", () => {
+        stopCameraStream();
+        if (suppressModalReset) return;
+        cameraModalPurpose = "session";
+        markupCaptureHandler = null;
+        if (galleryEl) galleryEl.style.display = "";
+        if (titleEl) titleEl.textContent = "Photos";
+      });
+    }
+
     const syncCount = () => {
       const n = sessionPhotos.length;
       cameraBtn.classList.toggle("has-photos", n > 0);
       if (countEl) countEl.textContent = String(n);
+      if (cameraModalPurpose === "session") renderCameraGallery();
     };
     photoListeners.add(syncCount);
     syncCount();
@@ -439,6 +649,7 @@
     bindPhotoStrip,
     bindAllPads,
     wireCameraButton,
+    openLiveCamera,
     setCameraVisible,
     addSessionPhoto,
     getSessionPhotos: () => sessionPhotos.slice(),

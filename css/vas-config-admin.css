@@ -107,24 +107,32 @@
 .img-scale-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.3rem;
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  flex: 1 1 auto;
-  min-width: 12rem;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 11rem;
 }
 
 .img-scale {
   flex: 1 1 auto;
-  min-width: 6rem;
+  min-width: 3.5rem;
+  max-width: 6.5rem;
+  height: 1rem;
   accent-color: var(--primary);
 }
 
 .img-scale-value {
-  min-width: 2.75rem;
+  min-width: 2.4rem;
+  font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
   color: var(--text);
+}
+
+.txt-scale-label {
+  margin-left: 0.25rem;
 }
 
 .vas-content-image-btn {
@@ -374,6 +382,15 @@
   font-size: 0.9rem;
   margin: 0 0 0.4rem;
   font-weight: 600;
+}
+.pad-clear-btn {
+  font-size: 0.72rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0;
+  padding: 0.15rem 0.45rem !important;
+  line-height: 1.25 !important;
+  min-height: 26px !important;
+  height: auto !important;
 }
 .signature-wrap {
   position: relative;

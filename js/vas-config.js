@@ -47,6 +47,13 @@
     return Math.max(0, Math.min(200, Math.round(n)));
   }
 
+  /** Text size % relative to base; slider 50–150 with 100 in the middle. */
+  function normalizeFontSize(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 100;
+    return Math.max(50, Math.min(150, Math.round(n)));
+  }
+
   function normalizeContentBlock(raw, i) {
     if (!raw || typeof raw !== "object") return null;
     const type = raw.type === "image" ? "image" : "text";
@@ -70,7 +77,8 @@
       bold: !!raw.bold,
       italic: !!raw.italic,
       underline: !!raw.underline,
-      color: sanitizeColor(raw.color) || DEFAULT_TEXT_COLOR
+      color: sanitizeColor(raw.color) || DEFAULT_TEXT_COLOR,
+      fontSize: normalizeFontSize(raw.fontSize)
     };
   }
 
@@ -78,6 +86,8 @@
   function textBlockStyle(block) {
     if (!block || block.type === "image") return "";
     const parts = [];
+    const fontSize = normalizeFontSize(block.fontSize);
+    parts.push(`font-size:${fontSize}%`);
     if (block.bold) parts.push("font-weight:700");
     if (block.italic) parts.push("font-style:italic");
     if (block.underline) parts.push("text-decoration:underline");
@@ -100,7 +110,16 @@
     if (Array.isArray(src.instructions)) {
       src.instructions.forEach((x, i) => {
         const b = normalizeContentBlock(
-          { type: "text", id: x && x.id, text: x && (x.text || x.InstructionText) },
+          {
+            type: "text",
+            id: x && x.id,
+            text: x && (x.text || x.InstructionText),
+            bold: x && x.bold,
+            italic: x && x.italic,
+            underline: x && x.underline,
+            color: x && x.color,
+            fontSize: x && x.fontSize
+          },
           i
         );
         if (b) blocks.push(b);
@@ -109,7 +128,13 @@
     if (Array.isArray(src.images)) {
       src.images.forEach((x, i) => {
         const b = normalizeContentBlock(
-          { type: "image", id: x && x.id, url: x && x.url, caption: x && x.caption },
+          {
+            type: "image",
+            id: x && x.id,
+            url: x && x.url,
+            caption: x && x.caption,
+            scale: x && x.scale
+          },
           blocks.length + i
         );
         if (b) blocks.push(b);
@@ -130,7 +155,15 @@
           scale: normalizeImageScale(b.scale)
         });
       } else {
-        instructions.push({ id: b.id, text: b.text });
+        instructions.push({
+          id: b.id,
+          text: b.text,
+          bold: !!b.bold,
+          italic: !!b.italic,
+          underline: !!b.underline,
+          color: sanitizeColor(b.color) || DEFAULT_TEXT_COLOR,
+          fontSize: normalizeFontSize(b.fontSize)
+        });
       }
     });
     return { instructions, images };
@@ -266,6 +299,7 @@
     contentToLegacy,
     sanitizeColor,
     normalizeImageScale,
+    normalizeFontSize,
     textBlockStyle,
     imageBlockStyle,
     DEFAULT_TEXT_COLOR,

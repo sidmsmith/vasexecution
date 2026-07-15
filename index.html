@@ -51,6 +51,35 @@
     </div>
   </div>
 
+  <div class="modal fade" id="cameraModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cameraModalTitle">Photos</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="camera-preview-wrap">
+            <video id="cameraVideo" autoplay playsinline muted></video>
+            <canvas id="cameraCanvas" hidden></canvas>
+          </div>
+          <div class="camera-actions">
+            <button type="button" class="btn btn-success" id="capturePhotoBtn">
+              <i class="fas fa-camera me-1"></i> Take Photo
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="cameraFileFallbackBtn">
+              Choose from device
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Done</button>
+          </div>
+          <div class="camera-gallery" id="cameraGallery">
+            <div class="camera-gallery-empty" id="cameraGalleryEmpty">No photos captured yet.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="themeModal" tabindex="-1" aria-labelledby="themeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">

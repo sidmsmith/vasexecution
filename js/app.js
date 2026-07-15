@@ -214,7 +214,7 @@
           <label>${esc(sections.signature.label || "Signature")}${
             sections.signature.required ? " *" : ""
           }</label>
-          <button type="button" class="btn btn-sm btn-secondary sig-clear">Clear Signature</button>
+          <button type="button" class="btn btn-sm btn-secondary pad-clear-btn sig-clear">Clear Signature</button>
         </div>
         <div class="signature-pad-wrapper is-empty">
           <div class="signature-pad-placeholder" aria-hidden="true">
@@ -246,8 +246,8 @@
             <button type="button" class="btn btn-sm btn-secondary damage-pad-photo-btn markup-camera" title="Add photo">
               <i class="fas fa-camera"></i>
             </button>
-            <button type="button" class="btn btn-sm btn-secondary clear-photo-btn markup-clear-photo" style="display:none">Clear Photo</button>
-            <button type="button" class="btn btn-sm btn-secondary clear-marks-btn markup-clear">Clear Marks</button>
+            <button type="button" class="btn btn-sm btn-secondary pad-clear-btn clear-photo-btn markup-clear-photo" style="display:none">Clear Photo</button>
+            <button type="button" class="btn btn-sm btn-secondary pad-clear-btn clear-marks-btn markup-clear">Clear Marks</button>
           </div>
         </div>
         <div class="damage-pad-wrapper markup-pad is-empty show-empty-placeholder" data-card="${esc(cardKey)}">
@@ -646,8 +646,7 @@
     els.olpnMeta.textContent =
       `oLPN ${olpn.OlpnId || olpnId}` +
       (olpn.OrderId ? ` · Order ${olpn.OrderId}` : "") +
-      ` · Requestor IDs: ${currentRequestorIds.join(", ")}` +
-      ` · attempt ${step1.attempt}`;
+      ` · Requestor IDs: ${currentRequestorIds.join(", ")}`;
 
     renderServices(step2.services || []);
     els.results.style.display = "block";
@@ -784,11 +783,18 @@
   }
 
   if (window.VasPads) {
-    window.VasPads.wireCameraButton(
-      els.cameraBtn,
-      els.cameraFileInput,
-      els.cameraPhotoCount
-    );
+    window.VasPads.wireCameraButton({
+      cameraBtn: els.cameraBtn,
+      fileInput: els.cameraFileInput,
+      countEl: els.cameraPhotoCount,
+      modalEl: document.getElementById("cameraModal"),
+      videoEl: document.getElementById("cameraVideo"),
+      canvasEl: document.getElementById("cameraCanvas"),
+      captureBtn: document.getElementById("capturePhotoBtn"),
+      galleryEl: document.getElementById("cameraGallery"),
+      galleryEmptyEl: document.getElementById("cameraGalleryEmpty"),
+      fileFallbackBtn: document.getElementById("cameraFileFallbackBtn")
+    });
   }
 
   updateLoadButton();
