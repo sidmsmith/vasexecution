@@ -32,6 +32,7 @@
     status: document.getElementById("status"),
     results: document.getElementById("results"),
     olpnMeta: document.getElementById("olpnMeta"),
+    executionBar: document.querySelector(".execution-bar"),
     serviceViews: document.getElementById("serviceViews"),
     serviceNav: document.getElementById("serviceNav"),
     serviceList: document.getElementById("serviceList"),
@@ -571,7 +572,7 @@
           <input type="checkbox" class="service-select" ${
             hasOpen ? "" : "disabled"
           } aria-label="Select all open steps for this service" title="Select all open steps" />
-          <div>
+          <div class="service-title-block">
             <div class="service-title">${idx + 1}. ${esc(
       svc.ProvidedServiceId || "Service"
     )}${
@@ -581,13 +582,13 @@
     }</div>
             ${itemBlock}
           </div>
+          <div class="service-meta">
+            <div>ServiceRequestorTypeId: ${esc(svc.ServiceRequestorTypeId)}</div>
+            <div>ServiceRequestorId: ${esc(svc.ServiceRequestorId)}</div>
+            <div>ServiceUomId: ${esc(svc.ServiceUomId)}</div>
+          </div>
         </div>
         <div><span class="badge text-bg-secondary">${esc(statusText)}</span></div>
-      </div>
-      <div class="service-meta">
-        <div>ServiceRequestorTypeId: ${esc(svc.ServiceRequestorTypeId)}</div>
-        <div>ServiceRequestorId: ${esc(svc.ServiceRequestorId)}</div>
-        <div>ServiceUomId: ${esc(svc.ServiceUomId)}</div>
       </div>
       ${stepsHtml}
       ${(() => {
@@ -932,6 +933,20 @@
       applyViewMode();
     });
   }
+
+  function syncExecutionBarStickyOffset() {
+    if (!els.executionBar) return;
+    const h = Math.ceil(els.executionBar.getBoundingClientRect().height);
+    document.documentElement.style.setProperty(
+      "--execution-bar-offset",
+      `${Math.max(h, 48)}px`
+    );
+  }
+  syncExecutionBarStickyOffset();
+  if (els.executionBar && typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(syncExecutionBarStickyOffset).observe(els.executionBar);
+  }
+  window.addEventListener("resize", syncExecutionBarStickyOffset);
 
   /** Case-insensitive query params: theme, org/organization, olpn/OLPN/oLPN/… */
   function parseUrlParams() {

@@ -171,6 +171,13 @@ body {
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.service-title-block {
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
 .service-select {
@@ -261,6 +268,9 @@ body {
   color: var(--text-muted);
   display: grid;
   gap: 0.15rem;
+  margin-left: 1.25rem;
+  flex: 0 1 auto;
+  min-width: 10rem;
 }
 
 .steps-table {
@@ -294,12 +304,20 @@ body {
 }
 
 .execution-bar {
+  --execution-bar-sticky-top: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
   align-items: flex-end;
   justify-content: space-between;
   margin: 0.5rem 0 0.75rem;
+  padding: 0.55rem 0;
+  position: sticky;
+  top: var(--execution-bar-sticky-top);
+  z-index: 40;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 8px 12px -8px rgba(0, 0, 0, 0.45);
 }
 .execution-bar-actions {
   display: flex;
@@ -360,7 +378,10 @@ body {
   border-radius: 12px;
   padding: 0.75rem;
   position: sticky;
-  top: 0.5rem;
+  /* Sit just under the sticky Complete/View bar */
+  top: calc(var(--execution-bar-offset, 4.75rem) + 0.35rem);
+  max-height: calc(100vh - var(--execution-bar-offset, 4.75rem) - 1rem);
+  overflow-y: auto;
 }
 .service-views .line-nav .form-label {
   color: var(--text-secondary);
