@@ -330,9 +330,10 @@ body {
 }
 .steps-table th {
   border-top: none;
-  color: var(--text-muted);
   font-weight: 600;
   font-size: 0.78rem;
+  background: var(--table-header-bg);
+  color: var(--table-header-text, var(--text-muted));
 }
 .steps-table td.step-num,
 .steps-table th:nth-child(4),
@@ -372,18 +373,6 @@ body {
   color: #fde68a;
   background: rgba(217, 119, 6, 0.28);
   border-color: rgba(251, 191, 36, 0.55);
-}
-.steps-table th,
-.steps-table td {
-  border-top: 1px solid var(--border);
-  padding: 0.4rem 0.4rem;
-  text-align: left;
-  vertical-align: middle;
-}
-.steps-table th {
-  font-weight: 600;
-  background: var(--table-header-bg);
-  color: var(--table-header-text);
 }
 
 .qty-input {
