@@ -745,7 +745,7 @@
     if (!completions.length) {
       return status(
         mode === "selected"
-          ? "Select at least one open service to complete"
+          ? "Select at least one open step to complete"
           : "No open steps remaining",
         "error"
       );
