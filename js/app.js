@@ -529,25 +529,27 @@
     updateExecutionButtons();
   }
 
-  async function loadOlpnIds() {
+  async function loadOlpnIds(options = {}) {
+    const silent = !!options.silent;
     olpnIdsLoaded = false;
     olpnIds = new Set();
     updateLoadButton();
-    status("Loading oLPN list...", "info");
+    if (!silent) status("Loading oLPN list...", "info");
     const res = await api("olpns", { org, token });
     if (!res.success) {
-      status(res.error || "Could not load oLPN list", "error");
       olpnIdsLoaded = true;
       updateLoadButton();
+      if (!silent) status(res.error || "Could not load oLPN list", "error");
+      else console.warn("[VAS] background oLPN list failed:", res.error);
       return;
     }
     (res.ids || []).forEach((id) => olpnIds.add(String(id).trim()));
     olpnIdsLoaded = true;
     updateLoadButton();
-    status(`Ready — ${olpnIds.size} oLPN(s) available`, "success");
+    if (!silent) status(`Ready — ${olpnIds.size} oLPN(s) available`, "success");
   }
 
-  async function enterAuthenticated(res, value) {
+  async function enterAuthenticated(res, value, options = {}) {
     token = res.token;
     org = (res.org || value || "").toUpperCase();
     localStorage.setItem("vas_lastOrg", org);
@@ -564,6 +566,24 @@
         vasConfig = window.VasConfig.emptyConfig();
       }
     }
+
+    const deepLinkOlpn = String(options.deepLinkOlpn || "").trim();
+    if (deepLinkOlpn) {
+      els.olpnInput.value = deepLinkOlpn;
+      updateLoadButton();
+      if (res.source === "file") {
+        status("Authenticated via local .token — loading oLPN...", "success");
+      } else {
+        status("Authenticated — loading oLPN...", "success");
+      }
+      // Warm full list for later manual entry; do not block deep-link lookup
+      loadOlpnIds({ silent: true }).catch((err) =>
+        console.warn("[VAS] background oLPN list failed", err)
+      );
+      await loadOlpn({ allowWithoutList: true });
+      return;
+    }
+
     if (res.source === "file") {
       status("Authenticated via local .token — loading oLPNs...", "success");
     } else {
@@ -588,13 +608,16 @@
       if (!options.silent) status(res.error || "Auth failed", "error");
       return false;
     }
-    await enterAuthenticated(res, value);
+    await enterAuthenticated(res, value, {
+      deepLinkOlpn: options.deepLinkOlpn
+    });
     return true;
   }
 
-  async function loadOlpn() {
+  async function loadOlpn(options = {}) {
     const olpnId = (els.olpnInput.value || "").trim();
-    if (!isValidOlpn(olpnId) || !token || !org) return;
+    if (!token || !org || !olpnId) return;
+    if (!options.allowWithoutList && !isValidOlpn(olpnId)) return;
     els.results.style.display = "none";
     els.serviceList.innerHTML = "";
     currentOlpnId = olpnId;
@@ -812,24 +835,17 @@
     else if (remembered) els.orgInput.value = remembered;
 
     const orgToAuth = (els.orgInput.value || "").trim();
+    const deepLinkOlpn = urlParams.olpn || "";
     if (session && session.has_token && orgToAuth) {
-      const ok = await authenticate({ org: orgToAuth, silent: true });
-      if (ok) {
-        if (urlParams.olpn) {
-          els.olpnInput.value = urlParams.olpn;
-          updateLoadButton();
-          if (isValidOlpn(urlParams.olpn)) await loadOlpn();
-        }
-        return;
-      }
+      const ok = await authenticate({
+        org: orgToAuth,
+        silent: true,
+        deepLinkOlpn
+      });
+      if (ok) return;
     }
     if (urlParams.org) {
-      const ok = await authenticate({ org: urlParams.org });
-      if (ok && urlParams.olpn) {
-        els.olpnInput.value = urlParams.olpn;
-        updateLoadButton();
-        if (isValidOlpn(urlParams.olpn)) await loadOlpn();
-      }
+      await authenticate({ org: urlParams.org, deepLinkOlpn });
       return;
     }
     els.orgSection.style.display = "block";
