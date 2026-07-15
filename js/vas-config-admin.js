@@ -330,13 +330,18 @@
             <div class="content-fields">
               <div class="text-format-bar image-scale-bar">
                 <span class="content-type-badge"><i class="fa-solid fa-image"></i> Image</span>
+                <span class="content-type-badge pdf-url-badge${
+                  VasConfig.isPdfUrl(block.url) ? "" : " d-none"
+                }"><i class="fa-solid fa-file-pdf"></i> PDF</span>
                 <label class="img-scale-label">
                   Size
                   <input type="range" class="img-scale" min="0" max="200" step="1" value="${scale}" aria-label="Image size percent" />
                   <span class="img-scale-value">${scale}%</span>
                 </label>
               </div>
-              <input class="form-control img-url" placeholder="Image URL" value="${esc(block.url)}" />
+              <input class="form-control img-url" placeholder="Image or Cloudinary PDF URL" value="${esc(
+                block.url
+              )}" />
               <input class="form-control img-caption" placeholder="Caption (optional)" value="${esc(
                 block.caption || ""
               )}" />
@@ -404,6 +409,14 @@
       )
       .forEach((el) => {
         el.oninput = () => {
+          if (el.classList.contains("img-url")) {
+            const badge = el
+              .closest(".content-row")
+              ?.querySelector(".pdf-url-badge");
+            if (badge) {
+              badge.classList.toggle("d-none", !VasConfig.isPdfUrl(el.value));
+            }
+          }
           syncEditorToDraft();
           renderPreview();
         };
@@ -431,17 +444,7 @@
     const contentHtml = (entry.content || [])
       .map((block) => {
         if (block.type === "image") {
-          const imgStyle = VasConfig.imageBlockStyle(block);
-          return `<div class="vas-content-image">
-            <button type="button" class="vas-content-image-btn" data-image-url="${esc(
-              block.url
-            )}" data-image-caption="${esc(block.caption || "")}" title="Open">
-              <img src="${esc(block.url)}" alt="" style="${esc(
-                imgStyle
-              )}" onerror="this.closest('.vas-content-image')?.remove()"/>
-            </button>
-            ${block.caption ? `<div class="caption">${esc(block.caption)}</div>` : ""}
-          </div>`;
+          return VasConfig.renderContentImageHtml(block, esc);
         }
         const style = VasConfig.textBlockStyle(block);
         return `<div class="vas-content-text"${

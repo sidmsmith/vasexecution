@@ -739,6 +739,7 @@ body {
   padding: 0;
 }
 .vas-content-image-btn {
+  position: relative;
   display: block;
   width: 100%;
   padding: 0;
@@ -747,6 +748,24 @@ body {
   background: transparent;
   cursor: zoom-in;
   text-align: left;
+}
+.vas-content-image.is-pdf .vas-content-image-btn {
+  cursor: pointer;
+}
+.vas-pdf-badge {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.4rem;
+  z-index: 1;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(185, 28, 28, 0.92);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  pointer-events: none;
 }
 .vas-content-list .vas-content-image img {
   max-width: 100%;

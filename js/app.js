@@ -174,19 +174,9 @@
     return `<div class="vas-content-list">${content
       .map((block) => {
         if (block.type === "image") {
-          const imgStyle = window.VasConfig
-            ? window.VasConfig.imageBlockStyle(block)
-            : "width:100%;";
-          return `<div class="vas-content-image">
-            <button type="button" class="vas-content-image-btn" data-image-url="${esc(
-              block.url
-            )}" data-image-caption="${esc(block.caption || "")}" title="Open">
-              <img src="${esc(block.url)}" alt="${esc(block.caption || "")}" loading="lazy"
-                style="${esc(imgStyle)}"
-                onerror="this.closest('.vas-content-image')?.remove()" />
-            </button>
-            ${block.caption ? `<div class="caption">${esc(block.caption)}</div>` : ""}
-          </div>`;
+          return window.VasConfig
+            ? window.VasConfig.renderContentImageHtml(block, esc)
+            : "";
         }
         const style = window.VasConfig
           ? window.VasConfig.textBlockStyle(block)

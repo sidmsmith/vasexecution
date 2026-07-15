@@ -101,6 +101,113 @@
     return `width:${scale}%; max-width:${scale}%; height:auto;`;
   }
 
+  const PDF_PLACEHOLDER_URL = "/assets/icons/vas-pdf-placeholder.svg";
+
+  function isPdfUrl(url) {
+    const s = String(url || "").trim();
+    if (!s) return false;
+    try {
+      return /\.pdf$/i.test(new URL(s, "https://example.invalid").pathname);
+    } catch {
+      return /\.pdf(\?|#|$)/i.test(s);
+    }
+  }
+
+  function isCloudinaryDeliveryUrl(url) {
+    try {
+      return /cloudinary/i.test(new URL(url).hostname);
+    } catch {
+      return /cloudinary/i.test(String(url || ""));
+    }
+  }
+
+  /**
+   * Cloudinary: deliver PDF page 1 as a JPG preview.
+   * Example: .../image/upload/v1/doc.pdf → .../image/upload/f_jpg,pg_1,q_auto/v1/doc.jpg
+   */
+  function cloudinaryPdfPreviewUrl(url) {
+    try {
+      const u = new URL(url);
+      if (!isCloudinaryDeliveryUrl(u.href)) return null;
+      const path = u.pathname;
+      if (/\/raw\/upload\//i.test(path)) return null;
+      const marker = "/image/upload/";
+      const idx = path.toLowerCase().indexOf(marker);
+      if (idx < 0) return null;
+      if (!/\.pdf$/i.test(path)) return null;
+
+      const before = path.slice(0, idx + marker.length);
+      let after = path.slice(idx + marker.length).replace(/\.pdf$/i, "");
+      if (!after) return null;
+      if (!/(^|\/)f_jpg(,|\/|$)/i.test(after)) {
+        after = `f_jpg,pg_1,q_auto/${after}`;
+      } else if (!/(^|\/|,)pg_\d+(,|\/|$)/i.test(after)) {
+        after = after.replace(/(^|\/)f_jpg(?=,|\/|$)/i, "$1f_jpg,pg_1");
+      }
+      u.pathname = `${before}${after}.jpg`;
+      return u.toString();
+    } catch {
+      return null;
+    }
+  }
+
+  /** Resolve display vs open URLs for content image blocks (supports Cloudinary PDFs). */
+  function contentImageUrls(blockOrUrl) {
+    const openUrl = String(
+      typeof blockOrUrl === "string"
+        ? blockOrUrl
+        : (blockOrUrl && blockOrUrl.url) || ""
+    ).trim();
+    if (!openUrl) {
+      return { openUrl: "", displayUrl: "", isPdf: false };
+    }
+    if (!isPdfUrl(openUrl)) {
+      return { openUrl, displayUrl: openUrl, isPdf: false };
+    }
+    const preview =
+      (isCloudinaryDeliveryUrl(openUrl) && cloudinaryPdfPreviewUrl(openUrl)) ||
+      "";
+    return {
+      openUrl,
+      displayUrl: preview || PDF_PLACEHOLDER_URL,
+      isPdf: true
+    };
+  }
+
+  /** Shared HTML for execution + admin preview content images. */
+  function renderContentImageHtml(block, escFn) {
+    const esc =
+      typeof escFn === "function"
+        ? escFn
+        : (s) =>
+            String(s ?? "")
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;");
+    const { openUrl, displayUrl, isPdf } = contentImageUrls(block);
+    if (!openUrl || !displayUrl) return "";
+    const imgStyle = imageBlockStyle(block);
+    const caption = String((block && block.caption) || "").trim();
+    const title = isPdf ? "Open PDF" : "Open";
+    const onError = isPdf
+      ? `if(!this.dataset.fb){this.dataset.fb='1';this.src='${PDF_PLACEHOLDER_URL}';}else{this.closest('.vas-content-image')?.remove();}`
+      : "this.closest('.vas-content-image')?.remove()";
+    return `<div class="vas-content-image${isPdf ? " is-pdf" : ""}">
+      <button type="button" class="vas-content-image-btn" data-image-url="${esc(
+        displayUrl
+      )}" data-open-url="${esc(openUrl)}" data-media-kind="${
+      isPdf ? "pdf" : "image"
+    }" data-image-caption="${esc(caption)}" title="${esc(title)}">
+        ${isPdf ? '<span class="vas-pdf-badge">PDF</span>' : ""}
+        <img src="${esc(displayUrl)}" alt="${esc(caption)}" loading="lazy"
+          style="${esc(imgStyle)}"
+          onerror="${onError}" />
+      </button>
+      ${caption ? `<div class="caption">${esc(caption)}</div>` : ""}
+    </div>`;
+  }
+
   /** Prefer content[]; migrate legacy instructions + images. */
   function normalizeContent(src) {
     if (Array.isArray(src.content) && src.content.length) {
@@ -318,6 +425,12 @@
     typeIconUrl,
     textBlockStyle,
     imageBlockStyle,
+    isPdfUrl,
+    isCloudinaryDeliveryUrl,
+    cloudinaryPdfPreviewUrl,
+    contentImageUrls,
+    renderContentImageHtml,
+    PDF_PLACEHOLDER_URL,
     DEFAULT_TEXT_COLOR,
     DEFAULT_TYPE_ICON_URL,
     DEFAULT_SECTIONS

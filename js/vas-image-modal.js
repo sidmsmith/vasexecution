@@ -101,8 +101,18 @@
     wireControls();
     if (!root) return;
     root.querySelectorAll(".vas-content-image-btn").forEach((btn) => {
-      btn.title = "Open";
-      btn.onclick = () => openFromButton(btn);
+      const isPdf = (btn.dataset.mediaKind || "") === "pdf";
+      btn.title = isPdf ? "Open PDF" : "Open";
+      btn.onclick = () => {
+        if (isPdf) {
+          const openUrl = btn.dataset.openUrl || btn.dataset.imageUrl || "";
+          if (openUrl) {
+            window.open(openUrl, "_blank", "noopener,noreferrer");
+          }
+          return;
+        }
+        openFromButton(btn);
+      };
     });
   }
 
