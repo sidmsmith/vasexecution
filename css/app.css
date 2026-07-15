@@ -388,7 +388,9 @@ body {
   font-size: 0.85rem;
 }
 .service-views .line-nav-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   width: 100%;
   text-align: left;
   background: var(--card-bg);
@@ -398,6 +400,29 @@ body {
   margin-bottom: 0.5rem;
   color: var(--text);
   cursor: pointer;
+}
+.service-views .line-nav-item--with-icon .nav-service-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.service-views .nav-service-icon,
+.service-type-icon {
+  width: 2.35rem;
+  height: 2.35rem;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.service-header-end {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-shrink: 0;
+}
+.service-header-end .service-type-icon {
+  width: 2.75rem;
+  height: 2.75rem;
 }
 .service-views .line-nav-item:hover {
   border-color: var(--primary);

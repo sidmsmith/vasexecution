@@ -358,11 +358,25 @@
         else if (svc.IsOlpnLevel) metaParts.push("oLPN-level");
         metaParts.push(`${openCount} open`);
         metaParts.push(statusText);
-        return `<button type="button" class="line-nav-item" data-service-index="${i}">
-          <div class="nav-service-title">${i + 1}. ${esc(
-            svc.ProvidedServiceId || "Service"
-          )}</div>
-          <div class="nav-service-meta">${esc(metaParts.join(" · "))}</div>
+        const typeCfg = window.VasConfig
+          ? window.VasConfig.getTypeConfig(vasConfig, svc.ProvidedServiceId)
+          : null;
+        const iconUrl = window.VasConfig
+          ? window.VasConfig.typeIconUrl(typeCfg)
+          : "";
+        const iconHtml = iconUrl
+          ? `<img class="nav-service-icon" src="${esc(
+              iconUrl
+            )}" alt="" onerror="this.remove()" />`
+          : "";
+        return `<button type="button" class="line-nav-item line-nav-item--with-icon" data-service-index="${i}">
+          <div class="nav-service-text">
+            <div class="nav-service-title">${i + 1}. ${esc(
+              svc.ProvidedServiceId || "Service"
+            )}</div>
+            <div class="nav-service-meta">${esc(metaParts.join(" · "))}</div>
+          </div>
+          ${iconHtml}
         </button>`;
       })
       .join("");
@@ -588,7 +602,22 @@
             <div>ServiceUomId: ${esc(svc.ServiceUomId)}</div>
           </div>
         </div>
-        <div><span class="badge text-bg-secondary">${esc(statusText)}</span></div>
+        <div class="service-header-end">
+          ${(() => {
+            const typeCfg = window.VasConfig
+              ? window.VasConfig.getTypeConfig(vasConfig, svc.ProvidedServiceId)
+              : null;
+            const iconUrl = window.VasConfig
+              ? window.VasConfig.typeIconUrl(typeCfg)
+              : "";
+            return iconUrl
+              ? `<img class="service-type-icon" src="${esc(
+                  iconUrl
+                )}" alt="" onerror="this.remove()" />`
+              : "";
+          })()}
+          <span class="badge text-bg-secondary">${esc(statusText)}</span>
+        </div>
       </div>
       ${stepsHtml}
       ${(() => {

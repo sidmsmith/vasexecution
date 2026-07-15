@@ -28,6 +28,9 @@
     editor: document.getElementById("editor"),
     edTitle: document.getElementById("edTitle"),
     edDescription: document.getElementById("edDescription"),
+    edIconUrlWrap: document.getElementById("edIconUrlWrap"),
+    edIconUrl: document.getElementById("edIconUrl"),
+    edIconPreview: document.getElementById("edIconPreview"),
     contentList: document.getElementById("contentList"),
     secSig: document.getElementById("secSig"),
     secPhotos: document.getElementById("secPhotos"),
@@ -105,6 +108,8 @@
         {
           title: key,
           description: key,
+          iconUrl:
+            bucket() === "vasTypes" ? VasConfig.DEFAULT_TYPE_ICON_URL : "",
           content: [],
           instructions: [],
           images: [],
@@ -158,11 +163,26 @@
     });
   }
 
+  function syncIconPreview() {
+    if (!els.edIconPreview) return;
+    const url =
+      (els.edIconUrl?.value || "").trim() ||
+      VasConfig.DEFAULT_TYPE_ICON_URL;
+    els.edIconPreview.hidden = false;
+    els.edIconPreview.src = url;
+    els.edIconPreview.onerror = () => {
+      els.edIconPreview.hidden = true;
+    };
+  }
+
   function syncEditorToDraft() {
     const entry = currentEntry();
     if (!entry || els.editor.style.display === "none") return;
     entry.title = els.edTitle.value.trim() || selectedKey;
     entry.description = els.edDescription.value.trim() || entry.title;
+    if (tab === "types") {
+      entry.iconUrl = VasConfig.normalizeIconUrl(els.edIconUrl?.value || "");
+    }
     entry.content = readContentFromDom(false);
     const legacy = VasConfig.contentToLegacy(entry.content);
     entry.instructions = legacy.instructions;
@@ -290,6 +310,14 @@
     els.deleteKeyBtn.disabled = false;
     els.edTitle.value = entry.title || selectedKey;
     els.edDescription.value = entry.description || "";
+    if (els.edIconUrlWrap) {
+      els.edIconUrlWrap.style.display = tab === "types" ? "" : "none";
+    }
+    if (els.edIconUrl) {
+      els.edIconUrl.value =
+        tab === "types" ? entry.iconUrl || VasConfig.DEFAULT_TYPE_ICON_URL : "";
+      syncIconPreview();
+    }
     const content = entry.content || [];
     els.contentList.innerHTML = content
       .map((block, idx) => {
@@ -421,10 +449,21 @@
         }>${esc(block.text)}</div>`;
       })
       .join("");
+    const iconHtml =
+      tab === "types"
+        ? `<img class="service-type-icon" src="${esc(
+            VasConfig.typeIconUrl(entry)
+          )}" alt="" onerror="this.remove()" />`
+        : "";
     return `
       <article class="service-card">
-        <div class="service-title">${esc(entry.title)}</div>
-        <div class="service-meta mb-2">${esc(entry.description || "")}</div>
+        <div class="service-header preview-service-header">
+          <div>
+            <div class="service-title">${esc(entry.title)}</div>
+            <div class="service-meta mb-0">${esc(entry.description || "")}</div>
+          </div>
+          ${iconHtml}
+        </div>
         <div class="vas-config-block ${tab === "items" ? "item-block" : "type-block"}">
           <h4>${tab === "types" ? "VAS Type" : "Item"} instructions</h4>
           ${contentHtml ? `<div class="vas-content-list">${contentHtml}</div>` : "<p class='text-muted'>No content</p>"}
@@ -672,13 +711,17 @@
     renderEditor();
     renderPreview();
   };
-  ["secSig", "secPhotos", "secMarkup", "edTitle", "edDescription"].forEach((id) => {
-    const el = document.getElementById(id);
-    el.onchange = el.oninput = () => {
-      syncEditorToDraft();
-      renderPreview();
-    };
-  });
+  ["secSig", "secPhotos", "secMarkup", "edTitle", "edDescription", "edIconUrl"].forEach(
+    (id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.onchange = el.oninput = () => {
+        if (id === "edIconUrl") syncIconPreview();
+        syncEditorToDraft();
+        renderPreview();
+      };
+    }
+  );
 
   els.deleteKeyBtn.onclick = () => {
     if (!selectedKey) return;

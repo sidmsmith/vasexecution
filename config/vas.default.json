@@ -91,7 +91,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Build Packaging Material": {
       "title": "Build Packaging Material",
@@ -196,7 +197,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Dicks VAS Activities": {
       "title": "Dicks VAS Activities",
@@ -301,7 +303,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Engravement": {
       "title": "Engravement",
@@ -393,7 +396,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Generic Instruction": {
       "title": "Generic Instruction",
@@ -459,7 +463,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Gift Wrap": {
       "title": "Gift Wrap",
@@ -603,7 +608,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Pallet Shrink Wrap": {
       "title": "Pallet Shrink Wrap",
@@ -656,7 +662,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Picture": {
       "title": "Picture",
@@ -761,7 +768,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Print Price Ticket": {
       "title": "Print Price Ticket",
@@ -840,7 +848,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Promotion Flyer": {
       "title": "Promotion Flyer",
@@ -919,7 +928,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Repack": {
       "title": "Repack",
@@ -1011,7 +1021,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Reverse VAS": {
       "title": "Reverse VAS",
@@ -1103,7 +1114,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "TF-Engravement": {
       "title": "TF-Engravement",
@@ -1195,7 +1207,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Walmart-Repack": {
       "title": "Walmart-Repack",
@@ -1274,7 +1287,8 @@
           "underline": false,
           "color": "#000000"
         }
-      ]
+      ],
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     }
   },
   "items": {

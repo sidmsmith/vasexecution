@@ -169,6 +169,19 @@
     return { instructions, images };
   }
 
+  const DEFAULT_TYPE_ICON_URL = "/assets/icons/vas-type-default.svg";
+
+  function normalizeIconUrl(value) {
+    const url = String(value || "").trim();
+    return url;
+  }
+
+  /** Resolved icon for a VAS Type (configured URL or shared default). */
+  function typeIconUrl(typeCfg) {
+    const url = normalizeIconUrl(typeCfg && typeCfg.iconUrl);
+    return url || DEFAULT_TYPE_ICON_URL;
+  }
+
   function normalizeEntry(raw, fallbackTitle) {
     const src = raw && typeof raw === "object" ? raw : {};
     const content = normalizeContent(src);
@@ -176,6 +189,7 @@
     return {
       title: src.title || fallbackTitle || "",
       description: src.description || src.title || fallbackTitle || "",
+      iconUrl: normalizeIconUrl(src.iconUrl),
       content,
       instructions: legacy.instructions,
       images: legacy.images,
@@ -300,9 +314,12 @@
     sanitizeColor,
     normalizeImageScale,
     normalizeFontSize,
+    normalizeIconUrl,
+    typeIconUrl,
     textBlockStyle,
     imageBlockStyle,
     DEFAULT_TEXT_COLOR,
+    DEFAULT_TYPE_ICON_URL,
     DEFAULT_SECTIONS
   };
 })(typeof window !== "undefined" ? window : globalThis);

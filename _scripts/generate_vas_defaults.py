@@ -162,6 +162,7 @@ def build_type_entry(svc: dict) -> dict:
     return {
         "title": psid,
         "description": desc,
+        "iconUrl": "/assets/icons/vas-type-default.svg",
         "content": content,
         "instructions": [{"id": c["id"], "text": c["text"]} for c in content],
         "images": [],

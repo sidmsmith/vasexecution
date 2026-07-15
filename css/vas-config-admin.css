@@ -104,6 +104,34 @@
   background: transparent;
 }
 
+.icon-url-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.icon-url-row .form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.icon-url-preview,
+.preview-service-header .service-type-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.15rem;
+}
+.preview-service-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
 .img-scale-label {
   display: inline-flex;
   align-items: center;

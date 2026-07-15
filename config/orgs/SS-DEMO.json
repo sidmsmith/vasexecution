@@ -118,7 +118,8 @@
           "label": "Apply UPC Tags Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Build Packaging Material": {
       "title": "Build Packaging Material",
@@ -259,7 +260,8 @@
           "label": "Build Packaging Material Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Dicks VAS Activities": {
       "title": "Dicks VAS Activities",
@@ -400,7 +402,8 @@
           "label": "Dicks VAS Activities Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Engravement": {
       "title": "Engravement",
@@ -522,7 +525,8 @@
           "label": "Engravement Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Generic Instruction": {
       "title": "Generic Instruction",
@@ -606,7 +610,8 @@
           "label": "Generic Instruction Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Gift Wrap": {
       "title": "Gift Wrap",
@@ -804,7 +809,8 @@
           "label": "Gift Wrap Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Pallet Shrink Wrap": {
       "title": "Pallet Shrink Wrap",
@@ -869,7 +875,8 @@
           "label": "Pallet Shrink Wrap Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Picture": {
       "title": "Picture",
@@ -1010,7 +1017,8 @@
           "label": "Picture Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Print Price Ticket": {
       "title": "Print Price Ticket",
@@ -1113,7 +1121,8 @@
           "label": "Print Price Ticket Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Promotion Flyer": {
       "title": "Promotion Flyer",
@@ -1192,7 +1201,8 @@
           "label": "Promotion Flyer Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Repack": {
       "title": "Repack",
@@ -1314,7 +1324,8 @@
           "label": "Repack Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Reverse VAS": {
       "title": "Reverse VAS",
@@ -1436,7 +1447,8 @@
           "label": "Reverse VAS Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "TF-Engravement": {
       "title": "TF-Engravement",
@@ -1558,7 +1570,8 @@
           "label": "TF-Engravement Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     },
     "Walmart-Repack": {
       "title": "Walmart-Repack",
@@ -1661,7 +1674,8 @@
           "label": "Walmart-Repack Markup",
           "mode": "photo"
         }
-      }
+      },
+      "iconUrl": "/assets/icons/vas-type-default.svg"
     }
   },
   "items": {
