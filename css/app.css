@@ -182,6 +182,21 @@ body {
   flex-shrink: 0;
 }
 
+.step-select-col {
+  width: 1.75rem;
+  text-align: center;
+  vertical-align: middle;
+}
+.step-select {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  vertical-align: middle;
+}
+.step-row-open:not(:has(.step-select:checked)) .qty-input {
+  opacity: 0.65;
+}
+
 .service-title {
   font-weight: 700;
   font-size: 1.05rem;

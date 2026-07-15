@@ -296,11 +296,36 @@
     return rows;
   }
 
+  function openStepCheckboxes(card) {
+    return Array.from(
+      (card || els.serviceList).querySelectorAll(".step-select:not(:disabled)")
+    );
+  }
+
+  function syncServiceCheckbox(card) {
+    const serviceCb = card.querySelector(".service-select");
+    if (!serviceCb || serviceCb.disabled) return;
+    const steps = openStepCheckboxes(card);
+    if (!steps.length) {
+      serviceCb.checked = false;
+      serviceCb.indeterminate = false;
+      return;
+    }
+    const selectedCount = steps.filter((cb) => cb.checked).length;
+    serviceCb.checked = selectedCount === steps.length;
+    serviceCb.indeterminate = selectedCount > 0 && selectedCount < steps.length;
+  }
+
+  function setCardStepsSelected(card, selected) {
+    openStepCheckboxes(card).forEach((cb) => {
+      cb.checked = !!selected;
+    });
+    syncServiceCheckbox(card);
+  }
+
   function updateExecutionButtons() {
     const open = openSteps(currentServices);
-    const selected = els.serviceList.querySelectorAll(
-      ".service-select:checked:not(:disabled)"
-    );
+    const selected = openStepCheckboxes().filter((cb) => cb.checked);
     els.completeAllBtn.disabled = open.length === 0;
     els.completeSelectedBtn.disabled = selected.length === 0;
   }
@@ -328,11 +353,12 @@
     const errors = [];
     const cards = els.serviceList.querySelectorAll(".service-card");
     cards.forEach((card) => {
-      const checked = card.querySelector(".service-select")?.checked;
       card.querySelectorAll(".qty-input").forEach((input) => {
         const remaining = Number(input.dataset.remaining || 0);
         if (remaining <= 0) return;
-        if (mode === "selected" && !checked) return;
+        const row = input.closest("tr");
+        const stepChecked = row?.querySelector(".step-select")?.checked;
+        if (mode === "selected" && !stepChecked) return;
         const check = validateQtyInput(input);
         if (!check.ok) {
           errors.push(
@@ -378,6 +404,7 @@
       ? `<table class="steps-table">
           <thead>
             <tr>
+              <th class="step-select-col" aria-label="Select step"></th>
               <th>Step</th>
               <th>Description</th>
               <th>Requested</th>
@@ -398,6 +425,12 @@
                 const instructions = (step.Instructions || [])
                   .map((t) => `<div class="step-instructions">${esc(t)}</div>`)
                   .join("");
+                const selectControl =
+                  remaining > 0
+                    ? `<input type="checkbox" class="step-select" aria-label="Select step ${esc(
+                        step.AssignedServiceStepId || ""
+                      )}" />`
+                    : `<span class="text-muted">—</span>`;
                 const qtyControl =
                   remaining > 0
                     ? `<input type="number" class="form-control qty-input" min="0.0001" step="any"
@@ -407,7 +440,10 @@
                         data-provided-service-id="${esc(svc.ProvidedServiceId)}"
                         data-step-id="${esc(step.AssignedServiceStepId)}" />`
                     : `<span class="text-muted">—</span>`;
-                return `<tr data-step-key="${esc(serviceKey(svc, step))}">
+                return `<tr data-step-key="${esc(serviceKey(svc, step))}" class="${
+                  remaining > 0 ? "step-row-open" : "step-row-done"
+                }">
+                  <td class="step-select-col">${selectControl}</td>
                   <td>${esc(step.AssignedServiceStepId)}</td>
                   <td>${esc(step.StepDescription)}${instructions}</td>
                   <td>${esc(step.RequestedQuantity)}</td>
@@ -429,7 +465,7 @@
         <div class="service-title-row">
           <input type="checkbox" class="service-select" ${
             hasOpen ? "" : "disabled"
-          } aria-label="Select service" />
+          } aria-label="Select all open steps for this service" title="Select all open steps" />
           <div>
             <div class="service-title">${idx + 1}. ${esc(
       svc.ProvidedServiceId || "Service"
@@ -514,8 +550,23 @@
       });
     });
     els.serviceList.querySelectorAll(".service-select").forEach((cb) => {
-      cb.addEventListener("change", updateExecutionButtons);
+      cb.addEventListener("change", () => {
+        const card = cb.closest(".service-card");
+        if (!card) return;
+        setCardStepsSelected(card, cb.checked);
+        updateExecutionButtons();
+      });
     });
+    els.serviceList.querySelectorAll(".step-select").forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const card = cb.closest(".service-card");
+        if (card) syncServiceCheckbox(card);
+        updateExecutionButtons();
+      });
+    });
+    els.serviceList
+      .querySelectorAll(".service-card")
+      .forEach((card) => syncServiceCheckbox(card));
 
     if (typeof window.bindItemImagePreview === "function") {
       delete els.serviceList.dataset.itemImagePreviewBound;
@@ -754,11 +805,11 @@
   );
   els.completeAllBtn.addEventListener("click", () => runCompletions("all"));
   els.selectAllBtn.addEventListener("click", () => {
-    els.serviceList
-      .querySelectorAll(".service-select:not(:disabled)")
-      .forEach((cb) => {
-        cb.checked = true;
-      });
+    els.serviceList.querySelectorAll(".service-card").forEach((card) => {
+      const serviceCb = card.querySelector(".service-select");
+      if (!serviceCb || serviceCb.disabled) return;
+      setCardStepsSelected(card, true);
+    });
     updateExecutionButtons();
   });
 
