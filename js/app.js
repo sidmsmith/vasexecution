@@ -630,30 +630,30 @@
         <div class="instruction-area">${panels}</div>`;
     }
 
-    // interleaved (Layout 2b): one table so columns stay aligned;
-    // instructions sit in a full-width row under each step.
-    const bodyRows = steps
+    // interleaved (Layout 2b): Step → instructions → Step → …
+    // TRIAL: show thead on every step (not only step 1). Same fixed col widths
+    // keep columns aligned across separate tables.
+    // REVERT: prefer single shared table + one thead above step 1 (denser): map
+    // steps into one <tbody> with step-instructions-row colspan panels instead.
+    return steps
       .map((step) => {
         const remaining = stepRemaining(step);
         const stepId = step.AssignedServiceStepId || "";
-        const panel = stepInstructionsPanelHtml(step);
-        const instrRow = panel
-          ? `<tr class="step-instructions-row" data-for-step="${esc(stepId)}">
-              <td colspan="8">${panel}</td>
-            </tr>`
-          : "";
-        return `<tr data-step-key="${esc(serviceKey(svc, step))}" data-step-id="${esc(
-          stepId
-        )}" class="${remaining > 0 ? "step-row-open" : "step-row-done"}">
-            ${stepRowCellsHtml(svc, step)}
-          </tr>${instrRow}`;
+        return `<div class="step-unit" data-step-id="${esc(stepId)}">
+          <table class="steps-table compact step-unit-table">
+            ${stepTableHeadHtml()}
+            <tbody>
+              <tr data-step-key="${esc(serviceKey(svc, step))}" data-step-id="${esc(
+                stepId
+              )}" class="${remaining > 0 ? "step-row-open" : "step-row-done"}">
+                ${stepRowCellsHtml(svc, step)}
+              </tr>
+            </tbody>
+          </table>
+          ${stepInstructionsPanelHtml(step)}
+        </div>`;
       })
       .join("");
-
-    return `<table class="steps-table compact">
-        ${stepTableHeadHtml()}
-        <tbody>${bodyRows}</tbody>
-      </table>`;
   }
 
   function bindQtyAndSelectIn(root) {

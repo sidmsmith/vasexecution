@@ -277,6 +277,22 @@ body {
   min-width: 0;
 }
 
+.step-unit {
+  margin-top: 0.65rem;
+}
+.step-unit + .step-unit {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+.step-unit .step-panel {
+  margin-top: 0.45rem;
+}
+.step-unit-table {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 .step-panel {
   margin: 0;
   padding: 0.65rem 0.75rem;
@@ -314,16 +330,17 @@ body {
   border-collapse: collapse;
   margin-top: 0.5rem;
 }
-.steps-table col.col-select { width: 2.5rem; }
-.steps-table col.col-step { width: 18%; }
+/* Give Requested / Remaining / Completed / Qty / Status more room */
+.steps-table col.col-select { width: 2.25rem; }
+.steps-table col.col-step { width: 12%; }
 .steps-table col.col-desc { width: auto; }
-.steps-table col.col-num { width: 5.5rem; }
-.steps-table col.col-qty { width: 7rem; }
-.steps-table col.col-status { width: 7.5rem; }
+.steps-table col.col-num { width: 7.25rem; }
+.steps-table col.col-qty { width: 8.5rem; }
+.steps-table col.col-status { width: 9rem; }
 .steps-table th,
 .steps-table td {
   border-top: 1px solid var(--border);
-  padding: 0.4rem 0.35rem;
+  padding: 0.45rem 0.5rem;
   vertical-align: middle;
   word-wrap: break-word;
   overflow-wrap: anywhere;
@@ -334,6 +351,7 @@ body {
   font-size: 0.78rem;
   background: var(--table-header-bg);
   color: var(--table-header-text, var(--text-muted));
+  white-space: nowrap;
 }
 .steps-table td.step-num,
 .steps-table th:nth-child(4),
@@ -345,6 +363,9 @@ body {
 .steps-table td.step-status {
   text-align: center;
 }
+.steps-table td.step-status {
+  overflow: visible;
+}
 .steps-table tr.step-instructions-row > td {
   border-top: none;
   padding: 0.35rem 0.35rem 0.85rem;
@@ -354,30 +375,34 @@ body {
   margin-top: 0;
 }
 
+/* Solid chips so label stays readable on any theme */
 .badge.status-chip {
-  font-weight: 600;
-  font-size: 0.75rem;
+  display: inline-block;
+  font-weight: 700;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  padding: 0.28em 0.65em;
   border: 1px solid transparent;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 .badge.status-created {
-  color: #fecaca;
-  background: rgba(220, 38, 38, 0.28);
-  border-color: rgba(248, 113, 113, 0.55);
+  background: #dc2626 !important;
+  border-color: #f87171;
 }
 .badge.status-complete {
-  color: #bbf7d0;
-  background: rgba(22, 163, 74, 0.28);
-  border-color: rgba(74, 222, 128, 0.55);
+  background: #16a34a !important;
+  border-color: #4ade80;
 }
 .badge.status-other {
-  color: #fde68a;
-  background: rgba(217, 119, 6, 0.28);
-  border-color: rgba(251, 191, 36, 0.55);
+  background: #d97706 !important;
+  border-color: #fbbf24;
 }
 
 .qty-input {
-  width: 5.5rem;
-  max-width: 100%;
+  width: 100%;
+  max-width: 6.5rem;
   padding: 0.25rem 0.4rem;
   font-size: 0.9rem;
 }
