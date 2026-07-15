@@ -21,6 +21,24 @@ HEADERS = {
     "selectedLocation": f"{ORG}-DM1",
 }
 
+TYPE_ICON_URLS = {
+    "Apply UPC Tags": "/assets/icons/vas-type-apply-upc-tags.svg",
+    "Build Packaging Material": "/assets/icons/vas-type-build-packaging-material.svg",
+    "Dicks VAS Activities": "/assets/icons/vas-type-dicks-vas-activities.svg",
+    "Engravement": "/assets/icons/vas-type-engravement.svg",
+    "Generic Instruction": "/assets/icons/vas-type-generic-instruction.svg",
+    "Gift Wrap": "/assets/icons/vas-type-gift-wrap.svg",
+    "Pallet Shrink Wrap": "/assets/icons/vas-type-pallet-shrink-wrap.svg",
+    "Picture": "/assets/icons/vas-type-picture.svg",
+    "Print Price Ticket": "/assets/icons/vas-type-print-price-ticket.svg",
+    "Promotion Flyer": "/assets/icons/vas-type-promotion-flyer.svg",
+    "Repack": "/assets/icons/vas-type-repack.svg",
+    "Reverse VAS": "/assets/icons/vas-type-reverse-vas.svg",
+    "TF-Engravement": "/assets/icons/vas-type-tf-engravement.svg",
+    "Walmart-Repack": "/assets/icons/vas-type-walmart-repack.svg",
+}
+DEFAULT_TYPE_ICON_URL = "/assets/icons/vas-type-default.svg"
+
 DEFAULT_SECTIONS = {
     "signature": {
         "enabled": True,
@@ -162,7 +180,7 @@ def build_type_entry(svc: dict) -> dict:
     return {
         "title": psid,
         "description": desc,
-        "iconUrl": "/assets/icons/vas-type-default.svg",
+        "iconUrl": TYPE_ICON_URLS.get(psid, DEFAULT_TYPE_ICON_URL),
         "content": content,
         "instructions": [{"id": c["id"], "text": c["text"]} for c in content],
         "images": [],
