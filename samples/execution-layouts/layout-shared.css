@@ -136,3 +136,17 @@
 .step-unit-table {
   margin-bottom: 0;
 }
+.step-view-picker {
+  margin: 0;
+  min-width: 7.5rem;
+}
+.step-view-picker .step-view-select {
+  font-size: 0.75rem;
+  padding: 0.2rem 1.75rem 0.2rem 0.45rem;
+  min-height: auto;
+}
+.service-header-end {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

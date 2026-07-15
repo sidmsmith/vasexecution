@@ -37,11 +37,14 @@
     const clickable = !!(opts && opts.clickable);
     const rows = svc.steps
       .map((st) => {
-        const active =
-          activeId === st.id ? ' class="active-step"' : clickable
-            ? ' data-step-row data-step-id="' + esc(st.id) + '"'
-            : "";
-        return `<tr${active}>
+        const classes = [];
+        if (activeId === st.id) classes.push("active-step");
+        const attrs = [];
+        if (classes.length) attrs.push(`class="${classes.join(" ")}"`);
+        if (clickable) {
+          attrs.push(`data-step-row data-step-id="${esc(st.id)}"`);
+        }
+        return `<tr${attrs.length ? " " + attrs.join(" ") : ""}>
           <td class="step-select-col"><input type="checkbox" class="step-select" aria-label="Select ${esc(
             st.id
           )}" /></td>
@@ -148,8 +151,19 @@
     )}</div>`;
   }
 
-  function serviceHeader(svc) {
+  function serviceHeader(svc, opts) {
     const cfg = typeCfg(svc);
+    const mode = opts && opts.stepViewMode;
+    const viewPicker =
+      mode
+        ? `<label class="step-view-picker">
+            <span class="visually-hidden">Step view</span>
+            <select class="form-select form-select-sm step-view-select" data-step-view-select data-svc-idx="${svc.idx}" aria-label="Step view">
+              <option value="interleaved"${mode === "interleaved" ? " selected" : ""}>All steps</option>
+              <option value="active"${mode === "active" ? " selected" : ""}>Active step</option>
+            </select>
+          </label>`
+        : "";
     return `<div class="service-header">
       <div class="service-title-row">
         <input type="checkbox" class="service-select" aria-label="Select service" />
@@ -157,13 +171,9 @@
           <div class="service-title">${svc.idx}. ${esc(svc.ProvidedServiceId)}</div>
           ${itemLine(svc)}
         </div>
-        <div class="service-meta">
-          <div>ServiceRequestorTypeId: ${esc(svc.ServiceRequestorTypeId)}</div>
-          <div>ServiceRequestorId: ${esc(svc.ServiceRequestorId)}</div>
-          <div>ServiceUomId: ${esc(svc.ServiceUomId)}</div>
-        </div>
       </div>
       <div class="service-header-end">
+        ${viewPicker}
         <img class="service-type-icon" src="${esc(cfg.icon)}" alt="" onerror="this.remove()" />
         <span class="badge text-bg-secondary">${esc(svc.Status)}</span>
       </div>
@@ -177,7 +187,8 @@
       ["layout-2b-interleaved.html", "2b Interleaved"],
       ["layout-3-active-step.html", "3 Active step"],
       ["layout-4-step-tabs.html", "4 Tabs"],
-      ["layout-5-service-step-nav.html", "5 Nav"]
+      ["layout-5-service-step-nav.html", "5 Nav"],
+      ["layout-6-toggle.html", "6 Toggle 2b/3"]
     ];
     const nav = layouts
       .map(
