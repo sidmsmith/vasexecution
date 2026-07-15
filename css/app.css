@@ -296,11 +296,107 @@ body {
 .execution-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
+  gap: 0.5rem 1rem;
+  align-items: flex-end;
+  justify-content: space-between;
   margin: 0.5rem 0 0.75rem;
 }
+.execution-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
 .execution-bar .btn { min-width: 9rem; }
+.vas-view-picker {
+  margin-left: auto;
+  min-width: 11rem;
+  text-align: left;
+}
+.vas-view-picker .form-label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.vas-view-picker .form-select {
+  font-size: 0.85rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+  background: var(--input-bg);
+  color: var(--text);
+  border-color: var(--input-border);
+}
+.vas-view-picker .form-select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.service-views {
+  min-width: 0;
+}
+.service-views .main-detail {
+  display: block;
+  min-width: 0;
+}
+.service-views.stacked-active .line-nav {
+  display: none;
+}
+.service-views.main-detail-active .main-detail {
+  display: grid;
+  grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.service-views.main-detail-active .service-group-title {
+  display: none;
+}
+.service-views.main-detail-active .service-card:not(.is-active-service) {
+  display: none;
+}
+.service-views .line-nav {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem;
+  position: sticky;
+  top: 0.5rem;
+}
+.service-views .line-nav .form-label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+.service-views .line-nav-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.service-views .line-nav-item:hover {
+  border-color: var(--primary);
+}
+.service-views .line-nav-item.active {
+  border-color: var(--primary);
+  background: rgba(13, 110, 253, 0.18);
+}
+.service-views .line-nav-item .nav-service-title {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.service-views .line-nav-item .nav-service-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+.service-views .detail-pane {
+  min-width: 0;
+}
 .btn-outline-secondary {
   color: var(--text);
   border-color: var(--border);

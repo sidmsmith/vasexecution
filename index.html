@@ -43,11 +43,30 @@
     <div id="results" style="display:none">
       <div id="olpnMeta" class="olpn-meta"></div>
       <div class="execution-bar">
-        <button type="button" class="btn btn-primary" id="completeSelectedBtn" disabled>Complete Selected</button>
-        <button type="button" class="btn btn-primary" id="completeAllBtn" disabled>Complete All</button>
-        <button type="button" class="btn btn-outline-secondary" id="selectAllBtn">Select All Open</button>
+        <div class="execution-bar-actions">
+          <button type="button" class="btn btn-primary" id="completeSelectedBtn" disabled>Complete Selected</button>
+          <button type="button" class="btn btn-primary" id="completeAllBtn" disabled>Complete All</button>
+          <button type="button" class="btn btn-outline-secondary" id="selectAllBtn">Select All Open</button>
+        </div>
+        <div class="vas-view-picker">
+          <label class="form-label" for="viewSelect">View</label>
+          <select class="form-select form-select-sm" id="viewSelect" aria-label="Layout view">
+            <option value="1">1 — Main / detail</option>
+            <option value="2">2 — Stacked</option>
+          </select>
+        </div>
       </div>
-      <div id="serviceList" class="service-list"></div>
+      <div id="serviceViews" class="service-views stacked-active">
+        <div class="main-detail" id="mainDetailLayout">
+          <nav class="line-nav" id="serviceNavPanel" aria-label="Provided services">
+            <div class="form-label mb-2" id="serviceNavHeading">Provided services</div>
+            <div id="serviceNav"></div>
+          </nav>
+          <div class="detail-pane">
+            <div id="serviceList" class="service-list"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

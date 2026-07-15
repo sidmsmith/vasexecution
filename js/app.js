@@ -18,6 +18,9 @@
   let currentItemMap = {};
   let currentServices = [];
   let vasConfig = null;
+  let activeServiceIndex = 0;
+
+  const VIEW_KEY = "vas-execution-view";
 
   const els = {
     orgSection: document.getElementById("orgSection"),
@@ -29,7 +32,10 @@
     status: document.getElementById("status"),
     results: document.getElementById("results"),
     olpnMeta: document.getElementById("olpnMeta"),
+    serviceViews: document.getElementById("serviceViews"),
+    serviceNav: document.getElementById("serviceNav"),
     serviceList: document.getElementById("serviceList"),
+    viewSelect: document.getElementById("viewSelect"),
     completeSelectedBtn: document.getElementById("completeSelectedBtn"),
     completeAllBtn: document.getElementById("completeAllBtn"),
     selectAllBtn: document.getElementById("selectAllBtn"),
@@ -296,6 +302,105 @@
     return rows;
   }
 
+  function getPreferredView() {
+    return localStorage.getItem(VIEW_KEY) === "1" ? "1" : "2";
+  }
+
+  function setPreferredView(value) {
+    if (value === "1" || value === "2") {
+      localStorage.setItem(VIEW_KEY, value);
+    }
+  }
+
+  /** Main/detail only when 2+ provided services and user prefers view 1. */
+  function effectiveIsMainDetail() {
+    return currentServices.length > 1 && getPreferredView() === "1";
+  }
+
+  function setActiveService(index) {
+    const cards = els.serviceList
+      ? Array.from(els.serviceList.querySelectorAll(".service-card"))
+      : [];
+    if (!cards.length) {
+      activeServiceIndex = 0;
+      return;
+    }
+    const next = Math.max(0, Math.min(index, cards.length - 1));
+    activeServiceIndex = next;
+    cards.forEach((card, i) => {
+      card.classList.toggle("is-active-service", i === next);
+    });
+    if (els.serviceNav) {
+      els.serviceNav.querySelectorAll(".line-nav-item").forEach((btn, i) => {
+        btn.classList.toggle("active", i === next);
+      });
+    }
+  }
+
+  function renderServiceNav() {
+    if (!els.serviceNav) return;
+    if (!currentServices.length) {
+      els.serviceNav.innerHTML = "";
+      return;
+    }
+    els.serviceNav.innerHTML = currentServices
+      .map((svc, i) => {
+        const openCount = (svc.AssignedServiceStep || []).filter(
+          (s) => stepRemaining(s) > 0
+        ).length;
+        const statusText = formatAssignedStatus(
+          svc.StatusId,
+          svc.AssignedServiceStatusDesc
+        );
+        const metaParts = [];
+        if (svc.ItemId) metaParts.push(String(svc.ItemId));
+        else if (svc.IsOlpnLevel) metaParts.push("oLPN-level");
+        metaParts.push(`${openCount} open`);
+        metaParts.push(statusText);
+        return `<button type="button" class="line-nav-item" data-service-index="${i}">
+          <div class="nav-service-title">${i + 1}. ${esc(
+            svc.ProvidedServiceId || "Service"
+          )}</div>
+          <div class="nav-service-meta">${esc(metaParts.join(" · "))}</div>
+        </button>`;
+      })
+      .join("");
+    els.serviceNav.querySelectorAll(".line-nav-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setActiveService(Number(btn.dataset.serviceIndex) || 0);
+      });
+    });
+  }
+
+  function applyViewMode() {
+    const preferred = getPreferredView();
+    const multi = currentServices.length > 1;
+    if (els.viewSelect) {
+      els.viewSelect.value = preferred;
+      els.viewSelect.disabled = !multi;
+      if (!multi) {
+        els.viewSelect.title =
+          "Main / detail is available when there are multiple provided services";
+      } else {
+        els.viewSelect.title = "";
+      }
+    }
+    const main = effectiveIsMainDetail();
+    if (els.serviceViews) {
+      els.serviceViews.classList.toggle("main-detail-active", main);
+      els.serviceViews.classList.toggle("stacked-active", !main);
+    }
+    if (main) {
+      renderServiceNav();
+      setActiveService(activeServiceIndex);
+    } else {
+      els.serviceList
+        ?.querySelectorAll(".service-card")
+        .forEach((card) => card.classList.add("is-active-service"));
+      if (els.serviceNav) els.serviceNav.innerHTML = "";
+    }
+  }
+
   function openStepCheckboxes(card) {
     return Array.from(
       (card || els.serviceList).querySelectorAll(".step-select:not(:disabled)")
@@ -458,7 +563,7 @@
         </table>`
       : '<p class="text-muted mb-0 mt-2" style="font-size:0.85rem">No steps on this service.</p>';
 
-    return `<article class="service-card" data-provided-service-id="${esc(
+    return `<article class="service-card" data-service-index="${idx}" data-provided-service-id="${esc(
       svc.ProvidedServiceId
     )}">
       <div class="service-header">
@@ -507,27 +612,33 @@
   }
 
   function renderServices(services) {
-    currentServices = Array.isArray(services) ? services : [];
+    const list = Array.isArray(services) ? services : [];
+    // oLPN services first, then item — indices must match DOM card order for nav
+    currentServices = [
+      ...list.filter((s) => s.IsOlpnLevel),
+      ...list.filter((s) => !s.IsOlpnLevel)
+    ];
+    activeServiceIndex = 0;
     if (!currentServices.length) {
       els.serviceList.innerHTML =
         '<p class="text-muted mb-0">No assigned service records returned.</p>';
+      if (els.serviceNav) els.serviceNav.innerHTML = "";
+      applyViewMode();
       updateExecutionButtons();
       return;
     }
 
-    const olpnServices = currentServices.filter((s) => s.IsOlpnLevel);
-    const itemServices = currentServices.filter((s) => !s.IsOlpnLevel);
-
     let html = "";
-    let idx = 0;
-    if (olpnServices.length) {
-      html += `<h3 class="service-group-title">oLPN Services</h3>`;
-      html += olpnServices.map((s) => renderServiceCard(s, idx++)).join("");
-    }
-    if (itemServices.length) {
-      html += `<h3 class="service-group-title">Item Services</h3>`;
-      html += itemServices.map((s) => renderServiceCard(s, idx++)).join("");
-    }
+    currentServices.forEach((svc, idx) => {
+      const prev = currentServices[idx - 1];
+      const isOlpn = !!svc.IsOlpnLevel;
+      if (idx === 0 || isOlpn !== !!prev?.IsOlpnLevel) {
+        html += `<h3 class="service-group-title">${
+          isOlpn ? "oLPN Services" : "Item Services"
+        }</h3>`;
+      }
+      html += renderServiceCard(svc, idx);
+    });
     els.serviceList.innerHTML = html;
 
     els.serviceList.querySelectorAll(".qty-input").forEach((input) => {
@@ -577,6 +688,7 @@
     }
     if (window.VasImageModal) window.VasImageModal.bindTriggers(els.serviceList);
     syncCameraBtn();
+    applyViewMode();
     updateExecutionButtons();
   }
 
@@ -812,6 +924,14 @@
     });
     updateExecutionButtons();
   });
+
+  if (els.viewSelect) {
+    els.viewSelect.value = getPreferredView();
+    els.viewSelect.addEventListener("change", () => {
+      setPreferredView(els.viewSelect.value);
+      applyViewMode();
+    });
+  }
 
   /** Case-insensitive query params: theme, org/organization, olpn/OLPN/oLPN/… */
   function parseUrlParams() {
