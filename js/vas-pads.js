@@ -251,9 +251,22 @@
       };
     }
 
+    function requestMarkupPhoto() {
+      if (cameraModalApi?.modal) {
+        openLiveCamera({
+          purpose: "markup",
+          title: "Markup Photo",
+          showGallery: false,
+          onMarkupCapture: (dataUrl) => setPhotoFromDataUrl(dataUrl)
+        });
+      } else if (fileInput) {
+        fileInput.click();
+      }
+    }
+
     function start(e) {
       if (!photo) {
-        if (fileInput) fileInput.click();
+        requestMarkupPhoto();
         return;
       }
       e.preventDefault();
@@ -297,8 +310,13 @@
     draw.addEventListener("pointercancel", stop);
 
     root.addEventListener("click", (e) => {
-      if (!photo && (e.target === root || e.target === placeholder || e.target.closest?.(".damage-pad-empty-placeholder"))) {
-        if (fileInput) fileInput.click();
+      if (
+        !photo &&
+        (e.target === root ||
+          e.target === placeholder ||
+          e.target.closest?.(".damage-pad-empty-placeholder"))
+      ) {
+        requestMarkupPhoto();
       }
     });
 
@@ -330,16 +348,7 @@
       cameraBtn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (cameraModalApi?.modal) {
-          openLiveCamera({
-            purpose: "markup",
-            title: "Markup Photo",
-            showGallery: false,
-            onMarkupCapture: (dataUrl) => setPhotoFromDataUrl(dataUrl)
-          });
-        } else if (fileInput) {
-          fileInput.click();
-        }
+        requestMarkupPhoto();
       };
     }
 
