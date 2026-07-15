@@ -19,6 +19,7 @@
           "js/**",
           "config/**",
           "assets/**",
+          "samples/**",
           "public/**",
           "*.png",
           "*.jpg",
