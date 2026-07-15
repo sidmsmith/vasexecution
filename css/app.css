@@ -277,23 +277,8 @@ body {
   min-width: 0;
 }
 
-.step-unit {
-  margin-top: 0.75rem;
-}
-.step-unit + .step-unit {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border);
-}
-.step-unit .step-panel {
-  margin-top: 0.4rem;
-}
-.step-unit-table {
-  margin-bottom: 0;
-}
-
 .step-panel {
-  margin-top: 0.65rem;
+  margin: 0;
   padding: 0.65rem 0.75rem;
   border: 1px dashed var(--border);
   border-radius: 8px;
@@ -308,6 +293,9 @@ body {
 
 .instruction-panel { display: none; }
 .instruction-panel.active { display: block; }
+.instruction-area .step-panel {
+  margin-top: 0.65rem;
+}
 
 .steps-table tr.active-step {
   background: rgba(13, 110, 253, 0.12);
@@ -321,9 +309,69 @@ body {
 
 .steps-table {
   width: 100%;
+  table-layout: fixed;
   font-size: 0.85rem;
   border-collapse: collapse;
   margin-top: 0.5rem;
+}
+.steps-table col.col-select { width: 2.5rem; }
+.steps-table col.col-step { width: 18%; }
+.steps-table col.col-desc { width: auto; }
+.steps-table col.col-num { width: 5.5rem; }
+.steps-table col.col-qty { width: 7rem; }
+.steps-table col.col-status { width: 7.5rem; }
+.steps-table th,
+.steps-table td {
+  border-top: 1px solid var(--border);
+  padding: 0.4rem 0.35rem;
+  vertical-align: middle;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.steps-table th {
+  border-top: none;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+.steps-table td.step-num,
+.steps-table th:nth-child(4),
+.steps-table th:nth-child(5),
+.steps-table th:nth-child(6) {
+  text-align: right;
+}
+.steps-table td.step-qty,
+.steps-table td.step-status {
+  text-align: center;
+}
+.steps-table tr.step-instructions-row > td {
+  border-top: none;
+  padding: 0.35rem 0.35rem 0.85rem;
+  vertical-align: top;
+}
+.steps-table tr.step-instructions-row .step-panel {
+  margin-top: 0;
+}
+
+.badge.status-chip {
+  font-weight: 600;
+  font-size: 0.75rem;
+  border: 1px solid transparent;
+}
+.badge.status-created {
+  color: #fecaca;
+  background: rgba(220, 38, 38, 0.28);
+  border-color: rgba(248, 113, 113, 0.55);
+}
+.badge.status-complete {
+  color: #bbf7d0;
+  background: rgba(22, 163, 74, 0.28);
+  border-color: rgba(74, 222, 128, 0.55);
+}
+.badge.status-other {
+  color: #fde68a;
+  background: rgba(217, 119, 6, 0.28);
+  border-color: rgba(251, 191, 36, 0.55);
 }
 .steps-table th,
 .steps-table td {

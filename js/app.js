@@ -77,6 +77,22 @@
     return ASSIGNED_SERVICE_STATUS[key] || key;
   }
 
+  /** Created = red, Complete = green, everything else = amber. */
+  function statusBadgeClass(statusId, statusText) {
+    const id = String(statusId ?? "").trim();
+    const text = String(statusText || "").trim().toLowerCase();
+    if (id === "5000" || /\bcomplete/.test(text)) return "status-chip status-complete";
+    if (id === "1000" || text === "created") return "status-chip status-created";
+    return "status-chip status-other";
+  }
+
+  function statusBadgeHtml(statusId, statusDesc) {
+    const text = formatAssignedStatus(statusId, statusDesc);
+    return `<span class="badge ${statusBadgeClass(statusId, text)}">${esc(
+      text
+    )}</span>`;
+  }
+
   function isValidOlpn(value) {
     const id = String(value || "").trim();
     if (!id || !token) return false;
@@ -502,7 +518,17 @@
   }
 
   function stepTableHeadHtml() {
-    return `<thead>
+    return `<colgroup>
+        <col class="col-select" />
+        <col class="col-step" />
+        <col class="col-desc" />
+        <col class="col-num" />
+        <col class="col-num" />
+        <col class="col-num" />
+        <col class="col-qty" />
+        <col class="col-status" />
+      </colgroup>
+      <thead>
       <tr>
         <th class="step-select-col" aria-label="Select step"></th>
         <th>Step</th>
@@ -518,10 +544,6 @@
 
   function stepRowCellsHtml(svc, step) {
     const remaining = stepRemaining(step);
-    const stepStatus = formatAssignedStatus(
-      step.StatusId || svc.StatusId,
-      step.AssignedServiceStepStatusDesc
-    );
     const selectControl =
       remaining > 0
         ? `<input type="checkbox" class="step-select" aria-label="Select step ${esc(
@@ -540,11 +562,14 @@
     return `<td class="step-select-col">${selectControl}</td>
       <td>${esc(step.AssignedServiceStepId)}</td>
       <td class="step-desc">${esc(step.StepDescription || "")}</td>
-      <td>${esc(step.RequestedQuantity)}</td>
-      <td>${esc(step.RemainingQuantity)}</td>
-      <td>${esc(step.CompletedQuantity)}</td>
-      <td>${qtyControl}</td>
-      <td>${esc(stepStatus)}</td>`;
+      <td class="step-num">${esc(step.RequestedQuantity)}</td>
+      <td class="step-num">${esc(step.RemainingQuantity)}</td>
+      <td class="step-num">${esc(step.CompletedQuantity)}</td>
+      <td class="step-qty">${qtyControl}</td>
+      <td class="step-status">${statusBadgeHtml(
+        step.StatusId || svc.StatusId,
+        step.AssignedServiceStepStatusDesc
+      )}</td>`;
   }
 
   function stepInstructionsPanelHtml(step, extraClass) {
@@ -605,27 +630,30 @@
         <div class="instruction-area">${panels}</div>`;
     }
 
-    // interleaved (Layout 2b): Step → instructions → Step → …
-    return steps
-      .map((step, i) => {
+    // interleaved (Layout 2b): one table so columns stay aligned;
+    // instructions sit in a full-width row under each step.
+    const bodyRows = steps
+      .map((step) => {
         const remaining = stepRemaining(step);
         const stepId = step.AssignedServiceStepId || "";
-        const head = i === 0 ? stepTableHeadHtml() : "";
-        return `<div class="step-unit" data-step-id="${esc(stepId)}">
-          <table class="steps-table compact step-unit-table">
-            ${head}
-            <tbody>
-              <tr data-step-key="${esc(serviceKey(svc, step))}" class="${
-                remaining > 0 ? "step-row-open" : "step-row-done"
-              }">
-                ${stepRowCellsHtml(svc, step)}
-              </tr>
-            </tbody>
-          </table>
-          ${stepInstructionsPanelHtml(step)}
-        </div>`;
+        const panel = stepInstructionsPanelHtml(step);
+        const instrRow = panel
+          ? `<tr class="step-instructions-row" data-for-step="${esc(stepId)}">
+              <td colspan="8">${panel}</td>
+            </tr>`
+          : "";
+        return `<tr data-step-key="${esc(serviceKey(svc, step))}" data-step-id="${esc(
+          stepId
+        )}" class="${remaining > 0 ? "step-row-open" : "step-row-done"}">
+            ${stepRowCellsHtml(svc, step)}
+          </tr>${instrRow}`;
       })
       .join("");
+
+    return `<table class="steps-table compact">
+        ${stepTableHeadHtml()}
+        <tbody>${bodyRows}</tbody>
+      </table>`;
   }
 
   function bindQtyAndSelectIn(root) {
@@ -718,10 +746,6 @@
   }
 
   function renderServiceCard(svc, idx) {
-    const statusText = formatAssignedStatus(
-      svc.StatusId,
-      svc.AssignedServiceStatusDesc
-    );
     const steps = Array.isArray(svc.AssignedServiceStep)
       ? svc.AssignedServiceStep
       : [];
@@ -788,7 +812,7 @@
             </select>
           </label>
           ${iconHtml}
-          <span class="badge text-bg-secondary">${esc(statusText)}</span>
+          ${statusBadgeHtml(svc.StatusId, svc.AssignedServiceStatusDesc)}
         </div>
       </div>
       <div class="service-steps-body">${renderStepsBodyHtml(
