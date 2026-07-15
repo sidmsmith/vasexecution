@@ -21,6 +21,7 @@
   let activeServiceIndex = 0;
 
   const VIEW_KEY = "vas-execution-view";
+  const STEP_VIEW_KEY = "vas-step-view-mode";
 
   const els = {
     orgSection: document.getElementById("orgSection"),
@@ -303,6 +304,19 @@
     }
   }
 
+  /** Layout 6: interleaved (2b) | active (3). */
+  function getPreferredStepView() {
+    return localStorage.getItem(STEP_VIEW_KEY) === "active"
+      ? "active"
+      : "interleaved";
+  }
+
+  function setPreferredStepView(value) {
+    if (value === "active" || value === "interleaved") {
+      localStorage.setItem(STEP_VIEW_KEY, value);
+    }
+  }
+
   /** Main/detail only when 2+ provided services and user prefers view 1. */
   function effectiveIsMainDetail() {
     return currentServices.length > 1 && getPreferredView() === "1";
@@ -487,6 +501,222 @@
     return { completions, errors };
   }
 
+  function stepTableHeadHtml() {
+    return `<thead>
+      <tr>
+        <th class="step-select-col" aria-label="Select step"></th>
+        <th>Step</th>
+        <th>Description</th>
+        <th>Requested</th>
+        <th>Remaining</th>
+        <th>Completed</th>
+        <th>Qty to complete</th>
+        <th>Status</th>
+      </tr>
+    </thead>`;
+  }
+
+  function stepRowCellsHtml(svc, step) {
+    const remaining = stepRemaining(step);
+    const stepStatus = formatAssignedStatus(
+      step.StatusId || svc.StatusId,
+      step.AssignedServiceStepStatusDesc
+    );
+    const selectControl =
+      remaining > 0
+        ? `<input type="checkbox" class="step-select" aria-label="Select step ${esc(
+            step.AssignedServiceStepId || ""
+          )}" />`
+        : `<span class="text-muted">—</span>`;
+    const qtyControl =
+      remaining > 0
+        ? `<input type="number" class="form-control qty-input" min="0.0001" step="any"
+            value="${esc(remaining)}"
+            data-remaining="${esc(remaining)}"
+            data-requestor-id="${esc(svc.ServiceRequestorId)}"
+            data-provided-service-id="${esc(svc.ProvidedServiceId)}"
+            data-step-id="${esc(step.AssignedServiceStepId)}" />`
+        : `<span class="text-muted">—</span>`;
+    return `<td class="step-select-col">${selectControl}</td>
+      <td>${esc(step.AssignedServiceStepId)}</td>
+      <td class="step-desc">${esc(step.StepDescription || "")}</td>
+      <td>${esc(step.RequestedQuantity)}</td>
+      <td>${esc(step.RemainingQuantity)}</td>
+      <td>${esc(step.CompletedQuantity)}</td>
+      <td>${qtyControl}</td>
+      <td>${esc(stepStatus)}</td>`;
+  }
+
+  function stepInstructionsPanelHtml(step, extraClass) {
+    const lines = Array.isArray(step.Instructions)
+      ? step.Instructions.map((t) => String(t || "").trim()).filter(Boolean)
+      : [];
+    if (!lines.length) return "";
+    const stepId = step.AssignedServiceStepId || "";
+    const cls = ["step-panel", extraClass].filter(Boolean).join(" ");
+    return `<div class="${cls}" data-step-panel="${esc(stepId)}">
+      <h5>Step: ${esc(stepId)}</h5>
+      <ul class="vas-instruction-list mb-0">
+        ${lines.map((t) => `<li>${esc(t)}</li>`).join("")}
+      </ul>
+    </div>`;
+  }
+
+  function renderStepsBodyHtml(svc, mode, activeStepId) {
+    const steps = Array.isArray(svc.AssignedServiceStep)
+      ? svc.AssignedServiceStep
+      : [];
+    if (!steps.length) {
+      return '<p class="text-muted mb-0 mt-2" style="font-size:0.85rem">No steps on this service.</p>';
+    }
+
+    if (mode === "active") {
+      const rows = steps
+        .map((step) => {
+          const remaining = stepRemaining(step);
+          const stepId = step.AssignedServiceStepId || "";
+          const classes = [
+            remaining > 0 ? "step-row-open" : "step-row-done",
+            stepId === activeStepId ? "active-step" : ""
+          ]
+            .filter(Boolean)
+            .join(" ");
+          return `<tr data-step-key="${esc(serviceKey(svc, step))}" data-step-row data-step-id="${esc(
+            stepId
+          )}" class="${classes}">
+            ${stepRowCellsHtml(svc, step)}
+          </tr>`;
+        })
+        .join("");
+      const panels = steps
+        .map((step) => {
+          const stepId = step.AssignedServiceStepId || "";
+          const cls =
+            stepId === activeStepId
+              ? "instruction-panel active"
+              : "instruction-panel";
+          return stepInstructionsPanelHtml(step, cls);
+        })
+        .join("");
+      return `<table class="steps-table compact">
+          ${stepTableHeadHtml()}
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="instruction-area">${panels}</div>`;
+    }
+
+    // interleaved (Layout 2b): Step → instructions → Step → …
+    return steps
+      .map((step, i) => {
+        const remaining = stepRemaining(step);
+        const stepId = step.AssignedServiceStepId || "";
+        const head = i === 0 ? stepTableHeadHtml() : "";
+        return `<div class="step-unit" data-step-id="${esc(stepId)}">
+          <table class="steps-table compact step-unit-table">
+            ${head}
+            <tbody>
+              <tr data-step-key="${esc(serviceKey(svc, step))}" class="${
+                remaining > 0 ? "step-row-open" : "step-row-done"
+              }">
+                ${stepRowCellsHtml(svc, step)}
+              </tr>
+            </tbody>
+          </table>
+          ${stepInstructionsPanelHtml(step)}
+        </div>`;
+      })
+      .join("");
+  }
+
+  function bindQtyAndSelectIn(root) {
+    if (!root) return;
+    root.querySelectorAll(".qty-input").forEach((input) => {
+      input.addEventListener("input", () => {
+        validateQtyInput(input);
+        updateExecutionButtons();
+      });
+      input.addEventListener("change", () => {
+        const max = Number(input.dataset.remaining || 0);
+        let value = Number(input.value);
+        if (Number.isFinite(value) && value > max) {
+          input.value = String(max);
+          status(
+            `Quantity cannot exceed remaining quantity (${max})`,
+            "error"
+          );
+        }
+        validateQtyInput(input);
+        updateExecutionButtons();
+      });
+    });
+    root.querySelectorAll(".step-select").forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const card = cb.closest(".service-card");
+        if (card) syncServiceCheckbox(card);
+        updateExecutionButtons();
+      });
+    });
+  }
+
+  function bindActiveStepRows(card) {
+    if (!card || card.dataset.stepView !== "active") return;
+    card.querySelectorAll("[data-step-row]").forEach((row) => {
+      row.addEventListener("click", (ev) => {
+        if (ev.target.closest("input, button, a, label")) return;
+        const stepId = row.dataset.stepId || "";
+        if (!stepId) return;
+        card.dataset.activeStepId = stepId;
+        refreshCardStepsBody(card);
+      });
+    });
+  }
+
+  function refreshCardStepsBody(card) {
+    const idx = Number(card.dataset.serviceIndex);
+    const svc = currentServices[idx];
+    if (!svc) return;
+    const mode =
+      card.dataset.stepView === "active" ? "active" : "interleaved";
+    const steps = Array.isArray(svc.AssignedServiceStep)
+      ? svc.AssignedServiceStep
+      : [];
+    let activeStepId = card.dataset.activeStepId || "";
+    if (
+      mode === "active" &&
+      (!activeStepId ||
+        !steps.some((s) => s.AssignedServiceStepId === activeStepId))
+    ) {
+      activeStepId = steps[0]?.AssignedServiceStepId || "";
+      card.dataset.activeStepId = activeStepId;
+    }
+    const body = card.querySelector(".service-steps-body");
+    if (!body) return;
+    const selected = new Set(
+      Array.from(card.querySelectorAll(".step-select:checked")).map((cb) => {
+        const tr = cb.closest("tr");
+        return tr?.dataset.stepKey || "";
+      })
+    );
+    const qtyByKey = {};
+    body.querySelectorAll(".qty-input").forEach((input) => {
+      const key = input.closest("tr")?.dataset.stepKey || "";
+      if (key) qtyByKey[key] = input.value;
+    });
+    body.innerHTML = renderStepsBodyHtml(svc, mode, activeStepId);
+    body.querySelectorAll(".step-select").forEach((cb) => {
+      const key = cb.closest("tr")?.dataset.stepKey || "";
+      if (key && selected.has(key)) cb.checked = true;
+    });
+    body.querySelectorAll(".qty-input").forEach((input) => {
+      const key = input.closest("tr")?.dataset.stepKey || "";
+      if (key && qtyByKey[key] != null) input.value = qtyByKey[key];
+    });
+    bindQtyAndSelectIn(body);
+    bindActiveStepRows(card);
+    syncServiceCheckbox(card);
+    updateExecutionButtons();
+  }
+
   function renderServiceCard(svc, idx) {
     const statusText = formatAssignedStatus(
       svc.StatusId,
@@ -496,6 +726,8 @@
       ? svc.AssignedServiceStep
       : [];
     const hasOpen = steps.some((s) => stepRemaining(s) > 0);
+    const stepView = getPreferredStepView();
+    const activeStepId = steps[0]?.AssignedServiceStepId || "";
 
     const itemBlock =
       svc.ItemId
@@ -510,66 +742,22 @@
           ? `<div class="service-item-row"><span class="text-muted">oLPN-level service</span></div>`
           : "";
 
-    const stepsHtml = steps.length
-      ? `<table class="steps-table">
-          <thead>
-            <tr>
-              <th class="step-select-col" aria-label="Select step"></th>
-              <th>Step</th>
-              <th>Description</th>
-              <th>Requested</th>
-              <th>Remaining</th>
-              <th>Completed</th>
-              <th>Qty to complete</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${steps
-              .map((step) => {
-                const remaining = stepRemaining(step);
-                const stepStatus = formatAssignedStatus(
-                  step.StatusId || svc.StatusId,
-                  step.AssignedServiceStepStatusDesc
-                );
-                const instructions = (step.Instructions || [])
-                  .map((t) => `<div class="step-instructions">${esc(t)}</div>`)
-                  .join("");
-                const selectControl =
-                  remaining > 0
-                    ? `<input type="checkbox" class="step-select" aria-label="Select step ${esc(
-                        step.AssignedServiceStepId || ""
-                      )}" />`
-                    : `<span class="text-muted">—</span>`;
-                const qtyControl =
-                  remaining > 0
-                    ? `<input type="number" class="form-control qty-input" min="0.0001" step="any"
-                        value="${esc(remaining)}"
-                        data-remaining="${esc(remaining)}"
-                        data-requestor-id="${esc(svc.ServiceRequestorId)}"
-                        data-provided-service-id="${esc(svc.ProvidedServiceId)}"
-                        data-step-id="${esc(step.AssignedServiceStepId)}" />`
-                    : `<span class="text-muted">—</span>`;
-                return `<tr data-step-key="${esc(serviceKey(svc, step))}" class="${
-                  remaining > 0 ? "step-row-open" : "step-row-done"
-                }">
-                  <td class="step-select-col">${selectControl}</td>
-                  <td>${esc(step.AssignedServiceStepId)}</td>
-                  <td>${esc(step.StepDescription)}${instructions}</td>
-                  <td>${esc(step.RequestedQuantity)}</td>
-                  <td>${esc(step.RemainingQuantity)}</td>
-                  <td>${esc(step.CompletedQuantity)}</td>
-                  <td>${qtyControl}</td>
-                  <td>${esc(stepStatus)}</td>
-                </tr>`;
-              })
-              .join("")}
-          </tbody>
-        </table>`
-      : '<p class="text-muted mb-0 mt-2" style="font-size:0.85rem">No steps on this service.</p>';
+    const typeCfg = window.VasConfig
+      ? window.VasConfig.getTypeConfig(vasConfig, svc.ProvidedServiceId)
+      : null;
+    const iconUrl = window.VasConfig
+      ? window.VasConfig.typeIconUrl(typeCfg)
+      : "";
+    const iconHtml = iconUrl
+      ? `<img class="service-type-icon" src="${esc(
+          iconUrl
+        )}" alt="" onerror="this.remove()" />`
+      : "";
 
     return `<article class="service-card" data-service-index="${idx}" data-provided-service-id="${esc(
       svc.ProvidedServiceId
+    )}" data-step-view="${esc(stepView)}" data-active-step-id="${esc(
+      activeStepId
     )}">
       <div class="service-header">
         <div class="service-title-row">
@@ -586,34 +774,29 @@
     }</div>
             ${itemBlock}
           </div>
-          <div class="service-meta">
-            <div>ServiceRequestorTypeId: ${esc(svc.ServiceRequestorTypeId)}</div>
-            <div>ServiceRequestorId: ${esc(svc.ServiceRequestorId)}</div>
-            <div>ServiceUomId: ${esc(svc.ServiceUomId)}</div>
-          </div>
         </div>
         <div class="service-header-end">
-          ${(() => {
-            const typeCfg = window.VasConfig
-              ? window.VasConfig.getTypeConfig(vasConfig, svc.ProvidedServiceId)
-              : null;
-            const iconUrl = window.VasConfig
-              ? window.VasConfig.typeIconUrl(typeCfg)
-              : "";
-            return iconUrl
-              ? `<img class="service-type-icon" src="${esc(
-                  iconUrl
-                )}" alt="" onerror="this.remove()" />`
-              : "";
-          })()}
+          <label class="step-view-picker">
+            <span class="visually-hidden">Step view</span>
+            <select class="form-select form-select-sm step-view-select" aria-label="Step view">
+              <option value="interleaved"${
+                stepView === "interleaved" ? " selected" : ""
+              }>All steps</option>
+              <option value="active"${
+                stepView === "active" ? " selected" : ""
+              }>Active step</option>
+            </select>
+          </label>
+          ${iconHtml}
           <span class="badge text-bg-secondary">${esc(statusText)}</span>
         </div>
       </div>
-      ${stepsHtml}
+      <div class="service-steps-body">${renderStepsBodyHtml(
+        svc,
+        stepView,
+        activeStepId
+      )}</div>
       ${(() => {
-        const typeCfg = window.VasConfig
-          ? window.VasConfig.getTypeConfig(vasConfig, svc.ProvidedServiceId)
-          : null;
         const itemCfg =
           svc.ItemId && window.VasConfig
             ? window.VasConfig.getItemConfig(vasConfig, svc.ItemId)
@@ -622,8 +805,9 @@
           ? window.VasConfig.mergedSections(typeCfg, itemCfg)
           : null;
         const cardKey = `${svc.ServiceRequestorId}|${svc.ProvidedServiceId}`;
+        // Type-level content ("Shared" / VAS Type block) intentionally omitted —
+        // instructions come from MAWM step.Instructions in Layout 6 panels.
         return (
-          renderConfigBlock("type", typeCfg) +
           renderConfigBlock("item", itemCfg) +
           renderCaptureSections(cardKey, sections)
         );
@@ -661,25 +845,7 @@
     });
     els.serviceList.innerHTML = html;
 
-    els.serviceList.querySelectorAll(".qty-input").forEach((input) => {
-      input.addEventListener("input", () => {
-        validateQtyInput(input);
-        updateExecutionButtons();
-      });
-      input.addEventListener("change", () => {
-        const max = Number(input.dataset.remaining || 0);
-        let value = Number(input.value);
-        if (Number.isFinite(value) && value > max) {
-          input.value = String(max);
-          status(
-            `Quantity cannot exceed remaining quantity (${max})`,
-            "error"
-          );
-        }
-        validateQtyInput(input);
-        updateExecutionButtons();
-      });
-    });
+    bindQtyAndSelectIn(els.serviceList);
     els.serviceList.querySelectorAll(".service-select").forEach((cb) => {
       cb.addEventListener("change", () => {
         const card = cb.closest(".service-card");
@@ -688,16 +854,20 @@
         updateExecutionButtons();
       });
     });
-    els.serviceList.querySelectorAll(".step-select").forEach((cb) => {
-      cb.addEventListener("change", () => {
-        const card = cb.closest(".service-card");
-        if (card) syncServiceCheckbox(card);
-        updateExecutionButtons();
+    els.serviceList.querySelectorAll(".step-view-select").forEach((sel) => {
+      sel.addEventListener("change", () => {
+        const card = sel.closest(".service-card");
+        if (!card) return;
+        const mode = sel.value === "active" ? "active" : "interleaved";
+        card.dataset.stepView = mode;
+        setPreferredStepView(mode);
+        refreshCardStepsBody(card);
       });
     });
-    els.serviceList
-      .querySelectorAll(".service-card")
-      .forEach((card) => syncServiceCheckbox(card));
+    els.serviceList.querySelectorAll(".service-card").forEach((card) => {
+      syncServiceCheckbox(card);
+      bindActiveStepRows(card);
+    });
 
     if (typeof window.bindItemImagePreview === "function") {
       delete els.serviceList.dataset.itemImagePreviewBound;

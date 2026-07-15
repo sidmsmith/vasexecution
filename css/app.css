@@ -263,14 +263,60 @@ body {
   object-fit: contain;
 }
 
-.service-meta {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  display: grid;
-  gap: 0.15rem;
-  margin-left: 1.25rem;
-  flex: 0 1 auto;
-  min-width: 10rem;
+.step-view-picker {
+  margin: 0;
+  min-width: 7.5rem;
+}
+.step-view-picker .step-view-select {
+  font-size: 0.75rem;
+  padding: 0.2rem 1.75rem 0.2rem 0.45rem;
+  min-height: auto;
+}
+
+.service-steps-body {
+  min-width: 0;
+}
+
+.step-unit {
+  margin-top: 0.75rem;
+}
+.step-unit + .step-unit {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.step-unit .step-panel {
+  margin-top: 0.4rem;
+}
+.step-unit-table {
+  margin-bottom: 0;
+}
+
+.step-panel {
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+}
+.step-panel h5 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.instruction-panel { display: none; }
+.instruction-panel.active { display: block; }
+
+.steps-table tr.active-step {
+  background: rgba(13, 110, 253, 0.12);
+}
+.steps-table tr[data-step-row] {
+  cursor: pointer;
+}
+.steps-table td.step-desc {
+  font-weight: 600;
 }
 
 .steps-table {
