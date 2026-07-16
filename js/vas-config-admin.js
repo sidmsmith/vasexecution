@@ -73,7 +73,7 @@
   }
 
   function deleteBtnHtml(extraClass) {
-    return `<button type="button" class="btn btn-icon row-action-btn del-btn ${extraClass}" title="Delete" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>`;
+    return `<button type="button" class="btn btn-icon row-action-btn del-btn ${extraClass}" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>`;
   }
 
   /** HTML for a single editable content row (text or image block). */
@@ -83,7 +83,7 @@
       return `<div class="content-row image-row draggable-item" data-idx="${idx}" data-type="image" data-id="${esc(
         block.id
       )}">
-            <span class="grip" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
+            <span class="grip" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
             <div class="content-fields">
               <div class="text-format-bar image-scale-bar">
                 <span class="content-type-badge"><i class="fa-solid fa-image"></i> Image</span>
@@ -113,17 +113,17 @@
     return `<div class="content-row instruction-row draggable-item" data-idx="${idx}" data-type="text" data-id="${esc(
       block.id
     )}">
-            <span class="grip" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
+            <span class="grip" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
             <div class="content-fields">
               <div class="text-format-bar">
                 <span class="content-type-badge"><i class="fa-solid fa-align-left"></i> Text</span>
-                <button type="button" class="fmt-btn fmt-bold${block.bold ? " active" : ""}" title="Bold" aria-label="Bold"><b>B</b></button>
-                <button type="button" class="fmt-btn fmt-italic${block.italic ? " active" : ""}" title="Italic" aria-label="Italic"><i>I</i></button>
-                <button type="button" class="fmt-btn fmt-underline${block.underline ? " active" : ""}" title="Underline" aria-label="Underline"><u>U</u></button>
-                <label class="fmt-color-wrap" title="Text color">
+                <button type="button" class="fmt-btn fmt-bold${block.bold ? " active" : ""}" aria-label="Bold"><b>B</b></button>
+                <button type="button" class="fmt-btn fmt-italic${block.italic ? " active" : ""}" aria-label="Italic"><i>I</i></button>
+                <button type="button" class="fmt-btn fmt-underline${block.underline ? " active" : ""}" aria-label="Underline"><u>U</u></button>
+                <label class="fmt-color-wrap">
                   <input type="color" class="fmt-color" value="${esc(color)}" aria-label="Text color" />
                 </label>
-                <label class="fmt-marker-wrap" title="List marker">
+                <label class="fmt-marker-wrap">
                   <select class="form-select form-select-sm fmt-marker" aria-label="List marker">
                     <option value="none" ${marker==="none"?"selected":""}>None</option>
                     <option value="bullet" ${marker==="bullet"?"selected":""}>• Bullet</option>
@@ -540,15 +540,6 @@
       : "step-tab-wms-missing";
   }
 
-  function stepTabWmsTitle(stepId) {
-    if (wmsStepIds == null || wmsStepsForKey !== selectedKey) {
-      return "Checking whether this step exists in WMS…";
-    }
-    return wmsStepIds.has(String(stepId || "").trim())
-      ? "Exists in WMS for this VAS Type"
-      : "Not in WMS for this VAS Type — step will never match execution";
-  }
-
   function applyStepTabWmsClasses() {
     if (!els.stepTabs) return;
     els.stepTabs.querySelectorAll(".step-tab[data-step-id]").forEach((btn) => {
@@ -557,9 +548,8 @@
         "step-tab-wms-missing",
         "step-tab-wms-unknown"
       );
-      const id = btn.dataset.stepId;
-      btn.classList.add(stepTabWmsClass(id));
-      btn.title = stepTabWmsTitle(id);
+      btn.classList.add(stepTabWmsClass(btn.dataset.stepId));
+      btn.removeAttribute("title");
     });
   }
 
@@ -663,17 +653,16 @@
       .map((key) => {
         const active = key === selectedStepId ? " active" : "";
         const wmsClass = stepTabWmsClass(key);
-        const wmsTitle = stepTabWmsTitle(key);
         return `<button type="button" class="step-tab ${wmsClass}${active}" role="tab" data-step-id="${esc(
           key
         )}" draggable="true" aria-selected="${
           key === selectedStepId
-        }" title="${esc(wmsTitle)}">${esc(key)}</button>`;
+        }">${esc(key)}</button>`;
       })
       .join("");
     els.stepTabs.innerHTML =
       tabsHtml +
-      `<button type="button" class="step-tab step-tab-add" data-step-add="1" title="Add step"><i class="fa-solid fa-plus"></i></button>`;
+      `<button type="button" class="step-tab step-tab-add" data-step-add="1" aria-label="Add step"><i class="fa-solid fa-plus"></i></button>`;
 
     if (els.removeStepBtn) els.removeStepBtn.disabled = !selectedStepId;
 
@@ -727,12 +716,6 @@
     if (els.addEntryBtnLabel) {
       els.addEntryBtnLabel.textContent =
         tab === "types" ? "Add VAS Type" : "Add Item";
-    }
-    if (els.addEntryBtn) {
-      els.addEntryBtn.title =
-        tab === "types"
-          ? "Add a ProvidedServiceId / VAS Type"
-          : "Add an ItemId overlay";
     }
   }
 

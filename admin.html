@@ -44,20 +44,20 @@
           </select>
         </div>
         <div class="toolbar-actions">
-          <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="addEntryBtn" title="Add VAS Type or Item">
+          <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="addEntryBtn">
             <i class="fa-solid fa-plus"></i> <span id="addEntryBtnLabel">Add VAS Type</span>
           </button>
-          <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="exportBtn" title="Download local draft as JSON">
+          <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="exportBtn">
             <i class="fa-solid fa-download"></i> Export
           </button>
-          <label class="btn btn-outline-secondary btn-sm mb-0" id="importBtnLabel" title="Load config from a JSON file">
+          <label class="btn btn-outline-secondary btn-sm mb-0" id="importBtnLabel">
             <i class="fa-solid fa-upload"></i> Import
             <input type="file" id="importFile" accept=".json,application/json" hidden />
           </label>
           <button type="button" class="btn btn-outline-warning btn-sm mb-0" id="resetBtn">
             <i class="fa-solid fa-eraser"></i> Reset to default
           </button>
-          <button type="button" class="btn btn-success" id="saveBtn" title="Save to GitHub and redeploy">
+          <button type="button" class="btn btn-success" id="saveBtn">
             <i class="fa-solid fa-cloud-arrow-up"></i> Save &amp; Deploy
           </button>
         </div>
@@ -95,7 +95,7 @@
               <label class="form-label mb-1">Steps <span class="text-muted fw-normal">(AssignedServiceStepId)</span></label>
               <div class="step-tabs-row">
                 <div id="stepTabs" class="step-tabs" role="tablist" aria-label="VAS Type steps"></div>
-                <button type="button" class="btn btn-link btn-sm delete-all-questions-btn mb-0" id="removeStepBtn" disabled title="Remove selected step">
+                <button type="button" class="btn btn-link btn-sm delete-all-questions-btn mb-0" id="removeStepBtn" disabled>
                   <i class="fa-solid fa-trash-can"></i> Remove
                 </button>
               </div>
@@ -137,10 +137,10 @@
             </div>
             <div class="preview-header-actions">
               <div class="btn-group btn-group-sm preview-mode-toggle" role="group" aria-label="Preview mode">
-                <button type="button" class="btn btn-outline-secondary" id="previewDesktopBtn" title="Fullscreen preview">Desktop</button>
-                <button type="button" class="btn btn-outline-secondary active" id="previewMobileBtn" title="Phone frame preview">Mobile</button>
+                <button type="button" class="btn btn-outline-secondary" id="previewDesktopBtn">Desktop</button>
+                <button type="button" class="btn btn-outline-secondary active" id="previewMobileBtn">Mobile</button>
               </div>
-              <button type="button" class="preview-theme-gear theme-selector-btn" id="previewThemeBtn" title="Select preview theme" aria-label="Select preview theme">
+              <button type="button" class="preview-theme-gear theme-selector-btn" id="previewThemeBtn" aria-label="Select preview theme">
                 <i class="fas fa-cog"></i>
               </button>
             </div>
