@@ -542,19 +542,20 @@
 
   function getTypeConfig(config, providedServiceId) {
     if (!config || !providedServiceId) return null;
-    return config.vasTypes[providedServiceId] || null;
+    const id = String(providedServiceId).trim();
+    return config.vasTypes[id] || null;
   }
 
   function getItemConfig(config, itemId) {
     if (!config || !itemId) return null;
-    return config.items[String(itemId)] || null;
+    return config.items[String(itemId).trim()] || null;
   }
 
   /** Step config under a VAS Type; key = AssignedServiceStepId. */
   function getStepConfig(typeCfg, assignedServiceStepId) {
     if (!typeCfg || !assignedServiceStepId) return null;
     const steps = typeCfg.steps || {};
-    return steps[String(assignedServiceStepId)] || null;
+    return steps[String(assignedServiceStepId).trim()] || null;
   }
 
   /** True when step has at least one usable content block. */

@@ -494,13 +494,17 @@
       applyStepTabWmsClasses();
       return;
     }
-    const typeId = selectedKey;
+    const typeId = String(selectedKey || "").trim();
     const gen = ++wmsStepsFetchGen;
     wmsStepIds = null;
     wmsStepsForKey = null;
     applyStepTabWmsClasses();
     const res = await api("provided_services", { org, token });
-    if (gen !== wmsStepsFetchGen || selectedKey !== typeId || tab !== "types") {
+    if (
+      gen !== wmsStepsFetchGen ||
+      String(selectedKey || "").trim() !== typeId ||
+      tab !== "types"
+    ) {
       return;
     }
     if (!res.success) {
@@ -511,7 +515,7 @@
       return;
     }
     const svc = (res.services || []).find(
-      (s) => s && s.ProvidedServiceId === typeId
+      (s) => s && String(s.ProvidedServiceId || "").trim() === typeId
     );
     wmsStepIds = new Set(
       (svc && Array.isArray(svc.ProvidedServiceStep)
@@ -520,9 +524,10 @@
       )
         .map((s) => s && s.ProvidedServiceStepId)
         .filter(Boolean)
-        .map(String)
+        .map((id) => String(id).trim())
+        .filter(Boolean)
     );
-    wmsStepsForKey = typeId;
+    wmsStepsForKey = selectedKey;
     applyStepTabWmsClasses();
   }
 
@@ -530,7 +535,7 @@
     if (wmsStepIds == null || wmsStepsForKey !== selectedKey) {
       return "step-tab-wms-unknown";
     }
-    return wmsStepIds.has(String(stepId))
+    return wmsStepIds.has(String(stepId || "").trim())
       ? "step-tab-wms-ok"
       : "step-tab-wms-missing";
   }
@@ -539,7 +544,7 @@
     if (wmsStepIds == null || wmsStepsForKey !== selectedKey) {
       return "Checking whether this step exists in WMS…";
     }
-    return wmsStepIds.has(String(stepId))
+    return wmsStepIds.has(String(stepId || "").trim())
       ? "Exists in WMS for this VAS Type"
       : "Not in WMS for this VAS Type — step will never match execution";
   }

@@ -493,7 +493,9 @@ def summarize_service(
                 instructions.append(str(instr.get("InstructionText")))
         steps.append(
             {
-                "AssignedServiceStepId": step.get("AssignedServiceStepId"),
+                "AssignedServiceStepId": str(
+                    step.get("AssignedServiceStepId") or ""
+                ).strip(),
                 "StepDescription": step.get("StepDescription"),
                 "RequestedQuantity": step.get("RequestedQuantity"),
                 "RemainingQuantity": step.get("RemainingQuantity"),
@@ -504,7 +506,7 @@ def summarize_service(
             }
         )
     return {
-        "ProvidedServiceId": svc.get("ProvidedServiceId"),
+        "ProvidedServiceId": str(svc.get("ProvidedServiceId") or "").strip(),
         "Description": svc.get("Description") or svc.get("ProvidedServiceId"),
         "ServiceRequestorTypeId": svc.get("ServiceRequestorTypeId"),
         "ServiceRequestorId": requestor_id,
@@ -1081,7 +1083,9 @@ def provided_services():
                     )
             steps.append(
                 {
-                    "ProvidedServiceStepId": step.get("ProvidedServiceStepId"),
+                    "ProvidedServiceStepId": str(
+                        step.get("ProvidedServiceStepId") or ""
+                    ).strip(),
                     "Description": step.get("Description"),
                     "StepSequence": step.get("StepSequence"),
                     "Instructions": instructions,
@@ -1089,7 +1093,9 @@ def provided_services():
             )
         services.append(
             {
-                "ProvidedServiceId": row.get("ProvidedServiceId"),
+                "ProvidedServiceId": str(
+                    row.get("ProvidedServiceId") or ""
+                ).strip(),
                 "Description": row.get("Description"),
                 "ServiceTypeId": row.get("ServiceTypeId"),
                 "ProvidedServiceStep": steps,

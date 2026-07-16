@@ -615,12 +615,10 @@
     if (!order.length) return steps;
     const rank = new Map(order.map((id, i) => [id, i]));
     return steps.sort((a, b) => {
-      const ai = rank.has(a.AssignedServiceStepId)
-        ? rank.get(a.AssignedServiceStepId)
-        : order.length + 1;
-      const bi = rank.has(b.AssignedServiceStepId)
-        ? rank.get(b.AssignedServiceStepId)
-        : order.length + 1;
+      const aId = String(a.AssignedServiceStepId || "").trim();
+      const bId = String(b.AssignedServiceStepId || "").trim();
+      const ai = rank.has(aId) ? rank.get(aId) : order.length + 1;
+      const bi = rank.has(bId) ? rank.get(bId) : order.length + 1;
       if (ai !== bi) return ai - bi;
       return 0;
     });
