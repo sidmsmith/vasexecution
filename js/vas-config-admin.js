@@ -41,7 +41,6 @@
     stepTabs: document.getElementById("stepTabs"),
     removeStepBtn: document.getElementById("removeStepBtn"),
     contentSectionLabel: document.getElementById("contentSectionLabel"),
-    contentSectionHint: document.getElementById("contentSectionHint"),
     contentList: document.getElementById("contentList"),
     columnCountWrap: document.getElementById("columnCountWrap"),
     columnCountSelect: document.getElementById("columnCountSelect"),
@@ -49,7 +48,6 @@
     secPhotos: document.getElementById("secPhotos"),
     secMarkup: document.getElementById("secMarkup"),
     previewHost: document.getElementById("previewHost"),
-    previewNote: document.getElementById("previewNote"),
     configTabSelect: document.getElementById("configTabSelect"),
     deleteKeyBtn: document.getElementById("deleteKeyBtn"),
     addEntryBtn: document.getElementById("addEntryBtn"),
@@ -786,14 +784,6 @@
           ? "Step content (instructions & images)"
           : "Content (instructions & images)";
     }
-    if (els.contentSectionHint) {
-      els.contentSectionHint.textContent =
-        tab === "types"
-          ? selectedStepId
-            ? `Editing step “${selectedStepId}”. Drag blocks to reorder or move them between columns.`
-            : "Select or add a step first. Drag blocks to reorder."
-          : "Drag to reorder. Images can sit above or below text.";
-    }
 
     const owner = contentOwner();
     const canEditContent = tab === "items" || !!selectedStepId;
@@ -804,7 +794,7 @@
     }
 
     if (!canEditContent) {
-      els.contentList.innerHTML = `<p class="text-muted small mb-0">Add a step (AssignedServiceStepId) to attach instructions.</p>`;
+      els.contentList.innerHTML = "";
     } else if (tab === "types") {
       owner.layout = VasConfig.normalizeLayout(
         owner.layout,
@@ -990,12 +980,6 @@
     previewMode = mode === "desktop" ? "desktop" : "mobile";
     els.previewDesktopBtn.classList.toggle("active", previewMode === "desktop");
     els.previewMobileBtn.classList.toggle("active", previewMode === "mobile");
-    if (els.previewNote) {
-      els.previewNote.textContent =
-        previewMode === "mobile"
-          ? "Theme gear applies inside the phone frame"
-          : "Theme gear applies to the fullscreen preview";
-    }
     renderPreview();
   }
 
@@ -1005,8 +989,7 @@
     if (!entry) {
       previewThemeScope = null;
       previewDeviceLogo = null;
-      els.previewHost.innerHTML =
-        '<p class="text-muted mb-0">Select a VAS Type or Item to preview.</p>';
+      els.previewHost.innerHTML = "";
       return;
     }
     const typeCfg = tab === "types" ? entry : null;
@@ -1027,7 +1010,6 @@
 
     if (previewMode === "desktop") {
       els.previewHost.innerHTML = `
-        <p class="preview-interactive-hint">Fullscreen preview — theme applies to this surface</p>
         <div class="preview-fullscreen">
           <div class="preview-theme-scope" id="previewThemeScope">
             ${chrome}
@@ -1038,7 +1020,6 @@
         </div>`;
     } else {
       els.previewHost.innerHTML = `
-        <p class="preview-interactive-hint">Moto G4 · 360×640 — theme applies inside the phone frame</p>
         <div class="device-frame-wrap">
           <div class="device-frame" aria-label="Mobile preview 360 by 640">
             <div class="device-earpiece"></div>

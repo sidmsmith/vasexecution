@@ -29,7 +29,6 @@
         <input type="text" id="org" class="form-control" placeholder="SS-DEMO" maxlength="20" />
         <button id="orgBtn" class="btn btn-success px-4" type="button">Authenticate</button>
       </div>
-      <small class="text-muted">Press Enter to authenticate</small>
     </div>
 
     <div class="app-status" id="status">Enter ORG and authenticate</div>
@@ -89,17 +88,15 @@
                 <input id="edIconUrl" class="form-control" placeholder="/assets/icons/vas-type-default.svg" />
                 <img id="edIconPreview" class="icon-url-preview" alt="" hidden />
               </div>
-              <p class="text-muted small mb-0 mt-1">Shown on the Main/detail nav and service header. Leave blank to use the default gift icon.</p>
             </div>
             <div class="mb-3" id="stepPickerWrap" style="display:none">
-              <label class="form-label mb-1">Steps <span class="text-muted fw-normal">(AssignedServiceStepId)</span></label>
+              <label class="form-label mb-1">Steps</label>
               <div class="step-tabs-row">
                 <div id="stepTabs" class="step-tabs" role="tablist" aria-label="VAS Type steps"></div>
                 <button type="button" class="btn btn-link btn-sm delete-all-questions-btn mb-0" id="removeStepBtn" disabled>
                   <i class="fa-solid fa-trash-can"></i> Remove
                 </button>
               </div>
-              <p class="text-muted small mb-0 mt-1">Click a step to edit. Drag tabs to reorder. Use + to add a step (must match MAWM AssignedServiceStepId). Green = exists in WMS for this type; red = missing (will never match execution). Double-click a tab to rename.</p>
             </div>
             <div class="mb-2">
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -117,7 +114,6 @@
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="addImageBtn">Add image</button>
                 </div>
               </div>
-              <p class="text-muted small mb-1" id="contentSectionHint">Select or add a step first. Drag blocks to reorder.</p>
               <div id="contentList"></div>
             </div>
             <div class="mb-2 section-toggles">
@@ -133,7 +129,6 @@
           <div class="preview-panel-header">
             <div class="preview-panel-titles">
               <h2><i class="fa-solid fa-eye"></i> Live preview</h2>
-              <p class="preview-note" id="previewNote">Theme gear applies to the preview surface</p>
             </div>
             <div class="preview-header-actions">
               <div class="btn-group btn-group-sm preview-mode-toggle" role="group" aria-label="Preview mode">
