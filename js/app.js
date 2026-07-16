@@ -425,6 +425,10 @@
       els.serviceViews.classList.toggle("main-detail-active", main);
       els.serviceViews.classList.toggle("stacked-active", !main);
     }
+    const titleEl = document.querySelector(".app-title");
+    if (titleEl) {
+      titleEl.textContent = main ? "VAS Workbench" : "VAS Execution";
+    }
     if (main) {
       renderServiceNav();
       setActiveService(activeServiceIndex);

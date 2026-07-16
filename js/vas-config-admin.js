@@ -814,12 +814,14 @@
     const itemCfg = tab === "items" ? entry : null;
     const sections = VasConfig.mergedSections(typeCfg, itemCfg);
     const cardHtml = buildCardHtml(entry, sections);
+    const chromeTitle =
+      previewMode === "desktop" ? "VAS Workbench" : "VAS Execution";
     const chrome = `
       <div class="device-app-chrome">
         <span class="device-chrome-icon" aria-hidden="true"><i class="fas fa-tags"></i></span>
         <div class="device-chrome-center">
           <img id="previewDeviceLogo" class="device-theme-logo" alt="" />
-          <div class="device-chrome-title">VAS Execution</div>
+          <div class="device-chrome-title">${chromeTitle}</div>
         </div>
         <span class="device-chrome-icon device-chrome-spacer" aria-hidden="true"></span>
       </div>`;
