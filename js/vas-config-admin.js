@@ -39,6 +39,8 @@
     contentSectionLabel: document.getElementById("contentSectionLabel"),
     contentSectionHint: document.getElementById("contentSectionHint"),
     contentList: document.getElementById("contentList"),
+    columnCountWrap: document.getElementById("columnCountWrap"),
+    columnCountSelect: document.getElementById("columnCountSelect"),
     secSig: document.getElementById("secSig"),
     secPhotos: document.getElementById("secPhotos"),
     secMarkup: document.getElementById("secMarkup"),
@@ -68,6 +70,64 @@
 
   function deleteBtnHtml(extraClass) {
     return `<button type="button" class="btn btn-icon row-action-btn del-btn ${extraClass}" title="Delete" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>`;
+  }
+
+  /** HTML for a single editable content row (text or image block). */
+  function contentRowHtml(block, idx) {
+    if (block.type === "image") {
+      const scale = VasConfig.normalizeImageScale(block.scale);
+      return `<div class="content-row image-row draggable-item" data-idx="${idx}" data-type="image" data-id="${esc(
+        block.id
+      )}">
+            <span class="grip" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
+            <div class="content-fields">
+              <div class="text-format-bar image-scale-bar">
+                <span class="content-type-badge"><i class="fa-solid fa-image"></i> Image</span>
+                <span class="content-type-badge pdf-url-badge${
+                  VasConfig.isPdfUrl(block.url) ? "" : " d-none"
+                }"><i class="fa-solid fa-file-pdf"></i> PDF</span>
+                <label class="img-scale-label">
+                  Size
+                  <input type="range" class="img-scale" min="0" max="200" step="1" value="${scale}" aria-label="Image size percent" />
+                  <span class="img-scale-value">${scale}%</span>
+                </label>
+              </div>
+              <input class="form-control img-url" placeholder="Image or Cloudinary PDF URL" value="${esc(
+                block.url
+              )}" />
+              <input class="form-control img-caption" placeholder="Caption (optional)" value="${esc(
+                block.caption || ""
+              )}" />
+            </div>
+            ${deleteBtnHtml("rm-content")}
+          </div>`;
+    }
+    const color =
+      VasConfig.sanitizeColor(block.color) || VasConfig.DEFAULT_TEXT_COLOR;
+    const fontSize = VasConfig.normalizeFontSize(block.fontSize);
+    return `<div class="content-row instruction-row draggable-item" data-idx="${idx}" data-type="text" data-id="${esc(
+      block.id
+    )}">
+            <span class="grip" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
+            <div class="content-fields">
+              <div class="text-format-bar">
+                <span class="content-type-badge"><i class="fa-solid fa-align-left"></i> Text</span>
+                <button type="button" class="fmt-btn fmt-bold${block.bold ? " active" : ""}" title="Bold" aria-label="Bold"><b>B</b></button>
+                <button type="button" class="fmt-btn fmt-italic${block.italic ? " active" : ""}" title="Italic" aria-label="Italic"><i>I</i></button>
+                <button type="button" class="fmt-btn fmt-underline${block.underline ? " active" : ""}" title="Underline" aria-label="Underline"><u>U</u></button>
+                <label class="fmt-color-wrap" title="Text color">
+                  <input type="color" class="fmt-color" value="${esc(color)}" aria-label="Text color" />
+                </label>
+                <label class="img-scale-label txt-scale-label">
+                  Size
+                  <input type="range" class="img-scale txt-scale" min="50" max="150" step="1" value="${fontSize}" aria-label="Text size percent" />
+                  <span class="img-scale-value txt-scale-value">${fontSize}%</span>
+                </label>
+              </div>
+              <textarea class="form-control">${esc(block.text)}</textarea>
+            </div>
+            ${deleteBtnHtml("rm-content")}
+          </div>`;
   }
 
   async function api(action, data = {}) {
@@ -157,42 +217,90 @@
     return draft[bucket()][key];
   }
 
+  /** Parse a single .content-row into a content block; assigns a stable id if missing. */
+  function parseContentRow(row) {
+    const type = row.dataset.type === "image" ? "image" : "text";
+    if (!row.dataset.id) {
+      row.dataset.id = nid(type === "image" ? "img" : "ins");
+    }
+    if (type === "image") {
+      return {
+        id: row.dataset.id,
+        type: "image",
+        url: row.querySelector(".img-url")?.value.trim() || "",
+        caption: row.querySelector(".img-caption")?.value.trim() || "",
+        scale: VasConfig.normalizeImageScale(
+          row.querySelector(".img-scale")?.value
+        )
+      };
+    }
+    const colorEl = row.querySelector(".fmt-color");
+    return {
+      id: row.dataset.id,
+      type: "text",
+      text: row.querySelector("textarea")?.value || "",
+      bold: row.querySelector(".fmt-bold")?.classList.contains("active") || false,
+      italic: row.querySelector(".fmt-italic")?.classList.contains("active") || false,
+      underline:
+        row.querySelector(".fmt-underline")?.classList.contains("active") || false,
+      color:
+        VasConfig.sanitizeColor(colorEl?.value || "") ||
+        VasConfig.DEFAULT_TEXT_COLOR,
+      fontSize: VasConfig.normalizeFontSize(
+        row.querySelector(".txt-scale")?.value
+      )
+    };
+  }
+
+  /** Column panes (types, multi-column) or a flat row list (items) under #contentList. */
   function readContentFromDom(keepEmpty) {
-    return Array.from(els.contentList.querySelectorAll(".content-row")).map(
-      (row) => {
-        const type = row.dataset.type === "image" ? "image" : "text";
-        if (type === "image") {
-          return {
-            id: row.dataset.id || nid("img"),
-            type: "image",
-            url: row.querySelector(".img-url")?.value.trim() || "",
-            caption: row.querySelector(".img-caption")?.value.trim() || "",
-            scale: VasConfig.normalizeImageScale(
-              row.querySelector(".img-scale")?.value
-            )
-          };
-        }
-        const colorEl = row.querySelector(".fmt-color");
-        return {
-          id: row.dataset.id || nid("ins"),
-          type: "text",
-          text: row.querySelector("textarea")?.value || "",
-          bold: row.querySelector(".fmt-bold")?.classList.contains("active") || false,
-          italic: row.querySelector(".fmt-italic")?.classList.contains("active") || false,
-          underline:
-            row.querySelector(".fmt-underline")?.classList.contains("active") || false,
-          color:
-            VasConfig.sanitizeColor(colorEl?.value || "") ||
-            VasConfig.DEFAULT_TEXT_COLOR,
-          fontSize: VasConfig.normalizeFontSize(
-            row.querySelector(".txt-scale")?.value
-          )
-        };
-      }
-    ).filter((b) => {
+    const panes = els.contentList.querySelectorAll(".content-column-pane");
+    const rows = panes.length
+      ? Array.from(panes).flatMap((pane) =>
+          Array.from(pane.querySelectorAll(".content-row"))
+        )
+      : Array.from(els.contentList.querySelectorAll(".content-row"));
+    return rows.map(parseContentRow).filter((b) => {
       if (keepEmpty) return true;
       return b.type === "image" ? !!b.url : !!String(b.text || "").trim();
     });
+  }
+
+  /** Raw (un-normalized) layout reflecting the current DOM column panes. */
+  function readLayoutFromDom() {
+    const panes = Array.from(
+      els.contentList.querySelectorAll(".content-column-pane")
+    );
+    if (panes.length) {
+      return {
+        columns: panes.map((pane, i) => ({
+          id: pane.dataset.colId || `col_${i}`,
+          width: Number(pane.dataset.colWidth) || 1,
+          blockIds: Array.from(pane.querySelectorAll(".content-row")).map(
+            (row) => row.dataset.id || ""
+          )
+        }))
+      };
+    }
+    const ids = Array.from(
+      els.contentList.querySelectorAll(".content-row")
+    ).map((row) => row.dataset.id || "");
+    return { columns: [{ id: "col_0", width: 1, blockIds: ids }] };
+  }
+
+  /** Append a newly-added block id to the last layout column (creating layout if absent). */
+  function appendBlockToLastColumn(owner, blockId) {
+    const content = owner.content || [];
+    const priorContent = content.filter((b) => b.id !== blockId);
+    const baseLayout = VasConfig.normalizeLayout(owner.layout, priorContent);
+    const cols = baseLayout.columns.map((c) => ({
+      id: c.id,
+      width: c.width,
+      blockIds: c.blockIds.slice()
+    }));
+    if (!cols.length) cols.push({ id: "col_0", width: 1, blockIds: [] });
+    cols[cols.length - 1].blockIds.push(blockId);
+    owner.layout = VasConfig.normalizeLayout({ columns: cols }, content);
   }
 
   function syncIconPreview() {
@@ -218,6 +326,10 @@
       const owner = contentOwner();
       if (owner) {
         owner.content = readContentFromDom(false);
+        owner.layout = VasConfig.normalizeLayout(
+          readLayoutFromDom(),
+          owner.content
+        );
         owner.title = selectedStepId;
       }
       // Type-level content is no longer edited here (legacy may still exist on disk).
@@ -247,63 +359,104 @@
     };
   }
 
+  /** After a drag-drop DOM move: re-read content + layout from DOM and re-render. */
+  function afterContentDrop() {
+    const owner = contentOwner();
+    if (!owner) return;
+    owner.content = readContentFromDom(true);
+    owner.layout = VasConfig.normalizeLayout(
+      readLayoutFromDom(),
+      owner.content
+    );
+    if (tab === "items") {
+      const entry = currentEntry();
+      const legacy = VasConfig.contentToLegacy(
+        owner.content.filter((b) =>
+          b.type === "image" ? !!b.url : !!String(b.text || "").trim()
+        )
+      );
+      entry.instructions = legacy.instructions;
+      entry.images = legacy.images;
+      entry.title = els.edTitle.value.trim() || selectedKey;
+      entry.description = els.edDescription.value.trim() || entry.title;
+    }
+    renderEditor();
+    renderPreview();
+  }
+
+  /** Drag-and-drop reordering of content rows; supports moving between column panes. */
   function bindContentDrag() {
     const listEl = els.contentList;
     if (!listEl) return;
-    let dragFrom = null;
-    listEl.querySelectorAll(".content-row").forEach((item) => {
-      const grip = item.querySelector(".grip");
-      if (!grip) return;
-      grip.draggable = true;
-      grip.addEventListener("dragstart", (e) => {
-        dragFrom = +item.dataset.idx;
-        item.classList.add("dragging");
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", String(dragFrom));
-        e.stopPropagation();
-      });
-      grip.addEventListener("dragend", () => {
-        item.classList.remove("dragging");
-        listEl
-          .querySelectorAll(".content-row")
-          .forEach((i) => i.classList.remove("drag-over"));
-        dragFrom = null;
-      });
-      item.addEventListener("dragover", (e) => {
+    let dragEl = null;
+
+    function clearDragOver() {
+      listEl
+        .querySelectorAll(".content-row, .content-column-pane, .content-column-body")
+        .forEach((el) => el.classList.remove("drag-over"));
+    }
+
+    listEl.querySelectorAll(".content-row").forEach((row) => {
+      const grip = row.querySelector(".grip");
+      if (grip) {
+        grip.draggable = true;
+        grip.addEventListener("dragstart", (e) => {
+          dragEl = row;
+          row.classList.add("dragging");
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", row.dataset.id || "");
+          e.stopPropagation();
+        });
+        grip.addEventListener("dragend", () => {
+          row.classList.remove("dragging");
+          clearDragOver();
+          dragEl = null;
+        });
+      }
+      row.addEventListener("dragover", (e) => {
+        if (!dragEl) return;
         e.preventDefault();
+        e.stopPropagation();
         e.dataTransfer.dropEffect = "move";
-        item.classList.add("drag-over");
+        if (row !== dragEl) row.classList.add("drag-over");
       });
-      item.addEventListener("dragleave", (e) => {
-        if (!item.contains(e.relatedTarget)) item.classList.remove("drag-over");
+      row.addEventListener("dragleave", (e) => {
+        if (!row.contains(e.relatedTarget)) row.classList.remove("drag-over");
       });
-      item.addEventListener("drop", (e) => {
+      row.addEventListener("drop", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        item.classList.remove("drag-over");
-        const to = +item.dataset.idx;
-        const owner = contentOwner();
-        if (!owner || dragFrom == null || dragFrom === to) return;
-        const next = readContentFromDom(true);
-        const [moved] = next.splice(dragFrom, 1);
-        next.splice(to, 0, moved);
-        owner.content = next;
-        if (tab === "items") {
-          const entry = currentEntry();
-          const legacy = VasConfig.contentToLegacy(
-            next.filter((b) =>
-              b.type === "image" ? !!b.url : !!String(b.text || "").trim()
-            )
-          );
-          entry.instructions = legacy.instructions;
-          entry.images = legacy.images;
-          entry.title = els.edTitle.value.trim() || selectedKey;
-          entry.description = els.edDescription.value.trim() || entry.title;
-        }
-        renderEditor();
-        renderPreview();
+        row.classList.remove("drag-over");
+        if (!dragEl || dragEl === row) return;
+        row.parentNode.insertBefore(dragEl, row);
+        afterContentDrop();
       });
     });
+
+    listEl
+      .querySelectorAll(".content-column-pane, .content-column-body")
+      .forEach((zone) => {
+        zone.addEventListener("dragover", (e) => {
+          if (!dragEl) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          zone.classList.add("drag-over");
+        });
+        zone.addEventListener("dragleave", (e) => {
+          if (!zone.contains(e.relatedTarget)) zone.classList.remove("drag-over");
+        });
+        zone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          zone.classList.remove("drag-over");
+          if (!dragEl) return;
+          const body = zone.classList.contains("content-column-body")
+            ? zone
+            : zone.querySelector(".content-column-body") || zone;
+          body.appendChild(dragEl);
+          afterContentDrop();
+        });
+      });
   }
 
   function renderStepSelect() {
@@ -424,75 +577,58 @@
       els.contentSectionHint.textContent =
         tab === "types"
           ? selectedStepId
-            ? `Editing step “${selectedStepId}”. Drag blocks to reorder.`
+            ? `Editing step “${selectedStepId}”. Drag blocks to reorder or move them between columns.`
             : "Select or add a step first. Drag blocks to reorder."
           : "Drag to reorder. Images can sit above or below text.";
     }
 
     const owner = contentOwner();
-    const content = owner ? owner.content || [] : [];
     const canEditContent = tab === "items" || !!selectedStepId;
-    els.contentList.innerHTML = !canEditContent
-      ? `<p class="text-muted small mb-0">Add a step (AssignedServiceStepId) to attach instructions.</p>`
-      : content
-          .map((block, idx) => {
-            if (block.type === "image") {
-              const scale = VasConfig.normalizeImageScale(block.scale);
-              return `<div class="content-row image-row draggable-item" data-idx="${idx}" data-type="image" data-id="${esc(
-                block.id
-              )}">
-            <span class="grip" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
-            <div class="content-fields">
-              <div class="text-format-bar image-scale-bar">
-                <span class="content-type-badge"><i class="fa-solid fa-image"></i> Image</span>
-                <span class="content-type-badge pdf-url-badge${
-                  VasConfig.isPdfUrl(block.url) ? "" : " d-none"
-                }"><i class="fa-solid fa-file-pdf"></i> PDF</span>
-                <label class="img-scale-label">
-                  Size
-                  <input type="range" class="img-scale" min="0" max="200" step="1" value="${scale}" aria-label="Image size percent" />
-                  <span class="img-scale-value">${scale}%</span>
-                </label>
-              </div>
-              <input class="form-control img-url" placeholder="Image or Cloudinary PDF URL" value="${esc(
-                block.url
-              )}" />
-              <input class="form-control img-caption" placeholder="Caption (optional)" value="${esc(
-                block.caption || ""
-              )}" />
-            </div>
-            ${deleteBtnHtml("rm-content")}
+
+    if (els.columnCountWrap) {
+      els.columnCountWrap.style.display =
+        tab === "types" && selectedStepId ? "" : "none";
+    }
+
+    if (!canEditContent) {
+      els.contentList.innerHTML = `<p class="text-muted small mb-0">Add a step (AssignedServiceStepId) to attach instructions.</p>`;
+    } else if (tab === "types") {
+      owner.layout = VasConfig.normalizeLayout(
+        owner.layout,
+        owner.content || []
+      );
+      const columns = owner.layout.columns;
+      if (els.columnCountSelect) {
+        els.columnCountSelect.value = String(columns.length);
+      }
+      const byId = {};
+      (owner.content || []).forEach((b) => {
+        if (b && b.id) byId[b.id] = b;
+      });
+      let rowIdx = 0;
+      const panesHtml = columns
+        .map((col, ci) => {
+          const blocks = (col.blockIds || [])
+            .map((id) => byId[id])
+            .filter(Boolean);
+          const rowsHtml = blocks
+            .map((block) => contentRowHtml(block, rowIdx++))
+            .join("");
+          return `<div class="content-column-pane" data-col-id="${esc(
+            col.id
+          )}" data-col-width="${col.width}" data-col-index="${ci}">
+            <div class="content-column-header">Column ${ci + 1}</div>
+            <div class="content-column-body">${rowsHtml}</div>
           </div>`;
-            }
-            const color =
-              VasConfig.sanitizeColor(block.color) ||
-              VasConfig.DEFAULT_TEXT_COLOR;
-            const fontSize = VasConfig.normalizeFontSize(block.fontSize);
-            return `<div class="content-row instruction-row draggable-item" data-idx="${idx}" data-type="text" data-id="${esc(
-              block.id
-            )}">
-            <span class="grip" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
-            <div class="content-fields">
-              <div class="text-format-bar">
-                <span class="content-type-badge"><i class="fa-solid fa-align-left"></i> Text</span>
-                <button type="button" class="fmt-btn fmt-bold${block.bold ? " active" : ""}" title="Bold" aria-label="Bold"><b>B</b></button>
-                <button type="button" class="fmt-btn fmt-italic${block.italic ? " active" : ""}" title="Italic" aria-label="Italic"><i>I</i></button>
-                <button type="button" class="fmt-btn fmt-underline${block.underline ? " active" : ""}" title="Underline" aria-label="Underline"><u>U</u></button>
-                <label class="fmt-color-wrap" title="Text color">
-                  <input type="color" class="fmt-color" value="${esc(color)}" aria-label="Text color" />
-                </label>
-                <label class="img-scale-label txt-scale-label">
-                  Size
-                  <input type="range" class="img-scale txt-scale" min="50" max="150" step="1" value="${fontSize}" aria-label="Text size percent" />
-                  <span class="img-scale-value txt-scale-value">${fontSize}%</span>
-                </label>
-              </div>
-              <textarea class="form-control">${esc(block.text)}</textarea>
-            </div>
-            ${deleteBtnHtml("rm-content")}
-          </div>`;
-          })
-          .join("");
+        })
+        .join("");
+      els.contentList.innerHTML = `<div class="content-columns-editor" style="display:grid; grid-template-columns: repeat(${columns.length}, 1fr); gap:0.6rem;">${panesHtml}</div>`;
+    } else {
+      const content = owner ? owner.content || [] : [];
+      els.contentList.innerHTML = content
+        .map((block, idx) => contentRowHtml(block, idx))
+        .join("");
+    }
 
     els.contentList.querySelectorAll(".rm-content").forEach((btn) => {
       btn.onclick = () => {
@@ -558,23 +694,12 @@
   }
 
   function buildCardHtml(entry, sections) {
-    const previewContent =
+    const contentHtml =
       tab === "types"
         ? selectedStepId && entry.steps?.[selectedStepId]
-          ? entry.steps[selectedStepId].content || []
-          : []
-        : entry.content || [];
-    const contentHtml = previewContent
-      .map((block) => {
-        if (block.type === "image") {
-          return VasConfig.renderContentImageHtml(block, esc);
-        }
-        const style = VasConfig.textBlockStyle(block);
-        return `<div class="vas-content-text"${
-          style ? ` style="${esc(style)}"` : ""
-        }>${esc(block.text)}</div>`;
-      })
-      .join("");
+          ? VasConfig.renderStepContentHtml(entry.steps[selectedStepId], esc)
+          : ""
+        : VasConfig.renderContentListHtml(entry.content || [], esc);
     const iconHtml =
       tab === "types"
         ? `<img class="service-type-icon" src="${esc(
@@ -598,7 +723,7 @@
         </div>
         <div class="vas-config-block ${tab === "items" ? "item-block" : "type-block"}">
           <h4>${esc(contentTitle)}</h4>
-          ${contentHtml ? `<div class="vas-content-list">${contentHtml}</div>` : "<p class='text-muted'>No content</p>"}
+          ${contentHtml || "<p class='text-muted'>No content</p>"}
         </div>
         <div class="capture-sections">
           ${
@@ -799,6 +924,46 @@
     renderPreview();
   }
 
+  /** Change the step's column count; merges/creates columns as needed. */
+  function setColumnCount(n) {
+    syncEditorToDraft();
+    const owner = contentOwner();
+    if (!owner) return;
+    const count = Math.max(
+      1,
+      Math.min(VasConfig.MAX_STEP_COLUMNS, Number(n) || 1)
+    );
+    const current = (owner.layout && owner.layout.columns) || [];
+    let nextCols = current.map((c) => ({
+      id: c.id,
+      width: c.width,
+      blockIds: c.blockIds.slice()
+    }));
+    if (count > nextCols.length) {
+      while (nextCols.length < count) {
+        nextCols.push({ id: nid("col"), width: 1, blockIds: [] });
+      }
+    } else if (count < nextCols.length) {
+      const merged = nextCols
+        .slice(count - 1)
+        .reduce((acc, c) => acc.concat(c.blockIds), []);
+      nextCols = nextCols
+        .slice(0, count - 1)
+        .concat([{ ...nextCols[count - 1], blockIds: merged }]);
+    }
+    owner.layout = VasConfig.normalizeLayout(
+      { columns: nextCols },
+      owner.content || []
+    );
+    renderEditor();
+    renderPreview();
+  }
+
+  if (els.columnCountSelect) {
+    els.columnCountSelect.onchange = () =>
+      setColumnCount(els.columnCountSelect.value);
+  }
+
   els.configTabSelect.onchange = () => switchTab(els.configTabSelect.value);
 
   els.entrySelect.onchange = () => {
@@ -873,7 +1038,7 @@
       );
     }
     if (!Array.isArray(owner.content)) owner.content = [];
-    owner.content.push({
+    const block = {
       id: nid("ins"),
       type: "text",
       text: "",
@@ -882,7 +1047,9 @@
       underline: false,
       color: VasConfig.DEFAULT_TEXT_COLOR,
       fontSize: 100
-    });
+    };
+    owner.content.push(block);
+    appendBlockToLastColumn(owner, block.id);
     renderEditor();
     renderPreview();
   };
@@ -898,13 +1065,15 @@
       );
     }
     if (!Array.isArray(owner.content)) owner.content = [];
-    owner.content.push({
+    const block = {
       id: nid("img"),
       type: "image",
       url: "",
       caption: "",
       scale: 100
-    });
+    };
+    owner.content.push(block);
+    appendBlockToLastColumn(owner, block.id);
     renderEditor();
     renderPreview();
   };

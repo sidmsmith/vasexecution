@@ -584,7 +584,7 @@
     if (window.VasConfig && window.VasConfig.stepHasContent(stepCfg)) {
       return `<div class="${cls}" data-step-panel="${esc(stepId)}">
         <h5>Step: ${esc(stepCfg.title || stepId)}</h5>
-        ${renderContentBlocks(stepCfg.content)}
+        ${window.VasConfig.renderStepContentHtml(stepCfg, esc)}
       </div>`;
     }
     const lines = Array.isArray(step.Instructions)

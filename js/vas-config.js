@@ -294,8 +294,126 @@
     const content = normalizeContent(src);
     return {
       title: String(src.title || stepId || "").trim() || String(stepId || ""),
-      content
+      content,
+      layout: normalizeLayout(src.layout, content)
     };
+  }
+
+  const MAX_STEP_COLUMNS = 3;
+
+  function normalizeColumnWidth(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n < 1) return 1;
+    return Math.max(1, Math.min(4, Math.round(n)));
+  }
+
+  /**
+   * Step layout: up to 3 columns of block ids.
+   * Missing layout → one column with all content ids (backward compatible).
+   * Drops unknown ids; orphans append to column 1.
+   */
+  function normalizeLayout(rawLayout, content) {
+    const blocks = Array.isArray(content) ? content : [];
+    const allIds = blocks.map((b) => String(b && b.id || "").trim()).filter(Boolean);
+    const idSet = new Set(allIds);
+    const src = rawLayout && typeof rawLayout === "object" ? rawLayout : {};
+    const rawCols = Array.isArray(src.columns) ? src.columns : [];
+
+    const columns = [];
+    rawCols.slice(0, MAX_STEP_COLUMNS).forEach((col, i) => {
+      if (!col || typeof col !== "object") return;
+      const blockIds = Array.isArray(col.blockIds)
+        ? col.blockIds.map((id) => String(id || "").trim()).filter((id) => idSet.has(id))
+        : [];
+      columns.push({
+        id: String(col.id || `col_${i}`).trim() || `col_${i}`,
+        width: normalizeColumnWidth(col.width),
+        blockIds
+      });
+    });
+
+    if (!columns.length) {
+      columns.push({ id: "col_0", width: 1, blockIds: allIds.slice() });
+    }
+
+    const seen = new Set();
+    columns.forEach((col) => {
+      col.blockIds = col.blockIds.filter((id) => {
+        if (seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      });
+    });
+
+    allIds.forEach((id) => {
+      if (!seen.has(id)) {
+        columns[0].blockIds.push(id);
+        seen.add(id);
+      }
+    });
+
+    return { columns };
+  }
+
+  function defaultEsc(s) {
+    return String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function renderContentBlockHtml(block, escFn) {
+    const esc = typeof escFn === "function" ? escFn : defaultEsc;
+    if (!block) return "";
+    if (block.type === "image") {
+      return renderContentImageHtml(block, esc);
+    }
+    const style = textBlockStyle(block);
+    return `<div class="vas-content-text"${
+      style ? ` style="${esc(style)}"` : ""
+    }>${esc(block.text)}</div>`;
+  }
+
+  function renderContentListHtml(blocks, escFn) {
+    const list = (blocks || []).filter(Boolean);
+    if (!list.length) return "";
+    return `<div class="vas-content-list">${list
+      .map((b) => renderContentBlockHtml(b, escFn))
+      .join("")}</div>`;
+  }
+
+  /**
+   * Render step content with optional multi-column layout.
+   * Single column (or no layout) → stacked .vas-content-list (mobile-friendly default).
+   */
+  function renderStepContentHtml(stepCfg, escFn) {
+    if (!stepHasContent(stepCfg)) return "";
+    const content = stepCfg.content || [];
+    const byId = {};
+    content.forEach((b) => {
+      if (b && b.id) byId[b.id] = b;
+    });
+    const layout = normalizeLayout(stepCfg.layout, content);
+    const cols = layout.columns || [];
+
+    if (cols.length <= 1) {
+      const order = cols[0] ? cols[0].blockIds : content.map((b) => b.id);
+      const blocks = order.map((id) => byId[id]).filter(Boolean);
+      return renderContentListHtml(blocks.length ? blocks : content, escFn);
+    }
+
+    const template = cols.map((c) => `${normalizeColumnWidth(c.width)}fr`).join(" ");
+    const colHtml = cols
+      .map((col) => {
+        const blocks = (col.blockIds || []).map((id) => byId[id]).filter(Boolean);
+        return `<div class="vas-content-column" data-col-id="${defaultEsc(col.id)}">${
+          renderContentListHtml(blocks, escFn) ||
+          '<div class="vas-content-list vas-content-list--empty"></div>'
+        }</div>`;
+      })
+      .join("");
+    return `<div class="vas-content-columns" style="grid-template-columns:${template}">${colHtml}</div>`;
   }
 
   /** steps keyed by AssignedServiceStepId. */
@@ -459,6 +577,12 @@
     stepHasContent,
     normalizeStepEntry,
     normalizeSteps,
+    normalizeLayout,
+    normalizeColumnWidth,
+    MAX_STEP_COLUMNS,
+    renderContentBlockHtml,
+    renderContentListHtml,
+    renderStepContentHtml,
     mergedSections,
     contentToLegacy,
     sanitizeColor,

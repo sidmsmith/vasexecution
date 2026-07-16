@@ -834,6 +834,23 @@ body {
   margin: 0;
   padding: 0;
 }
+.vas-content-columns {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+  width: 100%;
+}
+.vas-content-column {
+  min-width: 0;
+}
+.vas-content-list--empty {
+  min-height: 0;
+}
+@media (max-width: 768px) {
+  .vas-content-columns {
+    grid-template-columns: 1fr !important;
+  }
+}
 .vas-content-list .vas-content-text {
   margin: 0 0 0.45rem;
   padding-left: 1.1rem;
