@@ -16,6 +16,59 @@
   margin-bottom: 0.15rem;
 }
 
+.step-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.step-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+}
+.step-tab {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+  border-radius: 8px 8px 0 0;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.2;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.step-tab:hover {
+  border-color: var(--primary);
+}
+.step-tab.active {
+  background: rgba(13, 110, 253, 0.22);
+  border-color: var(--primary);
+  color: var(--text);
+}
+.step-tab.dragging {
+  opacity: 0.55;
+}
+.step-tab.drag-over {
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+.step-tab-add {
+  font-size: 1.1rem;
+  font-weight: 700;
+  min-width: 2.25rem;
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
+  border-style: dashed;
+}
+
 .editor-panel {
   border: 1px solid var(--border);
   border-radius: 8px;

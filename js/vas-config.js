@@ -442,6 +442,7 @@
     const src = raw && typeof raw === "object" ? raw : {};
     const content = normalizeContent(src);
     const legacy = contentToLegacy(content);
+    const steps = normalizeSteps(src.steps);
     return {
       title: src.title || fallbackTitle || "",
       description: src.description || src.title || fallbackTitle || "",
@@ -449,9 +450,39 @@
       content,
       instructions: legacy.instructions,
       images: legacy.images,
-      steps: normalizeSteps(src.steps),
+      steps,
+      stepOrder: normalizeStepOrder(src.stepOrder, steps),
       sections: normalizeSections(src.sections)
     };
+  }
+
+  /** Ordered AssignedServiceStepId list for a VAS Type; orphans appended. */
+  function normalizeStepOrder(rawOrder, steps) {
+    const stepMap = steps && typeof steps === "object" ? steps : {};
+    const known = new Set(Object.keys(stepMap));
+    const out = [];
+    const seen = new Set();
+    const list = Array.isArray(rawOrder) ? rawOrder : [];
+    list.forEach((id) => {
+      const key = String(id || "").trim();
+      if (!key || !known.has(key) || seen.has(key)) return;
+      out.push(key);
+      seen.add(key);
+    });
+    Object.keys(stepMap).forEach((key) => {
+      if (!seen.has(key)) {
+        out.push(key);
+        seen.add(key);
+      }
+    });
+    return out;
+  }
+
+  /** Prefer entry.stepOrder; fall back to Object.keys(steps). */
+  function orderedStepIds(typeCfg) {
+    if (!typeCfg) return [];
+    const steps = typeCfg.steps || {};
+    return normalizeStepOrder(typeCfg.stepOrder, steps);
   }
 
   function normalizeConfig(doc) {
@@ -587,6 +618,8 @@
     stepHasContent,
     normalizeStepEntry,
     normalizeSteps,
+    normalizeStepOrder,
+    orderedStepIds,
     normalizeLayout,
     normalizeColumnWidth,
     MAX_STEP_COLUMNS,

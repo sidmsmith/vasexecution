@@ -92,19 +92,14 @@
               <p class="text-muted small mb-0 mt-1">Shown on the Main/detail nav and service header. Leave blank to use the default gift icon.</p>
             </div>
             <div class="mb-3" id="stepPickerWrap" style="display:none">
-              <label class="form-label" for="stepSelect">Step <span class="text-muted fw-normal">(AssignedServiceStepId)</span></label>
-              <div class="entry-select-row gap-2">
-                <div class="field-grow">
-                  <select id="stepSelect" class="form-select object-type-select" aria-label="Assigned service step"></select>
-                </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="addStepBtn" title="Add step by AssignedServiceStepId">
-                  <i class="fa-solid fa-plus"></i> Add step
-                </button>
-                <button type="button" class="btn btn-link btn-sm delete-all-questions-btn mb-0" id="removeStepBtn" disabled>
-                  <i class="fa-solid fa-trash-can"></i> Remove step
+              <label class="form-label mb-1">Steps <span class="text-muted fw-normal">(AssignedServiceStepId)</span></label>
+              <div class="step-tabs-row">
+                <div id="stepTabs" class="step-tabs" role="tablist" aria-label="VAS Type steps"></div>
+                <button type="button" class="btn btn-link btn-sm delete-all-questions-btn mb-0" id="removeStepBtn" disabled title="Remove selected step">
+                  <i class="fa-solid fa-trash-can"></i> Remove
                 </button>
               </div>
-              <p class="text-muted small mb-0 mt-1">Instructions below apply to this step on the execution page (overrides MAWM step instructions when present).</p>
+              <p class="text-muted small mb-0 mt-1">Click a step to edit. Drag tabs to reorder. Use + to add a step (must match MAWM AssignedServiceStepId).</p>
             </div>
             <div class="mb-2">
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">

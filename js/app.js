@@ -605,10 +605,29 @@
     </div>`;
   }
 
-  function renderStepsBodyHtml(svc, mode, activeStepId) {
+  function orderedAssignedSteps(svc) {
     const steps = Array.isArray(svc.AssignedServiceStep)
-      ? svc.AssignedServiceStep
+      ? svc.AssignedServiceStep.slice()
       : [];
+    if (!steps.length || !window.VasConfig) return steps;
+    const typeCfg = window.VasConfig.getTypeConfig(vasConfig, svc.ProvidedServiceId);
+    const order = window.VasConfig.orderedStepIds(typeCfg);
+    if (!order.length) return steps;
+    const rank = new Map(order.map((id, i) => [id, i]));
+    return steps.sort((a, b) => {
+      const ai = rank.has(a.AssignedServiceStepId)
+        ? rank.get(a.AssignedServiceStepId)
+        : order.length + 1;
+      const bi = rank.has(b.AssignedServiceStepId)
+        ? rank.get(b.AssignedServiceStepId)
+        : order.length + 1;
+      if (ai !== bi) return ai - bi;
+      return 0;
+    });
+  }
+
+  function renderStepsBodyHtml(svc, mode, activeStepId) {
+    const steps = orderedAssignedSteps(svc);
     if (!steps.length) {
       return '<p class="text-muted mb-0 mt-2" style="font-size:0.85rem">No steps on this service.</p>';
     }
@@ -723,9 +742,7 @@
     if (!svc) return;
     const mode =
       card.dataset.stepView === "active" ? "active" : "interleaved";
-    const steps = Array.isArray(svc.AssignedServiceStep)
-      ? svc.AssignedServiceStep
-      : [];
+    const steps = orderedAssignedSteps(svc);
     let activeStepId = card.dataset.activeStepId || "";
     if (
       mode === "active" &&
@@ -764,9 +781,7 @@
   }
 
   function renderServiceCard(svc, idx) {
-    const steps = Array.isArray(svc.AssignedServiceStep)
-      ? svc.AssignedServiceStep
-      : [];
+    const steps = orderedAssignedSteps(svc);
     const hasOpen = steps.some((s) => stepRemaining(s) > 0);
     const stepView = getPreferredStepView();
     const activeStepId = steps[0]?.AssignedServiceStepId || "";

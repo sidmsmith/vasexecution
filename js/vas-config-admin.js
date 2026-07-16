@@ -33,8 +33,7 @@
     edIconUrl: document.getElementById("edIconUrl"),
     edIconPreview: document.getElementById("edIconPreview"),
     stepPickerWrap: document.getElementById("stepPickerWrap"),
-    stepSelect: document.getElementById("stepSelect"),
-    addStepBtn: document.getElementById("addStepBtn"),
+    stepTabs: document.getElementById("stepTabs"),
     removeStepBtn: document.getElementById("removeStepBtn"),
     contentSectionLabel: document.getElementById("contentSectionLabel"),
     contentSectionHint: document.getElementById("contentSectionHint"),
@@ -179,9 +178,15 @@
   }
 
   function stepKeys(entry) {
-    return Object.keys((entry && entry.steps) || {}).sort((a, b) =>
-      a.localeCompare(b, undefined, { sensitivity: "base" })
-    );
+    return VasConfig.orderedStepIds(entry);
+  }
+
+  /** Keep entry.stepOrder in sync with entry.steps (drops missing ids, appends new ones). */
+  function ensureStepOrder(entry) {
+    if (!entry) return;
+    if (!entry.steps) entry.steps = {};
+    entry.stepOrder = VasConfig.normalizeStepOrder(entry.stepOrder, entry.steps);
+    return entry.stepOrder;
   }
 
   /** Content owner currently being edited (step for types, entry for items). */
@@ -336,7 +341,7 @@
     entry.description = els.edDescription.value.trim() || entry.title;
     if (tab === "types") {
       entry.iconUrl = VasConfig.normalizeIconUrl(els.edIconUrl?.value || "");
-      if (!entry.steps) entry.steps = {};
+      ensureStepOrder(entry);
       const owner = contentOwner();
       if (owner) {
         owner.content = readContentFromDom(false);
@@ -473,38 +478,127 @@
       });
   }
 
-  function renderStepSelect() {
+  /** Drag-and-drop reordering of step tabs; rebuilds entry.stepOrder from DOM order on drop. */
+  function bindStepTabDrag() {
+    const container = els.stepTabs;
+    if (!container) return;
+    let dragEl = null;
+
+    const tabsEls = Array.from(
+      container.querySelectorAll(".step-tab[data-step-id]")
+    );
+
+    function clearDragOver() {
+      tabsEls.forEach((t) => t.classList.remove("drag-over"));
+    }
+
+    tabsEls.forEach((tabEl) => {
+      tabEl.addEventListener("dragstart", (e) => {
+        dragEl = tabEl;
+        tabEl.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", tabEl.dataset.stepId || "");
+      });
+      tabEl.addEventListener("dragend", () => {
+        tabEl.classList.remove("dragging");
+        clearDragOver();
+        dragEl = null;
+      });
+      tabEl.addEventListener("dragover", (e) => {
+        if (!dragEl || dragEl === tabEl) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        tabEl.classList.add("drag-over");
+      });
+      tabEl.addEventListener("dragleave", (e) => {
+        if (!tabEl.contains(e.relatedTarget)) tabEl.classList.remove("drag-over");
+      });
+      tabEl.addEventListener("drop", (e) => {
+        e.preventDefault();
+        tabEl.classList.remove("drag-over");
+        if (!dragEl || dragEl === tabEl) return;
+        tabEl.parentNode.insertBefore(dragEl, tabEl);
+        const entry = currentEntry();
+        if (entry) {
+          const order = Array.from(
+            container.querySelectorAll(".step-tab[data-step-id]")
+          ).map((btn) => btn.dataset.stepId);
+          entry.stepOrder = VasConfig.normalizeStepOrder(order, entry.steps);
+        }
+        renderEditor();
+        renderPreview();
+      });
+    });
+  }
+
+  function renderStepTabs() {
     const entry = currentEntry();
-    if (!els.stepPickerWrap || !els.stepSelect) return;
+    if (!els.stepPickerWrap || !els.stepTabs) return;
     const show = tab === "types" && !!entry;
     els.stepPickerWrap.style.display = show ? "" : "none";
     if (!show) {
       selectedStepId = null;
       return;
     }
-    if (!entry.steps) entry.steps = {};
-    const keys = stepKeys(entry);
+    ensureStepOrder(entry);
+    const keys = entry.stepOrder;
     if (!selectedStepId || !keys.includes(selectedStepId)) {
       selectedStepId = keys[0] || null;
     }
-    if (!keys.length) {
-      els.stepSelect.innerHTML =
-        '<option value="">No steps — use Add step</option>';
-      els.stepSelect.disabled = true;
-      selectedStepId = null;
-      if (els.removeStepBtn) els.removeStepBtn.disabled = true;
-      return;
-    }
-    els.stepSelect.disabled = false;
-    els.stepSelect.innerHTML = keys
-      .map(
-        (key) =>
-          `<option value="${esc(key)}"${
-            key === selectedStepId ? " selected" : ""
-          }>${esc(key)}</option>`
-      )
+    const tabsHtml = keys
+      .map((key) => {
+        const active = key === selectedStepId ? " active" : "";
+        return `<button type="button" class="step-tab${active}" role="tab" data-step-id="${esc(
+          key
+        )}" draggable="true" aria-selected="${
+          key === selectedStepId
+        }">${esc(key)}</button>`;
+      })
       .join("");
+    els.stepTabs.innerHTML =
+      tabsHtml +
+      `<button type="button" class="step-tab step-tab-add" data-step-add="1" title="Add step"><i class="fa-solid fa-plus"></i></button>`;
+
     if (els.removeStepBtn) els.removeStepBtn.disabled = !selectedStepId;
+
+    els.stepTabs.querySelectorAll(".step-tab[data-step-id]").forEach((btn) => {
+      btn.onclick = () => {
+        syncEditorToDraft();
+        selectedStepId = btn.dataset.stepId;
+        renderEditor();
+        renderPreview();
+      };
+    });
+
+    const addBtn = els.stepTabs.querySelector(".step-tab-add");
+    if (addBtn) {
+      addBtn.onclick = () => {
+        syncEditorToDraft();
+        const curEntry = currentEntry();
+        if (!curEntry || tab !== "types") return;
+        const raw = prompt(
+          "AssignedServiceStepId for this step (must match MAWM):"
+        );
+        const stepId = String(raw || "").trim();
+        if (!stepId) return;
+        if (!curEntry.steps) curEntry.steps = {};
+        if (curEntry.steps[stepId]) {
+          selectedStepId = stepId;
+          status(`Step “${stepId}” already exists — selected it`, "info");
+        } else {
+          curEntry.steps[stepId] = VasConfig.normalizeStepEntry(
+            { title: stepId, content: [] },
+            stepId
+          );
+          selectedStepId = stepId;
+        }
+        ensureStepOrder(curEntry);
+        renderEditor();
+        renderPreview();
+      };
+    }
+
+    bindStepTabDrag();
   }
 
   function updateAddEntryLabel() {
@@ -578,7 +672,7 @@
         tab === "types" ? entry.iconUrl || VasConfig.DEFAULT_TYPE_ICON_URL : "";
       syncIconPreview();
     }
-    renderStepSelect();
+    renderStepTabs();
     updateAddEntryLabel();
 
     if (els.contentSectionLabel) {
@@ -991,41 +1085,6 @@
     renderPreview();
   };
 
-  if (els.stepSelect) {
-    els.stepSelect.onchange = () => {
-      syncEditorToDraft();
-      selectedStepId = els.stepSelect.value || null;
-      renderEditor();
-      renderPreview();
-    };
-  }
-
-  if (els.addStepBtn) {
-    els.addStepBtn.onclick = () => {
-      syncEditorToDraft();
-      const entry = currentEntry();
-      if (!entry || tab !== "types") return;
-      const raw = prompt(
-        "AssignedServiceStepId for this step (must match MAWM):"
-      );
-      const stepId = String(raw || "").trim();
-      if (!stepId) return;
-      if (!entry.steps) entry.steps = {};
-      if (entry.steps[stepId]) {
-        selectedStepId = stepId;
-        status(`Step “${stepId}” already exists — selected it`, "info");
-      } else {
-        entry.steps[stepId] = VasConfig.normalizeStepEntry(
-          { title: stepId, content: [] },
-          stepId
-        );
-        selectedStepId = stepId;
-      }
-      renderEditor();
-      renderPreview();
-    };
-  }
-
   if (els.removeStepBtn) {
     els.removeStepBtn.onclick = () => {
       syncEditorToDraft();
@@ -1033,6 +1092,7 @@
       if (!entry || !selectedStepId || tab !== "types") return;
       if (!confirm(`Remove step “${selectedStepId}”?`)) return;
       delete entry.steps[selectedStepId];
+      ensureStepOrder(entry);
       selectedStepId = stepKeys(entry)[0] || null;
       renderEditor();
       renderPreview();
