@@ -7,6 +7,11 @@
   let tab = "types"; // types | items
   let selectedKey = null;
   let selectedStepId = null;
+  /** @type {Set<string>|null} ProvidedServiceStepId set for selected VAS Type from MAWM */
+  let wmsStepIds = null;
+  /** selectedKey the current wmsStepIds set belongs to */
+  let wmsStepsForKey = null;
+  let wmsStepsFetchGen = 0;
   let previewThemeScope = null;
   let previewDeviceLogo = null;
   let previewMode = "mobile"; // mobile | desktop
@@ -478,6 +483,110 @@
       });
   }
 
+  /**
+   * Load ProvidedServiceStepIds from MAWM for the selected VAS Type and recolor tabs.
+   * Called when the type is selected and after step create/rename.
+   */
+  async function refreshWmsStepMatch() {
+    if (tab !== "types" || !selectedKey || !org || !token) {
+      wmsStepIds = null;
+      wmsStepsForKey = null;
+      applyStepTabWmsClasses();
+      return;
+    }
+    const typeId = selectedKey;
+    const gen = ++wmsStepsFetchGen;
+    wmsStepIds = null;
+    wmsStepsForKey = null;
+    applyStepTabWmsClasses();
+    const res = await api("provided_services", { org, token });
+    if (gen !== wmsStepsFetchGen || selectedKey !== typeId || tab !== "types") {
+      return;
+    }
+    if (!res.success) {
+      wmsStepIds = null;
+      wmsStepsForKey = null;
+      applyStepTabWmsClasses();
+      status(res.error || "Could not load WMS steps for tab colors", "error");
+      return;
+    }
+    const svc = (res.services || []).find(
+      (s) => s && s.ProvidedServiceId === typeId
+    );
+    wmsStepIds = new Set(
+      (svc && Array.isArray(svc.ProvidedServiceStep)
+        ? svc.ProvidedServiceStep
+        : []
+      )
+        .map((s) => s && s.ProvidedServiceStepId)
+        .filter(Boolean)
+        .map(String)
+    );
+    wmsStepsForKey = typeId;
+    applyStepTabWmsClasses();
+  }
+
+  function stepTabWmsClass(stepId) {
+    if (wmsStepIds == null || wmsStepsForKey !== selectedKey) {
+      return "step-tab-wms-unknown";
+    }
+    return wmsStepIds.has(String(stepId))
+      ? "step-tab-wms-ok"
+      : "step-tab-wms-missing";
+  }
+
+  function stepTabWmsTitle(stepId) {
+    if (wmsStepIds == null || wmsStepsForKey !== selectedKey) {
+      return "Checking whether this step exists in WMS…";
+    }
+    return wmsStepIds.has(String(stepId))
+      ? "Exists in WMS for this VAS Type"
+      : "Not in WMS for this VAS Type — step will never match execution";
+  }
+
+  function applyStepTabWmsClasses() {
+    if (!els.stepTabs) return;
+    els.stepTabs.querySelectorAll(".step-tab[data-step-id]").forEach((btn) => {
+      btn.classList.remove(
+        "step-tab-wms-ok",
+        "step-tab-wms-missing",
+        "step-tab-wms-unknown"
+      );
+      const id = btn.dataset.stepId;
+      btn.classList.add(stepTabWmsClass(id));
+      btn.title = stepTabWmsTitle(id);
+    });
+  }
+
+  /** Rename AssignedServiceStepId (map key + stepOrder); refreshes WMS match colors. */
+  async function renameStep(oldId) {
+    syncEditorToDraft();
+    const entry = currentEntry();
+    if (!entry || tab !== "types" || !entry.steps || !entry.steps[oldId]) return;
+    const raw = prompt(
+      "Rename AssignedServiceStepId (must match MAWM ProvidedServiceStepId):",
+      oldId
+    );
+    const newId = String(raw || "").trim();
+    if (!newId || newId === oldId) return;
+    if (entry.steps[newId]) {
+      status(`Step “${newId}” already exists`, "error");
+      return;
+    }
+    const step = entry.steps[oldId];
+    if (step.title === oldId) step.title = newId;
+    entry.steps[newId] = step;
+    delete entry.steps[oldId];
+    entry.stepOrder = VasConfig.normalizeStepOrder(
+      (entry.stepOrder || []).map((id) => (id === oldId ? newId : id)),
+      entry.steps
+    );
+    if (selectedStepId === oldId) selectedStepId = newId;
+    renderEditor();
+    renderPreview();
+    await refreshWmsStepMatch();
+  }
+
   /** Drag-and-drop reordering of step tabs; rebuilds entry.stepOrder from DOM order on drop. */
   function bindStepTabDrag() {
     const container = els.stepTabs;
@@ -548,11 +657,13 @@
     const tabsHtml = keys
       .map((key) => {
         const active = key === selectedStepId ? " active" : "";
-        return `<button type="button" class="step-tab${active}" role="tab" data-step-id="${esc(
+        const wmsClass = stepTabWmsClass(key);
+        const wmsTitle = stepTabWmsTitle(key);
+        return `<button type="button" class="step-tab ${wmsClass}${active}" role="tab" data-step-id="${esc(
           key
         )}" draggable="true" aria-selected="${
           key === selectedStepId
-        }">${esc(key)}</button>`;
+        }" title="${esc(wmsTitle)}">${esc(key)}</button>`;
       })
       .join("");
     els.stepTabs.innerHTML =
@@ -568,11 +679,16 @@
         renderEditor();
         renderPreview();
       };
+      btn.ondblclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        renameStep(btn.dataset.stepId);
+      };
     });
 
     const addBtn = els.stepTabs.querySelector(".step-tab-add");
     if (addBtn) {
-      addBtn.onclick = () => {
+      addBtn.onclick = async () => {
         syncEditorToDraft();
         const curEntry = currentEntry();
         if (!curEntry || tab !== "types") return;
@@ -595,6 +711,7 @@
         ensureStepOrder(curEntry);
         renderEditor();
         renderPreview();
+        await refreshWmsStepMatch();
       };
     }
 
@@ -1005,6 +1122,7 @@
       } Items`,
       "success"
     );
+    await refreshWmsStepMatch();
   }
 
   async function authenticate() {
@@ -1021,7 +1139,7 @@
     await loadDraft();
   }
 
-  function switchTab(next) {
+  async function switchTab(next) {
     syncEditorToDraft();
     tab = next === "items" ? "items" : "types";
     els.configTabSelect.value = tab;
@@ -1032,6 +1150,11 @@
     renderEntrySelect();
     renderEditor();
     renderPreview();
+    if (tab === "types") await refreshWmsStepMatch();
+    else {
+      wmsStepIds = null;
+      wmsStepsForKey = null;
+    }
   }
 
   /** Change the step's column count; merges/creates columns as needed. */
@@ -1076,13 +1199,16 @@
 
   els.configTabSelect.onchange = () => switchTab(els.configTabSelect.value);
 
-  els.entrySelect.onchange = () => {
+  els.entrySelect.onchange = async () => {
     syncEditorToDraft();
     selectedKey = els.entrySelect.value || null;
     selectedStepId = null;
     els.deleteKeyBtn.disabled = !selectedKey;
+    wmsStepIds = null;
+    wmsStepsForKey = null;
     renderEditor();
     renderPreview();
+    if (tab === "types") await refreshWmsStepMatch();
   };
 
   if (els.removeStepBtn) {
@@ -1178,7 +1304,7 @@
   };
 
   if (els.addEntryBtn) {
-    els.addEntryBtn.onclick = () => {
+    els.addEntryBtn.onclick = async () => {
       if (tab === "types") {
         const raw = prompt("ProvidedServiceId / VAS Type name:");
         const key = String(raw || "").trim();
@@ -1186,9 +1312,12 @@
         selectedKey = key;
         ensureEntry(selectedKey);
         selectedStepId = null;
+        wmsStepIds = null;
+        wmsStepsForKey = null;
         renderEntrySelect();
         renderEditor();
         renderPreview();
+        await refreshWmsStepMatch();
         return;
       }
       const itemId = prompt("ItemId to add:");
