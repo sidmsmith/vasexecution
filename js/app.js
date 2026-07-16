@@ -407,6 +407,13 @@
     });
   }
 
+  function applyAppTitle() {
+    const titleEl = document.querySelector(".app-title");
+    if (!titleEl) return;
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    titleEl.textContent = isMobile ? "VAS Execution" : "VAS Workbench";
+  }
+
   function applyViewMode() {
     const preferred = getPreferredView();
     const multi = currentServices.length > 1;
@@ -425,10 +432,7 @@
       els.serviceViews.classList.toggle("main-detail-active", main);
       els.serviceViews.classList.toggle("stacked-active", !main);
     }
-    const titleEl = document.querySelector(".app-title");
-    if (titleEl) {
-      titleEl.textContent = main ? "VAS Workbench" : "VAS Execution";
-    }
+    applyAppTitle();
     if (main) {
       renderServiceNav();
       setActiveService(activeServiceIndex);
@@ -1160,6 +1164,11 @@
       applyViewMode();
     });
   }
+
+  applyAppTitle();
+  window
+    .matchMedia("(max-width: 768px)")
+    .addEventListener("change", applyAppTitle);
 
   function syncExecutionBarStickyOffset() {
     if (!els.executionBar) return;
