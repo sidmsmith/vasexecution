@@ -34,6 +34,13 @@
   }
 
   const DEFAULT_TEXT_COLOR = "#000000";
+  const LIST_MARKERS = ["none", "bullet", "check", "arrow", "dash", "star"];
+  const DEFAULT_LIST_MARKER = "bullet";
+
+  function normalizeListMarker(value) {
+    const v = String(value || "").trim().toLowerCase();
+    return LIST_MARKERS.includes(v) ? v : DEFAULT_LIST_MARKER;
+  }
 
   function sanitizeColor(value) {
     const v = String(value || "").trim();
@@ -78,7 +85,8 @@
       italic: !!raw.italic,
       underline: !!raw.underline,
       color: sanitizeColor(raw.color) || DEFAULT_TEXT_COLOR,
-      fontSize: normalizeFontSize(raw.fontSize)
+      fontSize: normalizeFontSize(raw.fontSize),
+      listMarker: normalizeListMarker(raw.listMarker)
     };
   }
 
@@ -225,7 +233,8 @@
             italic: x && x.italic,
             underline: x && x.underline,
             color: x && x.color,
-            fontSize: x && x.fontSize
+            fontSize: x && x.fontSize,
+            listMarker: x && x.listMarker
           },
           i
         );
@@ -370,7 +379,8 @@
       return renderContentImageHtml(block, esc);
     }
     const style = textBlockStyle(block);
-    return `<div class="vas-content-text"${
+    const marker = normalizeListMarker(block.listMarker);
+    return `<div class="vas-content-text marker-${esc(marker)}"${
       style ? ` style="${esc(style)}"` : ""
     }>${esc(block.text)}</div>`;
   }
@@ -599,6 +609,9 @@
     renderContentImageHtml,
     PDF_PLACEHOLDER_URL,
     DEFAULT_TEXT_COLOR,
+    DEFAULT_LIST_MARKER,
+    LIST_MARKERS,
+    normalizeListMarker,
     DEFAULT_TYPE_ICON_URL,
     DEFAULT_SECTIONS
   };

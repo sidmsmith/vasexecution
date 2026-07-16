@@ -583,7 +583,6 @@
       : null;
     if (window.VasConfig && window.VasConfig.stepHasContent(stepCfg)) {
       return `<div class="${cls}" data-step-panel="${esc(stepId)}">
-        <h5>Step: ${esc(stepCfg.title || stepId)}</h5>
         ${window.VasConfig.renderStepContentHtml(stepCfg, esc)}
       </div>`;
     }
@@ -592,7 +591,6 @@
       : [];
     if (!lines.length) return "";
     return `<div class="${cls}" data-step-panel="${esc(stepId)}">
-      <h5>Step: ${esc(stepId)}</h5>
       <ul class="vas-instruction-list mb-0">
         ${lines.map((t) => `<li>${esc(t)}</li>`).join("")}
       </ul>

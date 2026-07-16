@@ -297,10 +297,17 @@ body {
 
 .step-panel {
   margin: 0;
-  padding: 0.65rem 0.75rem;
+  padding: 0.55rem 0.75rem 0.65rem;
   border: 1px dashed var(--border);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.12);
+}
+.step-panel .vas-content-columns,
+.step-panel .vas-content-list {
+  margin-top: 0;
+}
+.step-panel .vas-content-list .vas-content-text:first-child {
+  margin-top: 0;
 }
 .step-panel h5 {
   margin: 0 0 0.4rem;
@@ -853,14 +860,40 @@ body {
 }
 .vas-content-list .vas-content-text {
   margin: 0 0 0.45rem;
-  padding-left: 1.1rem;
+  padding-left: 1.15rem;
   position: relative;
   font-size: 0.9rem;
 }
+.vas-content-list .vas-content-text.marker-none {
+  padding-left: 0;
+}
 .vas-content-list .vas-content-text::before {
-  content: "•";
   position: absolute;
-  left: 0.2rem;
+  left: 0;
+  top: 0;
+  width: 1rem;
+  text-align: center;
+  font-weight: 700;
+  line-height: inherit;
+  color: inherit;
+}
+.vas-content-list .vas-content-text.marker-none::before {
+  content: none;
+}
+.vas-content-list .vas-content-text.marker-bullet::before {
+  content: "•";
+}
+.vas-content-list .vas-content-text.marker-check::before {
+  content: "✓";
+}
+.vas-content-list .vas-content-text.marker-arrow::before {
+  content: "→";
+}
+.vas-content-list .vas-content-text.marker-dash::before {
+  content: "–";
+}
+.vas-content-list .vas-content-text.marker-star::before {
+  content: "★";
 }
 .vas-content-list .vas-content-image {
   margin: 0.5rem 0;

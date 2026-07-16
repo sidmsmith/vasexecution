@@ -124,6 +124,19 @@
   color: #fff;
 }
 
+.fmt-marker-wrap {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+}
+.fmt-marker-wrap .fmt-marker {
+  width: auto;
+  min-width: 6.5rem;
+  font-size: 0.75rem;
+  padding: 0.15rem 1.5rem 0.15rem 0.4rem;
+  min-height: 1.75rem;
+}
+
 .fmt-btn.fmt-bold { font-weight: 700; }
 .fmt-btn.fmt-italic { font-style: italic; }
 .fmt-btn.fmt-underline u { text-decoration: underline; }

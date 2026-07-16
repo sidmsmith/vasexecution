@@ -105,6 +105,7 @@
     const color =
       VasConfig.sanitizeColor(block.color) || VasConfig.DEFAULT_TEXT_COLOR;
     const fontSize = VasConfig.normalizeFontSize(block.fontSize);
+    const marker = VasConfig.normalizeListMarker(block.listMarker);
     return `<div class="content-row instruction-row draggable-item" data-idx="${idx}" data-type="text" data-id="${esc(
       block.id
     )}">
@@ -117,6 +118,16 @@
                 <button type="button" class="fmt-btn fmt-underline${block.underline ? " active" : ""}" title="Underline" aria-label="Underline"><u>U</u></button>
                 <label class="fmt-color-wrap" title="Text color">
                   <input type="color" class="fmt-color" value="${esc(color)}" aria-label="Text color" />
+                </label>
+                <label class="fmt-marker-wrap" title="List marker">
+                  <select class="form-select form-select-sm fmt-marker" aria-label="List marker">
+                    <option value="none" ${marker==="none"?"selected":""}>None</option>
+                    <option value="bullet" ${marker==="bullet"?"selected":""}>• Bullet</option>
+                    <option value="check" ${marker==="check"?"selected":""}>✓ Check</option>
+                    <option value="arrow" ${marker==="arrow"?"selected":""}>→ Arrow</option>
+                    <option value="dash" ${marker==="dash"?"selected":""}>– Dash</option>
+                    <option value="star" ${marker==="star"?"selected":""}>★ Star</option>
+                  </select>
                 </label>
                 <label class="img-scale-label txt-scale-label">
                   Size
@@ -248,6 +259,9 @@
         VasConfig.DEFAULT_TEXT_COLOR,
       fontSize: VasConfig.normalizeFontSize(
         row.querySelector(".txt-scale")?.value
+      ),
+      listMarker: VasConfig.normalizeListMarker(
+        row.querySelector(".fmt-marker")?.value
       )
     };
   }
@@ -674,6 +688,12 @@
           renderPreview();
         };
       });
+    els.contentList.querySelectorAll("select.fmt-marker").forEach((el) => {
+      el.onchange = el.oninput = () => {
+        syncEditorToDraft();
+        renderPreview();
+      };
+    });
     if (canEditContent) bindContentDrag();
 
     els.secSig.checked = !!(entry.sections?.signature?.enabled);
@@ -706,12 +726,6 @@
             VasConfig.typeIconUrl(entry)
           )}" alt="" onerror="this.remove()" />`
         : "";
-    const contentTitle =
-      tab === "types"
-        ? selectedStepId
-          ? `Step: ${selectedStepId}`
-          : "Step instructions"
-        : "Item instructions";
     return `
       <article class="service-card">
         <div class="service-header preview-service-header">
@@ -722,7 +736,7 @@
           ${iconHtml}
         </div>
         <div class="vas-config-block ${tab === "items" ? "item-block" : "type-block"}">
-          <h4>${esc(contentTitle)}</h4>
+          ${tab === "items" ? "<h4>Item instructions</h4>" : ""}
           ${contentHtml || "<p class='text-muted'>No content</p>"}
         </div>
         <div class="capture-sections">
@@ -1046,7 +1060,8 @@
       italic: false,
       underline: false,
       color: VasConfig.DEFAULT_TEXT_COLOR,
-      fontSize: 100
+      fontSize: 100,
+      listMarker: VasConfig.DEFAULT_LIST_MARKER
     };
     owner.content.push(block);
     appendBlockToLastColumn(owner, block.id);
