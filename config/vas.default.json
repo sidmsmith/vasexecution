@@ -4,29 +4,57 @@
     "Apply UPC Tags": {
       "title": "Apply UPC Tags",
       "description": "Apply UPC Tags",
-      "instructions": [
-        {
-          "id": "ins_20f09590",
-          "text": "Create UPC Tag for the item"
-        },
-        {
-          "id": "ins_1b6aa0c5",
-          "text": "Apply the UPC Tag once it has been printed"
-        },
-        {
-          "id": "ins_01dbd541",
-          "text": "Create UPC tag for the item"
-        },
-        {
-          "id": "ins_0af767ff",
-          "text": "Confirm the UPC matches the item before applying the tag."
-        },
-        {
-          "id": "ins_d8c026f6",
-          "text": "Place the tag on a flat, clean surface of the item."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-apply-upc-tags.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "Create UPC Tag": {
+          "title": "Create UPC Tag",
+          "content": [
+            {
+              "id": "ins_1686e4cb",
+              "type": "text",
+              "text": "Create UPC Tag for the item",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_91d8602c",
+              "type": "text",
+              "text": "Apply the UPC Tag once it has been printed",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_e4c06014",
+              "type": "text",
+              "text": "Confirm the UPC matches the item before applying the tag.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_04feb4f2",
+              "type": "text",
+              "text": "Place the tag on a flat, clean surface of the item.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -44,87 +72,72 @@
           "label": "Apply UPC Tags Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_20f09590",
-          "type": "text",
-          "text": "Create UPC Tag for the item",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_1b6aa0c5",
-          "type": "text",
-          "text": "Apply the UPC Tag once it has been printed",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_01dbd541",
-          "type": "text",
-          "text": "Create UPC tag for the item",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_0af767ff",
-          "type": "text",
-          "text": "Confirm the UPC matches the item before applying the tag.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_d8c026f6",
-          "type": "text",
-          "text": "Place the tag on a flat, clean surface of the item.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-apply-upc-tags.svg",
-      "steps": {}
+      }
     },
     "Build Packaging Material": {
       "title": "Build Packaging Material",
       "description": "Build packaging material for parts",
-      "instructions": [
-        {
-          "id": "ins_99638c77",
-          "text": "Measure part to determine size of packaging"
-        },
-        {
-          "id": "ins_a3a9a675",
-          "text": "Build crate according to part dimensions"
-        },
-        {
-          "id": "ins_76d8ae40",
-          "text": "Pack parts into crate"
-        },
-        {
-          "id": "ins_c1c8545f",
-          "text": "Build Packaging"
-        },
-        {
-          "id": "ins_ce118e56",
-          "text": "Measure the part before building the crate."
-        },
-        {
-          "id": "ins_8f6833d3",
-          "text": "Pack parts securely and do not leave voids."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-build-packaging-material.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "Build Packaging": {
+          "title": "Build Packaging",
+          "content": [
+            {
+              "id": "ins_18d49220",
+              "type": "text",
+              "text": "Measure part to determine size of packaging",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_4c3b4672",
+              "type": "text",
+              "text": "Build crate according to part dimensions",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_6065c802",
+              "type": "text",
+              "text": "Pack parts into crate",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_a15e2d72",
+              "type": "text",
+              "text": "Measure the part before building the crate.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_98484176",
+              "type": "text",
+              "text": "Pack parts securely and do not leave voids.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -142,71 +155,67 @@
           "label": "Build Packaging Material Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_99638c77",
-          "type": "text",
-          "text": "Measure part to determine size of packaging",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_a3a9a675",
-          "type": "text",
-          "text": "Build crate according to part dimensions",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_76d8ae40",
-          "type": "text",
-          "text": "Pack parts into crate",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_c1c8545f",
-          "type": "text",
-          "text": "Build Packaging",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_ce118e56",
-          "type": "text",
-          "text": "Measure the part before building the crate.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_8f6833d3",
-          "type": "text",
-          "text": "Pack parts securely and do not leave voids.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-build-packaging-material.svg",
-      "steps": {}
+      }
     },
     "Dicks VAS Activities": {
       "title": "Dicks VAS Activities",
       "description": "VAS Activities required for Dicks Sporting Goods",
+      "iconUrl": "/assets/icons/vas-type-dicks-vas-activities.svg",
+      "content": [],
       "instructions": [],
       "images": [],
+      "steps": {
+        "Print Dicks Price Tickets": {
+          "title": "Print Dicks Price Tickets",
+          "content": [
+            {
+              "id": "ins_ec379a6a",
+              "type": "text",
+              "text": "Print Price Ticket",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_8a166c5b",
+              "type": "text",
+              "text": "Apply UPC Tag",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_9bd020d8",
+              "type": "text",
+              "text": "Complete all Dicks Sporting Goods ticket and label steps.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        },
+        "Apply Labels": {
+          "title": "Apply Labels",
+          "content": [
+            {
+              "id": "ins_395bac45",
+              "type": "text",
+              "text": "Print and attach label",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -224,98 +233,72 @@
           "label": "Dicks VAS Activities Markup",
           "mode": "photo"
         }
-      },
-      "content": [],
-      "iconUrl": "/assets/icons/vas-type-dicks-vas-activities.svg",
-      "steps": {
-        "Print Dicks Price Tickets": {
-          "title": "Print Dicks Price Tickets",
-          "content": [
-            {
-              "id": "ins_mig_0u4zlem4_0",
-              "type": "text",
-              "text": "Print Price Ticket",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            },
-            {
-              "id": "ins_mig_m2lcqvvr_1",
-              "type": "text",
-              "text": "Apply UPC Tag",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            },
-            {
-              "id": "ins_mig_w9bs1il2_2",
-              "type": "text",
-              "text": "Print Dicks Price Tickets",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            }
-          ]
-        },
-        "Apply Labels": {
-          "title": "Apply Labels",
-          "content": [
-            {
-              "id": "ins_mig_5gxtcgw3_0",
-              "type": "text",
-              "text": "Print and attach label",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            },
-            {
-              "id": "ins_mig_xn9g66jr_1",
-              "type": "text",
-              "text": "Apply Labels",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            }
-          ]
-        }
       }
     },
     "Engravement": {
       "title": "Engravement",
       "description": "Engravement",
-      "instructions": [
-        {
-          "id": "ins_a68d84fa",
-          "text": "Engrave with appropriate letter"
-        },
-        {
-          "id": "ins_02822004",
-          "text": "Gift Pack in blue box"
-        },
-        {
-          "id": "ins_e6f28e90",
-          "text": "Tie gift pack box with white ribbon"
-        },
-        {
-          "id": "ins_b55f3faf",
-          "text": "Confirm engraving letters/artwork against the order notes."
-        },
-        {
-          "id": "ins_58a1ab2a",
-          "text": "Protect finished surface before packing."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-engravement.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "Engrave with appropriate letter": {
+          "title": "Engrave with appropriate letter",
+          "content": [
+            {
+              "id": "ins_d09bee7d",
+              "type": "text",
+              "text": "Engrave with appropriate letter",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_139ddd07",
+              "type": "text",
+              "text": "Gift Pack in blue box",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_8dec4836",
+              "type": "text",
+              "text": "Tie gift pack box with white ribbon",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_a625ef37",
+              "type": "text",
+              "text": "Confirm engraving letters/artwork against the order notes.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_b8ab5d70",
+              "type": "text",
+              "text": "Protect finished surface before packing.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -333,75 +316,42 @@
           "label": "Engravement Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_a68d84fa",
-          "type": "text",
-          "text": "Engrave with appropriate letter",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_02822004",
-          "type": "text",
-          "text": "Gift Pack in blue box",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_e6f28e90",
-          "type": "text",
-          "text": "Tie gift pack box with white ribbon",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_b55f3faf",
-          "type": "text",
-          "text": "Confirm engraving letters/artwork against the order notes.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_58a1ab2a",
-          "type": "text",
-          "text": "Protect finished surface before packing.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-engravement.svg",
-      "steps": {}
+      }
     },
     "Generic Instruction": {
       "title": "Generic Instruction",
       "description": "Generic Instruction",
-      "instructions": [
-        {
-          "id": "ins_3357f58c",
-          "text": "handle with care"
-        },
-        {
-          "id": "ins_d7960a9b",
-          "text": "Handle with care"
-        },
-        {
-          "id": "ins_03294106",
-          "text": "Follow site SOPs for this generic VAS instruction."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-generic-instruction.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "1": {
+          "title": "1",
+          "content": [
+            {
+              "id": "ins_c5a5e2b4",
+              "type": "text",
+              "text": "handle with care",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_e45801d0",
+              "type": "text",
+              "text": "Follow site SOPs for this generic VAS instruction.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": false,
@@ -419,44 +369,97 @@
           "label": "Generic Instruction Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_3357f58c",
-          "type": "text",
-          "text": "handle with care",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_d7960a9b",
-          "type": "text",
-          "text": "Handle with care",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_03294106",
-          "type": "text",
-          "text": "Follow site SOPs for this generic VAS instruction.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-generic-instruction.svg",
-      "steps": {}
+      }
     },
     "Gift Wrap": {
       "title": "Gift Wrap",
       "description": "Gift Wrap",
+      "iconUrl": "/assets/icons/vas-type-gift-wrap.svg",
+      "content": [],
       "instructions": [],
       "images": [],
+      "steps": {
+        "Wrap": {
+          "title": "Wrap",
+          "content": [
+            {
+              "id": "ins_dc9de621",
+              "type": "text",
+              "text": "Measure the box",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_f97d05af",
+              "type": "text",
+              "text": "Cut the paper",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_7f0fc6ed",
+              "type": "text",
+              "text": "Cover the package",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_e153642c",
+              "type": "text",
+              "text": "Use approved wrap paper and ribbon for the brand.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_4393f709",
+              "type": "text",
+              "text": "Ensure ribbon is snug and ends are trimmed neatly.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        },
+        "Tie Bow": {
+          "title": "Tie Bow",
+          "content": [
+            {
+              "id": "ins_e9729ff2",
+              "type": "text",
+              "text": "Tie the bow neatly",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_170c564c",
+              "type": "text",
+              "text": "Use the holiday bows",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -474,96 +477,16 @@
           "label": "Gift Wrap Markup",
           "mode": "photo"
         }
-      },
-      "content": [],
-      "iconUrl": "/assets/icons/vas-type-gift-wrap.svg",
-      "steps": {
-        "Wrap": {
-          "title": "Wrap",
-          "content": [
-            {
-              "id": "ins_mig_jhcj30sn_0",
-              "type": "text",
-              "text": "Measure the box",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            },
-            {
-              "id": "ins_mig_n0zcora1_1",
-              "type": "text",
-              "text": "Cut the paper",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            },
-            {
-              "id": "ins_mig_cz72ltj4_2",
-              "type": "text",
-              "text": "Cover the package",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            }
-          ]
-        },
-        "Tie Bow": {
-          "title": "Tie Bow",
-          "content": [
-            {
-              "id": "ins_mig_j3p8ixnd_0",
-              "type": "text",
-              "text": "Tie the bow neatly",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            },
-            {
-              "id": "ins_mig_h4koe2us_1",
-              "type": "text",
-              "text": "Use the holiday bows",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            },
-            {
-              "id": "ins_mig_t5guobxb_2",
-              "type": "text",
-              "text": "Ensure ribbon is snug and ends are trimmed neatly.",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100
-            }
-          ]
-        }
       }
     },
     "Pallet Shrink Wrap": {
       "title": "Pallet Shrink Wrap",
       "description": "Pallet Shrink Wrap",
-      "instructions": [
-        {
-          "id": "ins_5ae82885",
-          "text": "Wrap the pallet tightly from base to top for stability."
-        },
-        {
-          "id": "ins_9fc66334",
-          "text": "Do not obscure critical barcode labels under wrap."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-pallet-shrink-wrap.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {},
       "sections": {
         "signature": {
           "enabled": false,
@@ -581,60 +504,72 @@
           "label": "Pallet Shrink Wrap Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_5ae82885",
-          "type": "text",
-          "text": "Wrap the pallet tightly from base to top for stability.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_9fc66334",
-          "type": "text",
-          "text": "Do not obscure critical barcode labels under wrap.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-pallet-shrink-wrap.svg",
-      "steps": {}
+      }
     },
     "Picture": {
       "title": "Picture",
       "description": "Etched with Picture",
-      "instructions": [
-        {
-          "id": "ins_2f9d1ece",
-          "text": "Etched with a picture"
-        },
-        {
-          "id": "ins_336be81a",
-          "text": "Take crystal vase"
-        },
-        {
-          "id": "ins_529b9f0f",
-          "text": "Place item in empty box"
-        },
-        {
-          "id": "ins_3fe96b5f",
-          "text": "Etched with Picture"
-        },
-        {
-          "id": "ins_ebcfdc7d",
-          "text": "Verify etching artwork matches the approved picture."
-        },
-        {
-          "id": "ins_7a0a01ef",
-          "text": "Place finished item in an empty protective box."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-picture.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "Etched with Picture": {
+          "title": "Etched with Picture",
+          "content": [
+            {
+              "id": "ins_8c5831c1",
+              "type": "text",
+              "text": "Etched with a picture",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_d676ccb4",
+              "type": "text",
+              "text": "Take crystal vase",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_dea2fa56",
+              "type": "text",
+              "text": "Place item in empty box",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_018f25af",
+              "type": "text",
+              "text": "Verify etching artwork matches the approved picture.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_89dfecf8",
+              "type": "text",
+              "text": "Place finished item in an empty protective box.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -652,88 +587,52 @@
           "label": "Picture Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_2f9d1ece",
-          "type": "text",
-          "text": "Etched with a picture",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_336be81a",
-          "type": "text",
-          "text": "Take crystal vase",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_529b9f0f",
-          "type": "text",
-          "text": "Place item in empty box",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_3fe96b5f",
-          "type": "text",
-          "text": "Etched with Picture",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_ebcfdc7d",
-          "type": "text",
-          "text": "Verify etching artwork matches the approved picture.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_7a0a01ef",
-          "type": "text",
-          "text": "Place finished item in an empty protective box.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-picture.svg",
-      "steps": {}
+      }
     },
     "Print Price Ticket": {
       "title": "Print Price Ticket",
       "description": "Print Price Ticket",
-      "instructions": [
-        {
-          "id": "ins_c32a7023",
-          "text": "Print price ticket and stamp on the item"
-        },
-        {
-          "id": "ins_ae58d155",
-          "text": "Print Price Ticket"
-        },
-        {
-          "id": "ins_f47a8fa8",
-          "text": "Verify price and SKU on the ticket before attaching."
-        },
-        {
-          "id": "ins_6fdbdc4f",
-          "text": "Stamp or affix the ticket where the customer can see it."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-print-price-ticket.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "Print Price Ticket": {
+          "title": "Print Price Ticket",
+          "content": [
+            {
+              "id": "ins_6da78e40",
+              "type": "text",
+              "text": "Print price ticket and stamp on the item",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_8ee3903f",
+              "type": "text",
+              "text": "Verify price and SKU on the ticket before attaching.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_7aea656b",
+              "type": "text",
+              "text": "Stamp or affix the ticket where the customer can see it.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -751,70 +650,52 @@
           "label": "Print Price Ticket Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_c32a7023",
-          "type": "text",
-          "text": "Print price ticket and stamp on the item",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_ae58d155",
-          "type": "text",
-          "text": "Print Price Ticket",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_f47a8fa8",
-          "type": "text",
-          "text": "Verify price and SKU on the ticket before attaching.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_6fdbdc4f",
-          "type": "text",
-          "text": "Stamp or affix the ticket where the customer can see it.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-print-price-ticket.svg",
-      "steps": {}
+      }
     },
     "Promotion Flyer": {
       "title": "Promotion Flyer",
       "description": "Promotion Flyer",
-      "instructions": [
-        {
-          "id": "ins_487be94a",
-          "text": "Insert or drop a promotion flyer"
-        },
-        {
-          "id": "ins_ecf6f8c8",
-          "text": "Drop a promotion flyer"
-        },
-        {
-          "id": "ins_35720e67",
-          "text": "Insert or affix one flyer per oLPN as required."
-        },
-        {
-          "id": "ins_28d4997d",
-          "text": "Do not cover shipping labels with the flyer."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-promotion-flyer.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "Promotion Flyer": {
+          "title": "Promotion Flyer",
+          "content": [
+            {
+              "id": "ins_8252b3a6",
+              "type": "text",
+              "text": "Insert or drop a promotion flyer",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_e98fe8cc",
+              "type": "text",
+              "text": "Insert or affix one flyer per oLPN as required.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_61ae3e25",
+              "type": "text",
+              "text": "Do not cover shipping labels with the flyer.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -832,74 +713,77 @@
           "label": "Promotion Flyer Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_487be94a",
-          "type": "text",
-          "text": "Insert or drop a promotion flyer",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_ecf6f8c8",
-          "type": "text",
-          "text": "Drop a promotion flyer",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_35720e67",
-          "type": "text",
-          "text": "Insert or affix one flyer per oLPN as required.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_28d4997d",
-          "type": "text",
-          "text": "Do not cover shipping labels with the flyer.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-promotion-flyer.svg",
-      "steps": {}
+      }
     },
     "Repack": {
       "title": "Repack",
       "description": "Repack",
-      "instructions": [
-        {
-          "id": "ins_d5b80c64",
-          "text": "Repack"
-        },
-        {
-          "id": "ins_5d55d841",
-          "text": "Repack into 4 packs of 3"
-        },
-        {
-          "id": "ins_43cc2f6b",
-          "text": "Shrink wrap each pack"
-        },
-        {
-          "id": "ins_482b7dfb",
-          "text": "Repack to the specified pack quantity before sealing."
-        },
-        {
-          "id": "ins_46777adc",
-          "text": "Shrink wrap each finished pack."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-repack.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "Repack": {
+          "title": "Repack",
+          "content": [
+            {
+              "id": "ins_94141ba7",
+              "type": "text",
+              "text": "Repack",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_76d15032",
+              "type": "text",
+              "text": "Repack to the specified pack quantity before sealing.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_6bac5e59",
+              "type": "text",
+              "text": "Shrink wrap each finished pack.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        },
+        "Repack into 4 packs of 3": {
+          "title": "Repack into 4 packs of 3",
+          "content": [
+            {
+              "id": "ins_b9fad38d",
+              "type": "text",
+              "text": "Repack into 4 packs of 3",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_267e8287",
+              "type": "text",
+              "text": "Shrink wrap each pack",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -917,83 +801,62 @@
           "label": "Repack Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_d5b80c64",
-          "type": "text",
-          "text": "Repack",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_5d55d841",
-          "type": "text",
-          "text": "Repack into 4 packs of 3",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_43cc2f6b",
-          "type": "text",
-          "text": "Shrink wrap each pack",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_482b7dfb",
-          "type": "text",
-          "text": "Repack to the specified pack quantity before sealing.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_46777adc",
-          "type": "text",
-          "text": "Shrink wrap each finished pack.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-repack.svg",
-      "steps": {}
+      }
     },
     "Reverse VAS": {
       "title": "Reverse VAS",
       "description": "Reverse VAS",
-      "instructions": [
-        {
-          "id": "ins_d7b7cf0b",
-          "text": "View all of the VAS services that have already been performed in the History Inquiry"
-        },
-        {
-          "id": "ins_de3b060b",
-          "text": "Undo all of the VAS services that have already been performed"
-        },
-        {
-          "id": "ins_80b2b9b5",
-          "text": "Reverse VAS"
-        },
-        {
-          "id": "ins_8f9cb5c6",
-          "text": "Review VAS history before reversing completed work."
-        },
-        {
-          "id": "ins_8b89a176",
-          "text": "Document why the reverse is required."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-reverse-vas.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "Reverse VAS": {
+          "title": "Reverse VAS",
+          "content": [
+            {
+              "id": "ins_ac7ee758",
+              "type": "text",
+              "text": "View all of the VAS services that have already been performed in the History Inquiry",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_ff052d4c",
+              "type": "text",
+              "text": "Undo all of the VAS services that have already been performed",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_e5a51f82",
+              "type": "text",
+              "text": "Review VAS history before reversing completed work.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_296b28c9",
+              "type": "text",
+              "text": "Document why the reverse is required.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": false,
@@ -1011,83 +874,62 @@
           "label": "Reverse VAS Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_d7b7cf0b",
-          "type": "text",
-          "text": "View all of the VAS services that have already been performed in the History Inquiry",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_de3b060b",
-          "type": "text",
-          "text": "Undo all of the VAS services that have already been performed",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_80b2b9b5",
-          "type": "text",
-          "text": "Reverse VAS",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_8f9cb5c6",
-          "type": "text",
-          "text": "Review VAS history before reversing completed work.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_8b89a176",
-          "type": "text",
-          "text": "Document why the reverse is required.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-reverse-vas.svg",
-      "steps": {}
+      }
     },
     "TF-Engravement": {
       "title": "TF-Engravement",
       "description": "TF-Engravement",
-      "instructions": [
-        {
-          "id": "ins_40da4a66",
-          "text": "Engrave-S"
-        },
-        {
-          "id": "ins_d55c8baa",
-          "text": "Gift Pack in blue box"
-        },
-        {
-          "id": "ins_16798acb",
-          "text": "Engrave with S"
-        },
-        {
-          "id": "ins_26f3df4d",
-          "text": "Engrave with the specified letter set for this order."
-        },
-        {
-          "id": "ins_96ed1879",
-          "text": "Gift pack in the approved blue box when complete."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-tf-engravement.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "Engrave with S": {
+          "title": "Engrave with S",
+          "content": [
+            {
+              "id": "ins_6e97fc66",
+              "type": "text",
+              "text": "Engrave-S",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_54f05b9e",
+              "type": "text",
+              "text": "Gift Pack in blue box",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_ac82b47d",
+              "type": "text",
+              "text": "Engrave with the specified letter set for this order.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_087bcef1",
+              "type": "text",
+              "text": "Gift pack in the approved blue box when complete.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -1105,79 +947,62 @@
           "label": "TF-Engravement Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_40da4a66",
-          "type": "text",
-          "text": "Engrave-S",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_d55c8baa",
-          "type": "text",
-          "text": "Gift Pack in blue box",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_16798acb",
-          "type": "text",
-          "text": "Engrave with S",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_26f3df4d",
-          "type": "text",
-          "text": "Engrave with the specified letter set for this order.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_96ed1879",
-          "type": "text",
-          "text": "Gift pack in the approved blue box when complete.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-tf-engravement.svg",
-      "steps": {}
+      }
     },
     "Walmart-Repack": {
       "title": "Walmart-Repack",
       "description": "Repack",
-      "instructions": [
-        {
-          "id": "ins_6e39cfe7",
-          "text": "Repack into 4 packs of 3"
-        },
-        {
-          "id": "ins_e3b661a6",
-          "text": "Shrink wrap each pack"
-        },
-        {
-          "id": "ins_b187fc7f",
-          "text": "Repack into the required inner packs before labeling."
-        },
-        {
-          "id": "ins_ef1b2488",
-          "text": "Shrink wrap each pack after filling."
-        }
-      ],
+      "iconUrl": "/assets/icons/vas-type-walmart-repack.svg",
+      "content": [],
+      "instructions": [],
       "images": [],
+      "steps": {
+        "Repack into 4 packs of 3": {
+          "title": "Repack into 4 packs of 3",
+          "content": [
+            {
+              "id": "ins_00233712",
+              "type": "text",
+              "text": "Repack into 4 packs of 3",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_f66eeebc",
+              "type": "text",
+              "text": "Shrink wrap each pack",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_643dc3d7",
+              "type": "text",
+              "text": "Repack into the required inner packs before labeling.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            },
+            {
+              "id": "ins_c3496ff2",
+              "type": "text",
+              "text": "Shrink wrap each pack after filling.",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100
+            }
+          ]
+        }
+      },
       "sections": {
         "signature": {
           "enabled": true,
@@ -1195,70 +1020,58 @@
           "label": "Walmart-Repack Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_6e39cfe7",
-          "type": "text",
-          "text": "Repack into 4 packs of 3",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_e3b661a6",
-          "type": "text",
-          "text": "Shrink wrap each pack",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_b187fc7f",
-          "type": "text",
-          "text": "Repack into the required inner packs before labeling.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_ef1b2488",
-          "type": "text",
-          "text": "Shrink wrap each pack after filling.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ],
-      "iconUrl": "/assets/icons/vas-type-walmart-repack.svg",
-      "steps": {}
+      }
     }
   },
   "items": {
     "6000121": {
-      "title": "HMTS Accessories",
-      "description": "HMTS Accessories",
-      "instructions": [
+      "title": "Plaid Flannel Shirt",
+      "description": "Plaid Flannel Shirt",
+      "content": [
         {
-          "id": "ins_6049596f",
-          "text": "Confirm item 6000121 (HMTS Accessories) before starting item-level VAS."
+          "id": "ins_16cd11c5",
+          "type": "text",
+          "text": "Confirm item 6000121 (Plaid Flannel Shirt) before starting item-level VAS.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000"
         },
         {
-          "id": "ins_ed5a6ed4",
+          "id": "ins_5a3615f3",
+          "type": "text",
+          "text": "Photograph the finished work if branding or tagging is visible.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000"
+        },
+        {
+          "id": "img_05eca832",
+          "type": "image",
+          "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1752528139/sidney/Plaid_Flannel_Shirt_v01.jpg",
+          "caption": "Plaid Flannel Shirt",
+          "scale": 100
+        }
+      ],
+      "instructions": [
+        {
+          "id": "ins_16cd11c5",
+          "text": "Confirm item 6000121 (Plaid Flannel Shirt) before starting item-level VAS."
+        },
+        {
+          "id": "ins_5a3615f3",
           "text": "Photograph the finished work if branding or tagging is visible."
         }
       ],
       "images": [
         {
-          "id": "img_55415293",
-          "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1752528139/sidney/Sterilant-Agent.png",
-          "caption": "HMTS Accessories"
+          "id": "img_05eca832",
+          "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1752528139/sidney/Plaid_Flannel_Shirt_v01.jpg",
+          "caption": "Plaid Flannel Shirt"
         }
       ],
+      "steps": {},
       "sections": {
         "signature": {
           "enabled": false,
@@ -1276,49 +1089,45 @@
           "label": "Item Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_6049596f",
-          "type": "text",
-          "text": "Confirm item 6000121 (HMTS Accessories) before starting item-level VAS.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_ed5a6ed4",
-          "type": "text",
-          "text": "Photograph the finished work if branding or tagging is visible.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "img_55415293",
-          "type": "image",
-          "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1752528139/sidney/Sterilant-Agent.png",
-          "caption": "HMTS Accessories",
-          "scale": 100
-        }
-      ]
+      }
     },
     "DEMO-GIFT-001": {
       "title": "Demo Gift SKU",
       "description": "Demo gift item for config testing",
+      "content": [
+        {
+          "id": "ins_4cdc2f24",
+          "type": "text",
+          "text": "Use holiday wrap materials for DEMO-GIFT-001.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
+        },
+        {
+          "id": "ins_dda037df",
+          "type": "text",
+          "text": "Include a blank gift receipt in the package.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
+        }
+      ],
       "instructions": [
         {
-          "id": "ins_8a3f138f",
+          "id": "ins_4cdc2f24",
           "text": "Use holiday wrap materials for DEMO-GIFT-001."
         },
         {
-          "id": "ins_df3bbba0",
+          "id": "ins_dda037df",
           "text": "Include a blank gift receipt in the package."
         }
       ],
       "images": [],
+      "steps": {},
       "sections": {
         "signature": {
           "enabled": true,
@@ -1336,38 +1145,31 @@
           "label": "Gift Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_8a3f138f",
-          "type": "text",
-          "text": "Use holiday wrap materials for DEMO-GIFT-001.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        },
-        {
-          "id": "ins_df3bbba0",
-          "type": "text",
-          "text": "Include a blank gift receipt in the package.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ]
+      }
     },
     "DEMO-TICKET-100": {
       "title": "Demo Ticket SKU",
       "description": "Demo ticketed apparel for config testing",
+      "content": [
+        {
+          "id": "ins_51087a25",
+          "type": "text",
+          "text": "Hang price ticket on the right sleeve for DEMO-TICKET-100.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "color": "#000000",
+          "fontSize": 100
+        }
+      ],
       "instructions": [
         {
-          "id": "ins_33e7173e",
+          "id": "ins_51087a25",
           "text": "Hang price ticket on the right sleeve for DEMO-TICKET-100."
         }
       ],
       "images": [],
+      "steps": {},
       "sections": {
         "signature": {
           "enabled": false,
@@ -1385,18 +1187,7 @@
           "label": "Ticket Markup",
           "mode": "photo"
         }
-      },
-      "content": [
-        {
-          "id": "ins_33e7173e",
-          "type": "text",
-          "text": "Hang price ticket on the right sleeve for DEMO-TICKET-100.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "color": "#000000"
-        }
-      ]
+      }
     }
   }
 }

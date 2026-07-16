@@ -12,3 +12,6 @@ __pycache__/
 .venv/
 venv/
 ENV/
+
+# Local catalog dump artifacts
+_scripts/_*.json

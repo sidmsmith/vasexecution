@@ -143,47 +143,72 @@ EXTRA_INSTRUCTIONS = {
 }
 
 
-def catalog_instructions(svc: dict) -> list:
+def text_block(text: str) -> dict:
+    return {
+        "id": nid("ins"),
+        "type": "text",
+        "text": text,
+        "bold": False,
+        "italic": False,
+        "underline": False,
+        "color": "#000000",
+        "fontSize": 100,
+    }
+
+
+def step_instruction_texts(step: dict) -> list:
     texts = []
-    for step in svc.get("ProvidedServiceStep") or []:
-        for instr in step.get("StepInstruction") or []:
-            text = (instr.get("InstructionText") or "").strip()
-            if text and text not in texts:
-                texts.append(text)
+    for instr in step.get("StepInstruction") or []:
+        text = (instr.get("InstructionText") or "").strip()
+        if text and text not in texts:
+            texts.append(text)
+    if not texts:
         desc = (step.get("Description") or "").strip()
-        if desc and desc not in texts:
+        if desc:
             texts.append(desc)
     return texts
+
+
+def build_steps_map(svc: dict, extras=None) -> dict:
+    """Key = ProvidedServiceStepId (matches AssignedServiceStepId in this tenant)."""
+    steps = {}
+    for step in svc.get("ProvidedServiceStep") or []:
+        sid = str(step.get("ProvidedServiceStepId") or "").strip()
+        if not sid:
+            continue
+        texts = step_instruction_texts(step)
+        if not texts:
+            texts = [sid]
+        steps[sid] = {
+            "title": sid,
+            "content": [text_block(t) for t in texts],
+        }
+    # Append tenant-specific extras onto the first step only (once).
+    if extras and steps:
+        first_id = next(iter(steps))
+        existing = {
+            str(b.get("text") or "").strip() for b in steps[first_id]["content"]
+        }
+        for extra in extras:
+            if extra and extra not in existing:
+                steps[first_id]["content"].append(text_block(extra))
+                existing.add(extra)
+    return steps
 
 
 def build_type_entry(svc: dict) -> dict:
     psid = svc.get("ProvidedServiceId") or ""
     desc = (svc.get("Description") or psid).strip()
-    instr_texts = catalog_instructions(svc)
-    for extra in EXTRA_INSTRUCTIONS.get(psid, []):
-        if extra not in instr_texts:
-            instr_texts.append(extra)
-    if not instr_texts:
-        instr_texts = [f"Complete VAS: {desc}"]
-    content = [
-        {
-            "id": nid("ins"),
-            "type": "text",
-            "text": t,
-            "bold": False,
-            "italic": False,
-            "underline": False,
-            "color": "#000000",
-        }
-        for t in instr_texts
-    ]
+    steps = build_steps_map(svc, EXTRA_INSTRUCTIONS.get(psid, []))
     return {
         "title": psid,
         "description": desc,
         "iconUrl": TYPE_ICON_URLS.get(psid, DEFAULT_TYPE_ICON_URL),
-        "content": content,
-        "instructions": [{"id": c["id"], "text": c["text"]} for c in content],
+        # Type-level content left empty — instructions live under steps.
+        "content": [],
+        "instructions": [],
         "images": [],
+        "steps": steps,
         "sections": sections_for(psid),
     }
 
@@ -282,6 +307,7 @@ def main() -> None:
                 {"id": c["id"], "text": c["text"]} for c in content if c["type"] == "text"
             ],
             "images": images,
+            "steps": {},
             "sections": {
                 "signature": {
                     "enabled": False,
@@ -303,17 +329,6 @@ def main() -> None:
         }
 
     # A couple of invented placeholder SKUs for admin/testing without MAWM hits
-    def text_block(text: str) -> dict:
-        return {
-            "id": nid("ins"),
-            "type": "text",
-            "text": text,
-            "bold": False,
-            "italic": False,
-            "underline": False,
-            "color": "#000000",
-        }
-
     gift_content = [
         text_block("Use holiday wrap materials for DEMO-GIFT-001."),
         text_block("Include a blank gift receipt in the package."),
@@ -324,6 +339,7 @@ def main() -> None:
         "content": gift_content,
         "instructions": [{"id": c["id"], "text": c["text"]} for c in gift_content],
         "images": [],
+        "steps": {},
         "sections": {
             "signature": {"enabled": True, "required": False, "label": "Gift Signature"},
             "photos": {"enabled": True, "required": False, "label": "Gift Photos"},
@@ -344,6 +360,7 @@ def main() -> None:
         "content": ticket_content,
         "instructions": [{"id": c["id"], "text": c["text"]} for c in ticket_content],
         "images": [],
+        "steps": {},
         "sections": {
             "signature": {"enabled": False, "required": False, "label": "Ticket Signature"},
             "photos": {"enabled": True, "required": False, "label": "Ticket Photos"},
@@ -369,6 +386,25 @@ def main() -> None:
     out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Wrote {out_path}")
     print(f"vasTypes={len(vas_types)} items={len(items)}")
+    for psid, entry in sorted(vas_types.items(), key=lambda kv: kv[0].lower()):
+        print(f"  {psid}: {list((entry.get('steps') or {}).keys())}")
+
+    # Org overlay replaces whole types — keep SS-DEMO in sync with seeded steps.
+    org_path = out_dir / "orgs" / f"{ORG}.json"
+    if org_path.exists():
+        try:
+            org_doc = json.loads(org_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            org_doc = {}
+        org_doc["version"] = org_doc.get("version") or 1
+        org_doc["vasTypes"] = payload["vasTypes"]
+        # Preserve existing org items when present; otherwise use generated items.
+        if not org_doc.get("items"):
+            org_doc["items"] = payload["items"]
+        org_path.write_text(
+            json.dumps(org_doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+        print(f"Updated org overlay {org_path}")
 
 
 if __name__ == "__main__":
