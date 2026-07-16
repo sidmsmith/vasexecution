@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-07-15T03:12:42.911Z",
+  "updatedAt": "2026-07-16T21:27:28.128Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -54,7 +54,21 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_1686e4cb",
+                  "ins_91d8602c",
+                  "ins_e4c06014",
+                  "ins_04feb4f2"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -137,7 +151,22 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_18d49220",
+                  "ins_4c3b4672",
+                  "ins_6065c802",
+                  "ins_a15e2d72",
+                  "ins_98484176"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -200,7 +229,20 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_ec379a6a",
+                  "ins_8a166c5b",
+                  "ins_9bd020d8"
+                ]
+              }
+            ]
+          }
         },
         "Apply Labels": {
           "title": "Apply Labels",
@@ -215,7 +257,18 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_395bac45"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -298,7 +351,22 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_d09bee7d",
+                  "ins_139ddd07",
+                  "ins_8dec4836",
+                  "ins_a625ef37",
+                  "ins_b8ab5d70"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -351,7 +419,19 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_c5a5e2b4",
+                  "ins_e45801d0"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -434,7 +514,22 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_dc9de621",
+                  "ins_f97d05af",
+                  "ins_7f0fc6ed",
+                  "ins_e153642c",
+                  "ins_4393f709"
+                ]
+              }
+            ]
+          }
         },
         "Tie Bow": {
           "title": "Tie Bow",
@@ -458,23 +553,49 @@
               "underline": false,
               "color": "#000000",
               "fontSize": 100
+            },
+            {
+              "id": "img_7gmmkwim",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1783445906/sidney/bracket1.gif",
+              "caption": "",
+              "scale": 48
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_e9729ff2",
+                  "ins_170c564c"
+                ]
+              },
+              {
+                "id": "col_54nssnnd",
+                "width": 1,
+                "blockIds": [
+                  "img_7gmmkwim"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
         "signature": {
-          "enabled": true,
+          "enabled": false,
           "required": false,
           "label": "Gift Wrap Signature"
         },
         "photos": {
-          "enabled": true,
+          "enabled": false,
           "required": false,
           "label": "Gift Wrap Photos"
         },
         "markupPad": {
-          "enabled": true,
+          "enabled": false,
           "required": false,
           "label": "Gift Wrap Markup",
           "mode": "photo"
@@ -569,7 +690,22 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_8c5831c1",
+                  "ins_d676ccb4",
+                  "ins_dea2fa56",
+                  "ins_018f25af",
+                  "ins_89dfecf8"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -632,7 +768,20 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_6da78e40",
+                  "ins_8ee3903f",
+                  "ins_7aea656b"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -695,7 +844,20 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_8252b3a6",
+                  "ins_e98fe8cc",
+                  "ins_61ae3e25"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -758,7 +920,20 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_94141ba7",
+                  "ins_76d15032",
+                  "ins_6bac5e59"
+                ]
+              }
+            ]
+          }
         },
         "Repack into 4 packs of 3": {
           "title": "Repack into 4 packs of 3",
@@ -783,7 +958,19 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_b9fad38d",
+                  "ins_267e8287"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -856,7 +1043,21 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_ac7ee758",
+                  "ins_ff052d4c",
+                  "ins_e5a51f82",
+                  "ins_296b28c9"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -929,7 +1130,21 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_6e97fc66",
+                  "ins_54f05b9e",
+                  "ins_ac82b47d",
+                  "ins_087bcef1"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -1002,7 +1217,21 @@
               "color": "#000000",
               "fontSize": 100
             }
-          ]
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_00233712",
+                  "ins_f66eeebc",
+                  "ins_643dc3d7",
+                  "ins_c3496ff2"
+                ]
+              }
+            ]
+          }
         }
       },
       "sections": {
@@ -1029,6 +1258,7 @@
     "6000121": {
       "title": "HMTS Accessories",
       "description": "HMTS Accessories Description",
+      "iconUrl": "",
       "content": [
         {
           "id": "ins_ed5a6ed4",
@@ -1086,6 +1316,7 @@
           "scale": 30
         }
       ],
+      "steps": {},
       "sections": {
         "signature": {
           "enabled": false,
@@ -1108,6 +1339,7 @@
     "DEMO-GIFT-001": {
       "title": "Demo Gift SKU",
       "description": "Demo gift item for config testing",
+      "iconUrl": "",
       "content": [
         {
           "id": "ins_8a3f138f",
@@ -1151,6 +1383,7 @@
         }
       ],
       "images": [],
+      "steps": {},
       "sections": {
         "signature": {
           "enabled": true,
@@ -1173,6 +1406,7 @@
     "DEMO-TICKET-100": {
       "title": "Demo Ticket SKU",
       "description": "Demo ticketed apparel for config testing",
+      "iconUrl": "",
       "content": [
         {
           "id": "ins_33e7173e",
@@ -1197,6 +1431,7 @@
         }
       ],
       "images": [],
+      "steps": {},
       "sections": {
         "signature": {
           "enabled": false,
