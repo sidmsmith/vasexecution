@@ -634,7 +634,7 @@
   function renderStepsBodyHtml(svc, mode, activeStepId) {
     const steps = orderedAssignedSteps(svc);
     if (!steps.length) {
-      return '<p class="text-muted mb-0 mt-2" style="font-size:0.85rem">No steps on this service.</p>';
+      return '<p class="text-muted mb-0 mt-2" style="font-size:0.9rem">No steps on this service.</p>';
     }
 
     if (mode === "active") {

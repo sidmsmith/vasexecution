@@ -335,7 +335,8 @@ body {
 .steps-table {
   width: 100%;
   table-layout: fixed;
-  font-size: 0.85rem;
+  /* Match .vas-content-text base (100% Step Details = 0.9rem) */
+  font-size: 0.9rem;
   border-collapse: collapse;
   margin-top: 0.5rem;
 }
@@ -357,7 +358,7 @@ body {
 .steps-table th {
   border-top: none;
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   background: var(--table-header-bg);
   color: var(--table-header-text, var(--text-muted));
   white-space: nowrap;
@@ -391,7 +392,7 @@ body {
 .badge.status-chip {
   display: inline-block;
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.9rem;
   line-height: 1.25;
   letter-spacing: 0.01em;
   padding: 0.28em 0.65em;
