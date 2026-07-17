@@ -42,6 +42,9 @@
     missingInWmsFilterBtn: document.querySelector(
       '.sync-filter[data-filter="missing_in_wms"]'
     ),
+    missingInConfigFilterBtn: document.querySelector(
+      '.sync-filter[data-filter="missing_in_config"]'
+    ),
     refreshBtn: document.getElementById("refreshBtn"),
     pushBtn: document.getElementById("pushBtn"),
     pullBtn: document.getElementById("pullBtn"),
@@ -120,6 +123,16 @@
     );
   }
 
+  /** Types/steps absent from config, or (with instructions) instruction gaps/diffs to pull. */
+  function typeNeedsPullToConfig(t) {
+    if (!t) return false;
+    if (t.status === "missing_in_config") return true;
+    if (typeHasInstructionDiff(t)) return true;
+    return (Array.isArray(t.steps) ? t.steps : []).some(
+      (s) => s && s.status === "missing_in_config"
+    );
+  }
+
   function includeInstructionsChecked() {
     return !!(els.includeInstructions && els.includeInstructions.checked);
   }
@@ -135,8 +148,13 @@
   function visibleTypes() {
     const list = Array.isArray(diffTypes) ? diffTypes : [];
     if (filter === "all") return list;
-    if (filter === "missing_in_wms" && includeInstructionsChecked()) {
-      return list.filter((t) => typeNeedsPushToWms(t));
+    if (includeInstructionsChecked()) {
+      if (filter === "missing_in_wms") {
+        return list.filter((t) => typeNeedsPushToWms(t));
+      }
+      if (filter === "missing_in_config") {
+        return list.filter((t) => typeNeedsPullToConfig(t));
+      }
     }
     return list.filter((t) => t && t.status === filter);
   }
@@ -150,6 +168,11 @@
       els.missingInWmsFilterBtn.textContent = showInstr
         ? "Missing in WMS (+ instr)"
         : "Missing in WMS";
+    }
+    if (els.missingInConfigFilterBtn) {
+      els.missingInConfigFilterBtn.textContent = showInstr
+        ? "Missing in config (+ instr)"
+        : "Missing in config";
     }
   }
 
@@ -192,6 +215,7 @@
     const cfg = Array.isArray(configTexts) ? configTexts : [];
     const wms = Array.isArray(wmsTexts) ? wmsTexts : [];
     const wmsNorm = new Set(wms.map(normalizeInstrText).filter(Boolean));
+    const cfgNorm = new Set(cfg.map(normalizeInstrText).filter(Boolean));
 
     let cfgItems = "";
     if (!cfg.length) {
@@ -216,9 +240,15 @@
       wmsItems = `<li class="sync-instr-empty">none</li>`;
     } else {
       wms.forEach((text, i) => {
-        wmsItems += `<li>
+        const missing = !cfgNorm.has(normalizeInstrText(text));
+        wmsItems += `<li class="${missing ? "sync-instr-missing" : ""}">
           <span class="sync-instr-seq">${i + 1}.</span>
           <span class="sync-instr-text">${esc(text)}</span>
+          ${
+            missing
+              ? `<span class="sync-instr-gap">missing in config</span>`
+              : ""
+          }
         </li>`;
       });
     }
@@ -239,7 +269,10 @@
     const rows = visibleTypes();
     const showInstr = includeInstructionsChecked();
     const autoExpandKey =
-      showInstr && filter === "missing_in_wms" ? "missing+instr" : "";
+      showInstr &&
+      (filter === "missing_in_wms" || filter === "missing_in_config")
+        ? `${filter}+instr`
+        : "";
     if (autoExpandKey && autoExpandKey !== lastAutoExpandKey) {
       rows.forEach((t) => {
         const id = String(t.id || "");
