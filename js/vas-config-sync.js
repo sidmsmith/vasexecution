@@ -8,7 +8,11 @@
   let diffTypes = null;
   /** @type {object|null} */
   let diffSummary = null;
-  let filter = "all";
+  /** @type {"all"|"aligned"|"missing"} */
+  let filterMode = "all";
+  /** Active Missing toggles when filterMode === "missing". */
+  /** @type {Set<string>} */
+  const missingFilters = new Set();
   /** @type {Set<string>} */
   const selected = new Set();
   /** @type {Set<string>} */
@@ -145,24 +149,86 @@
       .join(" ");
   }
 
+  function anyMissingFilterActive() {
+    return (
+      filterMode === "missing" &&
+      (missingFilters.has("missing_in_wms") ||
+        missingFilters.has("missing_in_config"))
+    );
+  }
+
   function visibleTypes() {
     const list = Array.isArray(diffTypes) ? diffTypes : [];
-    if (filter === "all") return list;
-    if (includeInstructionsChecked()) {
-      if (filter === "missing_in_wms") {
-        return list.filter((t) => typeNeedsPushToWms(t));
-      }
-      if (filter === "missing_in_config") {
-        return list.filter((t) => typeNeedsPullToConfig(t));
-      }
+    if (filterMode === "all") return list;
+    if (filterMode === "aligned") {
+      return list.filter((t) => t && t.status === "aligned");
     }
-    return list.filter((t) => t && t.status === filter);
+    const wantWms = missingFilters.has("missing_in_wms");
+    const wantConfig = missingFilters.has("missing_in_config");
+    if (!wantWms && !wantConfig) return list;
+
+    if (includeInstructionsChecked()) {
+      return list.filter((t) => {
+        if (wantWms && wantConfig) {
+          return typeNeedsPushToWms(t) || typeNeedsPullToConfig(t);
+        }
+        if (wantWms) return typeNeedsPushToWms(t);
+        return typeNeedsPullToConfig(t);
+      });
+    }
+    return list.filter((t) => {
+      if (!t) return false;
+      if (wantWms && wantConfig) {
+        return (
+          t.status === "missing_in_wms" || t.status === "missing_in_config"
+        );
+      }
+      if (wantWms) return t.status === "missing_in_wms";
+      return t.status === "missing_in_config";
+    });
+  }
+
+  /**
+   * Which direction-gap badges to show on instruction lines.
+   * Only Missing in WMS → config-only markers; only Missing in config → WMS-only;
+   * both or All → both; Aligned → neither.
+   */
+  function instrBadgeVisibility() {
+    if (filterMode === "aligned") {
+      return { missingInWms: false, missingInConfig: false };
+    }
+    if (filterMode === "all") {
+      return { missingInWms: true, missingInConfig: true };
+    }
+    return {
+      missingInWms: missingFilters.has("missing_in_wms"),
+      missingInConfig: missingFilters.has("missing_in_config")
+    };
+  }
+
+  function syncFilterButtonActive() {
+    document.querySelectorAll(".sync-filter").forEach((btn) => {
+      const key = btn.dataset.filter || "all";
+      let active = false;
+      if (key === "all") active = filterMode === "all";
+      else if (key === "aligned") active = filterMode === "aligned";
+      else if (key === "missing_in_wms" || key === "missing_in_config") {
+        active = filterMode === "missing" && missingFilters.has(key);
+      }
+      btn.classList.toggle("active", active);
+      if (key === "missing_in_wms" || key === "missing_in_config") {
+        btn.setAttribute("aria-pressed", active ? "true" : "false");
+      }
+    });
   }
 
   function updateFilterHint() {
     const showInstr = includeInstructionsChecked();
     if (els.filterHint) {
-      els.filterHint.hidden = !showInstr;
+      els.filterHint.hidden = false;
+      els.filterHint.textContent = showInstr
+        ? "Missing buttons include types/steps with missing or differing instructions. Select both Missing buttons together to see all gaps."
+        : "Select both Missing buttons together to see all gaps (Missing in WMS ∪ Missing in config).";
     }
     if (els.missingInWmsFilterBtn) {
       els.missingInWmsFilterBtn.textContent = showInstr
@@ -216,6 +282,7 @@
     const wms = Array.isArray(wmsTexts) ? wmsTexts : [];
     const wmsNorm = new Set(wms.map(normalizeInstrText).filter(Boolean));
     const cfgNorm = new Set(cfg.map(normalizeInstrText).filter(Boolean));
+    const badges = instrBadgeVisibility();
 
     let cfgItems = "";
     if (!cfg.length) {
@@ -223,11 +290,12 @@
     } else {
       cfg.forEach((text, i) => {
         const missing = !wmsNorm.has(normalizeInstrText(text));
-        cfgItems += `<li class="${missing ? "sync-instr-missing" : ""}">
+        const mark = missing && badges.missingInWms;
+        cfgItems += `<li class="${mark ? "sync-instr-missing" : ""}">
           <span class="sync-instr-seq">${i + 1}.</span>
           <span class="sync-instr-text">${esc(text)}</span>
           ${
-            missing
+            mark
               ? `<span class="sync-instr-gap">missing in WMS</span>`
               : ""
           }
@@ -241,11 +309,12 @@
     } else {
       wms.forEach((text, i) => {
         const missing = !cfgNorm.has(normalizeInstrText(text));
-        wmsItems += `<li class="${missing ? "sync-instr-missing" : ""}">
+        const mark = missing && badges.missingInConfig;
+        wmsItems += `<li class="${mark ? "sync-instr-missing" : ""}">
           <span class="sync-instr-seq">${i + 1}.</span>
           <span class="sync-instr-text">${esc(text)}</span>
           ${
-            missing
+            mark
               ? `<span class="sync-instr-gap">missing in config</span>`
               : ""
           }
@@ -268,10 +337,10 @@
   function renderTable() {
     const rows = visibleTypes();
     const showInstr = includeInstructionsChecked();
+    const missingKey = [...missingFilters].sort().join(",");
     const autoExpandKey =
-      showInstr &&
-      (filter === "missing_in_wms" || filter === "missing_in_config")
-        ? `${filter}+instr`
+      showInstr && anyMissingFilterActive()
+        ? `missing:${missingKey}+instr`
         : "";
     if (autoExpandKey && autoExpandKey !== lastAutoExpandKey) {
       rows.forEach((t) => {
@@ -281,6 +350,7 @@
     }
     lastAutoExpandKey = autoExpandKey;
     updateFilterHint();
+    syncFilterButtonActive();
     els.diffBody.innerHTML = "";
     els.emptyState.hidden = rows.length > 0;
     rows.forEach((t) => {
@@ -687,11 +757,25 @@
 
   document.querySelectorAll(".sync-filter").forEach((btn) => {
     btn.addEventListener("click", () => {
-      document
-        .querySelectorAll(".sync-filter")
-        .forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      filter = btn.dataset.filter || "all";
+      const key = btn.dataset.filter || "all";
+      if (key === "all") {
+        filterMode = "all";
+        missingFilters.clear();
+      } else if (key === "aligned") {
+        filterMode = "aligned";
+        missingFilters.clear();
+      } else if (key === "missing_in_wms" || key === "missing_in_config") {
+        if (filterMode !== "missing") {
+          filterMode = "missing";
+          missingFilters.clear();
+          missingFilters.add(key);
+        } else if (missingFilters.has(key)) {
+          missingFilters.delete(key);
+          if (missingFilters.size === 0) filterMode = "all";
+        } else {
+          missingFilters.add(key);
+        }
+      }
       renderTable();
     });
   });
@@ -776,6 +860,9 @@
   const last = localStorage.getItem("vas_lastOrg");
   if (urlParams.org) els.orgInput.value = urlParams.org.toUpperCase();
   else if (last) els.orgInput.value = last;
+
+  updateFilterHint();
+  syncFilterButtonActive();
 
   (async function bootstrap() {
     const session = await api("session", {});
