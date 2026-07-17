@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-07-17T00:40:26.575Z",
+  "updatedAt": "2026-07-17T02:44:32.641Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1483,6 +1483,126 @@
           "enabled": false,
           "required": false,
           "label": "Verizon Laptop Prep Markup",
+          "mode": "photo"
+        }
+      }
+    },
+    "Accessories Bundle": {
+      "title": "Accessories Bundle",
+      "description": "Accessories Bundle",
+      "iconUrl": "/assets/icons/vas-type-default.svg",
+      "content": [],
+      "instructions": [],
+      "images": [],
+      "steps": {
+        "Gather all accessories": {
+          "title": "Gather all accessories",
+          "content": [
+            {
+              "id": "ins_khljcso9",
+              "type": "text",
+              "text": "Pick all accessories",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_ao9jzt33",
+              "type": "text",
+              "text": "Package all accessories into plastic bags",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "img_mu2x95p5",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_09.png",
+              "caption": "",
+              "scale": 48
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_khljcso9",
+                  "ins_ao9jzt33"
+                ]
+              },
+              {
+                "id": "col_eznxg1tb",
+                "width": 1,
+                "blockIds": [
+                  "img_mu2x95p5"
+                ]
+              }
+            ]
+          }
+        },
+        "Pack accessories": {
+          "title": "Pack accessories",
+          "content": [
+            {
+              "id": "ins_8cs1r00f",
+              "type": "text",
+              "text": "Pack accessories bags into laptop bag",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "img_k0exjvnk",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_2.png",
+              "caption": "",
+              "scale": 23
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_8cs1r00f",
+                  "img_k0exjvnk"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "stepOrder": [
+        "Gather all accessories",
+        "Pack accessories"
+      ],
+      "sections": {
+        "signature": {
+          "enabled": false,
+          "required": false,
+          "label": "Accessories Bundle Signature"
+        },
+        "photos": {
+          "enabled": false,
+          "required": false,
+          "label": "Accessories Bundle Photos"
+        },
+        "markupPad": {
+          "enabled": false,
+          "required": false,
+          "label": "Accessories Bundle Markup",
           "mode": "photo"
         }
       }
