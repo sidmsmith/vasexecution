@@ -15,6 +15,25 @@
   gap: 0.35rem;
 }
 
+/* Bootstrap outline buttons default to dark gray text — lighten for dark theme */
+.sync-filters .sync-filter.btn-outline-secondary,
+.sync-actions .btn-outline-secondary,
+.sync-actions .btn-outline-primary {
+  color: var(--text, #e8eaed);
+  border-color: var(--border, #5a6070);
+}
+
+.sync-filters .sync-filter.btn-outline-secondary:hover,
+.sync-actions .btn-outline-secondary:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--text-muted, #adb5bd);
+}
+
+.sync-actions .btn-outline-primary:hover {
+  color: #fff;
+}
+
 .sync-filters .sync-filter.active {
   background: var(--primary, #0d6efd);
   border-color: var(--primary, #0d6efd);
@@ -38,12 +57,19 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--input-bg);
+  color: var(--text, #e8eaed);
+}
+
+.sync-options .form-check-label,
+.sync-select-row .form-check-label {
+  color: var(--text, #e8eaed);
 }
 
 .sync-option-note {
   flex-basis: 100%;
   margin-top: -0.35rem;
   max-width: 40rem;
+  color: var(--text-muted, #adb5bd) !important;
 }
 
 .sync-filter-hint {
@@ -55,7 +81,7 @@
 
 .sync-summary {
   font-size: 0.85rem;
-  color: var(--muted, #6c757d);
+  color: var(--text-muted, #adb5bd);
   margin-left: auto;
 }
 
@@ -64,6 +90,12 @@
   gap: 1rem;
   align-items: center;
   margin-bottom: 0.5rem;
+  color: var(--text, #e8eaed);
+}
+
+.sync-select-row .text-muted,
+#selectionHint {
+  color: var(--text-muted, #adb5bd) !important;
 }
 
 .sync-table-wrap {
@@ -72,10 +104,27 @@
   overflow: auto;
   max-height: calc(100vh - 16rem);
   background: var(--input-bg);
+  color: var(--text, #e8eaed);
 }
 
-.sync-table {
+/* Override Bootstrap .table near-black body color on dark backgrounds */
+.sync-table,
+table.table.sync-table {
+  --bs-table-color: var(--text, #e8eaed);
+  --bs-table-bg: transparent;
+  --bs-table-border-color: var(--border, #5a6070);
+  --bs-table-striped-color: var(--text, #e8eaed);
+  --bs-table-hover-color: var(--text, #e8eaed);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.03);
   font-size: 0.9rem;
+  color: var(--text, #e8eaed);
+}
+
+.sync-table thead th,
+.sync-table tbody td,
+.sync-table tbody th {
+  color: var(--text, #e8eaed);
+  border-color: var(--border, #5a6070);
 }
 
 .sync-table thead th {
@@ -85,6 +134,7 @@
   background: var(--panel-bg, #1e1e1e);
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
+  color: var(--table-header-text, var(--text, #e8eaed));
 }
 
 .sync-type-row {
@@ -97,12 +147,13 @@
 
 .sync-type-id {
   font-weight: 600;
+  color: var(--text, #e8eaed);
 }
 
 .sync-type-title {
   display: block;
   font-size: 0.8rem;
-  color: var(--muted, #6c757d);
+  color: var(--text-muted, #adb5bd);
   font-weight: 400;
 }
 
@@ -110,7 +161,7 @@
   appearance: none;
   border: none;
   background: transparent;
-  color: var(--text);
+  color: var(--text, #e8eaed);
   padding: 0.15rem 0.35rem;
   cursor: pointer;
 }
@@ -118,11 +169,12 @@
 .sync-step-row td {
   background: rgba(0, 0, 0, 0.12);
   font-size: 0.85rem;
+  color: var(--text, #e8eaed);
 }
 
 .sync-step-indent {
   padding-left: 1.75rem !important;
-  color: var(--muted, #adb5bd);
+  color: var(--text-muted, #adb5bd);
 }
 
 .sync-badge {
@@ -134,30 +186,31 @@
   border-radius: 4px;
   text-transform: uppercase;
   white-space: nowrap;
+  color: var(--status-chip-fg, #f5f5f5);
 }
 
 .sync-badge-aligned {
   background: rgba(22, 163, 74, 0.28);
   border: 1px solid rgba(74, 222, 128, 0.45);
-  color: var(--status-chip-fg, var(--text));
+  color: var(--status-chip-fg, #f5f5f5);
 }
 
 .sync-badge-missing_in_wms {
   background: rgba(234, 179, 8, 0.28);
   border: 1px solid rgba(250, 204, 21, 0.5);
-  color: var(--status-chip-fg, var(--text));
+  color: var(--status-chip-fg, #f5f5f5);
 }
 
 .sync-badge-missing_in_config {
   background: rgba(59, 130, 246, 0.28);
   border: 1px solid rgba(96, 165, 250, 0.5);
-  color: var(--status-chip-fg, var(--text));
+  color: var(--status-chip-fg, #f5f5f5);
 }
 
 .sync-badge-instructions_aligned {
   background: rgba(22, 163, 74, 0.18);
   border: 1px solid rgba(74, 222, 128, 0.35);
-  color: var(--status-chip-fg, var(--text));
+  color: var(--status-chip-fg, #f5f5f5);
 }
 
 .sync-badge-instructions_differ,
@@ -165,18 +218,19 @@
 .sync-badge-instructions_missing_in_config {
   background: rgba(249, 115, 22, 0.28);
   border: 1px solid rgba(251, 146, 60, 0.55);
-  color: var(--status-chip-fg, var(--text));
+  color: var(--status-chip-fg, #f5f5f5);
 }
 
 .sync-instr-counts {
   margin-left: 0.4rem;
   font-size: 0.72rem;
-  color: var(--muted, #adb5bd);
+  color: var(--text-muted, #adb5bd);
 }
 
 .sync-instr-detail {
   padding: 0.35rem 0.75rem 0.75rem 2.25rem !important;
   background: rgba(0, 0, 0, 0.18);
+  color: var(--text, #e8eaed);
 }
 
 .sync-instr-panels {
@@ -196,7 +250,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: var(--muted, #adb5bd);
+  color: var(--text-muted, #adb5bd);
   margin-bottom: 0.35rem;
 }
 
@@ -205,6 +259,7 @@
   margin: 0;
   padding: 0;
   font-size: 0.78rem;
+  color: var(--text, #e8eaed);
 }
 
 .sync-instr-list li {
@@ -217,6 +272,7 @@
   border-bottom: none;
   word-break: break-word;
   white-space: pre-wrap;
+  color: var(--text, #e8eaed);
 }
 
 .sync-instr-list li:last-child {
@@ -230,12 +286,13 @@
 
 .sync-instr-seq {
   flex: 0 0 auto;
-  color: var(--muted, #adb5bd);
+  color: var(--text-muted, #adb5bd);
   min-width: 1.4rem;
 }
 
 .sync-instr-text {
   flex: 1 1 8rem;
+  color: var(--text, #e8eaed);
 }
 
 .sync-instr-gap {
@@ -248,12 +305,12 @@
   border-radius: 3px;
   background: rgba(234, 179, 8, 0.28);
   border: 1px solid rgba(250, 204, 21, 0.5);
-  color: var(--status-chip-fg, var(--text));
+  color: var(--status-chip-fg, #f5f5f5);
   white-space: nowrap;
 }
 
 .sync-instr-empty {
-  color: var(--muted, #6c757d);
+  color: var(--text-muted, #adb5bd);
   font-style: italic;
 }
 
@@ -269,7 +326,7 @@
 .sync-empty {
   padding: 1.5rem;
   text-align: center;
-  color: var(--muted, #6c757d);
+  color: var(--text-muted, #adb5bd);
 }
 
 .confirm-plan-list {
@@ -278,4 +335,9 @@
   font-size: 0.85rem;
   margin: 0.5rem 0 0;
   padding-left: 1.1rem;
+  color: var(--text, #e8eaed);
+}
+
+.confirm-plan-list strong {
+  color: #f3f4f6;
 }
