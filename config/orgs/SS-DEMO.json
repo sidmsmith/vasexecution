@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-07-17T03:51:40.917Z",
+  "updatedAt": "2026-07-17T04:29:49.881Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1396,11 +1396,11 @@
               "listMarker": "bullet"
             },
             {
-              "id": "img_vftjowdk",
+              "id": "img_z0cnaddw",
               "type": "image",
-              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1780268740/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.png",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.png",
               "caption": "",
-              "scale": 80
+              "scale": 100
             }
           ],
           "layout": {
@@ -1418,7 +1418,7 @@
                 "id": "col_ota6b4vw",
                 "width": 1,
                 "blockIds": [
-                  "img_vftjowdk"
+                  "img_z0cnaddw"
                 ]
               }
             ]
