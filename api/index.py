@@ -2,6 +2,7 @@
 # Phase 1: ORG auth + oLPN VAS lookup (requestor IDs → assigned services). No performVas.
 from flask import Flask, request, jsonify, send_from_directory
 import base64
+import hashlib
 import json
 import os
 import traceback
@@ -1178,29 +1179,84 @@ def _ordered_config_step_ids(entry: Dict[str, Any]) -> List[str]:
     return order
 
 
-def _first_text_from_step(step_entry: Any) -> str:
+def _instruction_texts_from_step(step_entry: Any) -> List[Tuple[str, str]]:
+    """Return ordered (InstructionText, optional content-block id) for a step.
+
+    Collects every usable non-image text block from step.content, falling back
+    to step.instructions when content has no text. Image / empty blocks skipped.
+    """
+    results: List[Tuple[str, str]] = []
     if not isinstance(step_entry, dict):
-        return ""
+        return results
+
     content = step_entry.get("content")
     if isinstance(content, list):
         for block in content:
             if not isinstance(block, dict):
                 continue
-            if block.get("type") == "image":
+            btype = str(block.get("type") or "").strip().lower()
+            if btype == "image":
                 continue
             text = str(block.get("text") or block.get("InstructionText") or "").strip()
-            if text:
-                return text
+            if not text:
+                continue
+            block_id = str(block.get("id") or "").strip()
+            results.append((text, block_id))
+        if results:
+            return results
+
     instructions = step_entry.get("instructions")
     if isinstance(instructions, list):
         for ins in instructions:
             if isinstance(ins, dict):
                 text = str(ins.get("text") or ins.get("InstructionText") or "").strip()
                 if text:
-                    return text
+                    results.append((text, str(ins.get("id") or "").strip()))
             elif isinstance(ins, str) and ins.strip():
-                return ins.strip()
-    return ""
+                results.append((ins.strip(), ""))
+    return results
+
+
+def _stable_step_instruction_id(
+    type_id: str,
+    step_id: str,
+    sequence: int,
+    *,
+    block_id: str = "",
+    text: str = "",
+    used_ids: Optional[Set[str]] = None,
+) -> str:
+    """Stable unique InstructionId / StepInstructionId for create-only push.
+
+    Namespaced by type + step so shared step names across VAS types cannot
+    collide. Prefers an existing content-block id when present; otherwise uses
+    INS{n}. Long candidates are shortened with a content hash. used_ids ensures
+    uniqueness within a single push payload.
+    """
+    seq = max(1, int(sequence))
+    tid = str(type_id or "").strip()
+    sid = str(step_id or "").strip()
+    bid = str(block_id or "").strip()
+    if bid:
+        candidate = f"{tid}_{sid}_{bid}" if tid or sid else bid
+    else:
+        candidate = f"{tid}_{sid}_INS{seq}" if tid or sid else f"INS{seq}"
+    candidate = candidate.strip("_") or f"INS{seq}"
+
+    if len(candidate) > 100:
+        digest = hashlib.sha1(
+            f"{tid}|{sid}|{seq}|{bid}|{text}".encode("utf-8")
+        ).hexdigest()[:16]
+        candidate = f"VAS_{digest}_INS{seq}"
+
+    if used_ids is not None:
+        base = candidate
+        n = 2
+        while candidate in used_ids:
+            candidate = f"{base}_{n}"
+            n += 1
+        used_ids.add(candidate)
+    return candidate
 
 
 def _default_sections_for_pull(title: str) -> Dict[str, Any]:
@@ -1291,7 +1347,12 @@ def _build_provided_service_payload(
     entry: Dict[str, Any],
     include_instructions: bool,
 ) -> Tuple[Dict[str, Any], List[Dict[str, str]]]:
-    """Build MAWM providedService/save payload + optional top-level instructions."""
+    """Build MAWM providedService/save payload + optional top-level instructions.
+
+    When include_instructions is True, every usable text content block on each
+    step becomes a top-level instruction/save entry and a StepInstruction with
+    Sequence 1..N (MAWM shape: StepInstructionId, Sequence, InstructionText).
+    """
     description = str(
         entry.get("description") or entry.get("title") or type_id
     ).strip() or type_id
@@ -1299,6 +1360,7 @@ def _build_provided_service_payload(
     steps_src = entry.get("steps") if isinstance(entry.get("steps"), dict) else {}
     provided_steps: List[Dict[str, Any]] = []
     top_instructions: List[Dict[str, str]] = []
+    used_instruction_ids: Set[str] = set()
 
     for idx, step_id in enumerate(step_ids, start=1):
         step_entry = steps_src.get(step_id) or steps_src.get(step_id.strip()) or {}
@@ -1311,17 +1373,29 @@ def _build_provided_service_payload(
             "Description": step_desc,
         }
         if include_instructions:
-            text = _first_text_from_step(step_entry)
-            instr_id = f"{step_id}_INS1"
-            if text:
-                top_instructions.append(
-                    {"InstructionId": instr_id, "InstructionText": text}
+            step_instructions: List[Dict[str, Any]] = []
+            for seq, (instr_text, block_id) in enumerate(
+                _instruction_texts_from_step(step_entry), start=1
+            ):
+                instr_id = _stable_step_instruction_id(
+                    type_id,
+                    step_id,
+                    seq,
+                    block_id=block_id,
+                    text=instr_text,
+                    used_ids=used_instruction_ids,
                 )
-                step_payload["StepInstruction"] = [
-                    {"StepInstructionId": instr_id, "Sequence": 1, "InstructionText": text}
-                ]
-            else:
-                step_payload["StepInstruction"] = []
+                top_instructions.append(
+                    {"InstructionId": instr_id, "InstructionText": instr_text}
+                )
+                step_instructions.append(
+                    {
+                        "StepInstructionId": instr_id,
+                        "Sequence": seq,
+                        "InstructionText": instr_text,
+                    }
+                )
+            step_payload["StepInstruction"] = step_instructions
         provided_steps.append(step_payload)
 
     payload = {
