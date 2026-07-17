@@ -169,6 +169,36 @@
         },
         logo: '/rockline_logo.png'
       },
+      'shi': {
+        name: 'SHI',
+        colors: {
+          '--bg-dark': '#f4f6f9',
+          '--card-bg': '#ffffff',
+          '--input-bg': '#eef1f6',
+          '--border': '#d5dbe6',
+          '--text': '#1a2332',
+          '--text-secondary': '#3d4a5c',
+          '--text-muted': '#6b7789',
+          '--red-bg': '#fff5f5',
+          '--red-text': '#c62828',
+          '--blue-select': '#F58025',
+          '--success': '#2e7d32',
+          '--primary': '#003DA5',
+          '--primary-hover': '#002d7a',
+          '--success-hover': '#1b5e20',
+          '--table-header-bg': '#003DA5',
+          '--table-header-text': '#ffffff',
+          '--input-border': '#c5cedc',
+          '--input-focus-bg': '#ffffff',
+          '--input-focus-border': '#003DA5',
+          '--input-focus-shadow': 'rgba(0, 61, 165, 0.28)',
+          '--logo-url': 'url("/shi_logo.png")',
+          '--logo-display': 'block'
+        },
+        logo: '/shi_logo.png',
+        logoMaxHeight: '56px',
+        logoMaxWidth: '200px'
+      },
       'steris': {
         name: 'Steris',
         colors: {
