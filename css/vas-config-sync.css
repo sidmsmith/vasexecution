@@ -46,6 +46,13 @@
   max-width: 40rem;
 }
 
+.sync-filter-hint {
+  flex-basis: 100%;
+  margin-top: -0.25rem;
+  max-width: 40rem;
+  color: #fbbf24 !important;
+}
+
 .sync-summary {
   font-size: 0.85rem;
   color: var(--muted, #6c757d);
@@ -172,30 +179,77 @@
   background: rgba(0, 0, 0, 0.18);
 }
 
-.sync-instr-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.78rem;
-  table-layout: fixed;
+.sync-instr-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
 }
 
-.sync-instr-table th,
-.sync-instr-table td {
-  border: 1px solid var(--border);
+@media (max-width: 720px) {
+  .sync-instr-panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sync-instr-panel-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted, #adb5bd);
+  margin-bottom: 0.35rem;
+}
+
+.sync-instr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.78rem;
+}
+
+.sync-instr-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  align-items: flex-start;
   padding: 0.3rem 0.45rem;
-  vertical-align: top;
+  border: 1px solid var(--border);
+  border-bottom: none;
   word-break: break-word;
   white-space: pre-wrap;
 }
 
-.sync-instr-table th {
-  background: rgba(255, 255, 255, 0.04);
-  font-weight: 600;
+.sync-instr-list li:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.sync-instr-list li.sync-instr-missing {
+  background: rgba(234, 179, 8, 0.12);
+  border-color: rgba(250, 204, 21, 0.35);
 }
 
 .sync-instr-seq {
-  width: 2rem;
+  flex: 0 0 auto;
   color: var(--muted, #adb5bd);
+  min-width: 1.4rem;
+}
+
+.sync-instr-text {
+  flex: 1 1 8rem;
+}
+
+.sync-instr-gap {
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  background: rgba(234, 179, 8, 0.28);
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  color: var(--status-chip-fg, var(--text));
+  white-space: nowrap;
 }
 
 .sync-instr-empty {

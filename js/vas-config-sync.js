@@ -13,8 +13,8 @@
   const selected = new Set();
   /** @type {Set<string>} */
   const expanded = new Set();
-  /** @type {Set<string>} */
-  const expandedInstr = new Set();
+  /** Tracks last auto-expand mode so we don't fight manual collapse. */
+  let lastAutoExpandKey = "";
   let confirmAction = null;
   const INSTR_DIFF_STATUSES = new Set([
     "instructions_differ",
@@ -38,6 +38,10 @@
     selectAllVisible: document.getElementById("selectAllVisible"),
     selectionHint: document.getElementById("selectionHint"),
     includeInstructions: document.getElementById("includeInstructions"),
+    filterHint: document.getElementById("filterHint"),
+    missingInWmsFilterBtn: document.querySelector(
+      '.sync-filter[data-filter="missing_in_wms"]'
+    ),
     refreshBtn: document.getElementById("refreshBtn"),
     pushBtn: document.getElementById("pushBtn"),
     pullBtn: document.getElementById("pullBtn"),
@@ -106,14 +110,47 @@
     );
   }
 
+  /** Types/steps absent from WMS, or (with instructions) instruction gaps/diffs to push. */
+  function typeNeedsPushToWms(t) {
+    if (!t) return false;
+    if (t.status === "missing_in_wms") return true;
+    if (typeHasInstructionDiff(t)) return true;
+    return (Array.isArray(t.steps) ? t.steps : []).some(
+      (s) => s && s.status === "missing_in_wms"
+    );
+  }
+
   function includeInstructionsChecked() {
     return !!(els.includeInstructions && els.includeInstructions.checked);
+  }
+
+  function normalizeInstrText(text) {
+    return String(text ?? "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .join(" ");
   }
 
   function visibleTypes() {
     const list = Array.isArray(diffTypes) ? diffTypes : [];
     if (filter === "all") return list;
+    if (filter === "missing_in_wms" && includeInstructionsChecked()) {
+      return list.filter((t) => typeNeedsPushToWms(t));
+    }
     return list.filter((t) => t && t.status === filter);
+  }
+
+  function updateFilterHint() {
+    const showInstr = includeInstructionsChecked();
+    if (els.filterHint) {
+      els.filterHint.hidden = !showInstr;
+    }
+    if (els.missingInWmsFilterBtn) {
+      els.missingInWmsFilterBtn.textContent = showInstr
+        ? "Missing in WMS (+ instr)"
+        : "Missing in WMS";
+    }
   }
 
   function draftPayload() {
@@ -154,30 +191,63 @@
   function renderInstrCompare(configTexts, wmsTexts) {
     const cfg = Array.isArray(configTexts) ? configTexts : [];
     const wms = Array.isArray(wmsTexts) ? wmsTexts : [];
-    const n = Math.max(cfg.length, wms.length, 1);
-    let rows = "";
-    for (let i = 0; i < n; i++) {
-      const c = cfg[i];
-      const w = wms[i];
-      const cHtml =
-        c == null
-          ? `<span class="sync-instr-empty">—</span>`
-          : esc(c);
-      const wHtml =
-        w == null
-          ? `<span class="sync-instr-empty">—</span>`
-          : esc(w);
-      rows += `<tr><td class="sync-instr-seq">${i + 1}</td><td>${cHtml}</td><td>${wHtml}</td></tr>`;
+    const wmsNorm = new Set(wms.map(normalizeInstrText).filter(Boolean));
+
+    let cfgItems = "";
+    if (!cfg.length) {
+      cfgItems = `<li class="sync-instr-empty">none</li>`;
+    } else {
+      cfg.forEach((text, i) => {
+        const missing = !wmsNorm.has(normalizeInstrText(text));
+        cfgItems += `<li class="${missing ? "sync-instr-missing" : ""}">
+          <span class="sync-instr-seq">${i + 1}.</span>
+          <span class="sync-instr-text">${esc(text)}</span>
+          ${
+            missing
+              ? `<span class="sync-instr-gap">missing in WMS</span>`
+              : ""
+          }
+        </li>`;
+      });
     }
-    return `<table class="sync-instr-table">
-      <thead><tr><th>#</th><th>Config</th><th>WMS</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+
+    let wmsItems = "";
+    if (!wms.length) {
+      wmsItems = `<li class="sync-instr-empty">none</li>`;
+    } else {
+      wms.forEach((text, i) => {
+        wmsItems += `<li>
+          <span class="sync-instr-seq">${i + 1}.</span>
+          <span class="sync-instr-text">${esc(text)}</span>
+        </li>`;
+      });
+    }
+
+    return `<div class="sync-instr-panels">
+      <div class="sync-instr-panel">
+        <div class="sync-instr-panel-title">Config (to push)</div>
+        <ol class="sync-instr-list">${cfgItems}</ol>
+      </div>
+      <div class="sync-instr-panel">
+        <div class="sync-instr-panel-title">WMS</div>
+        <ol class="sync-instr-list">${wmsItems}</ol>
+      </div>
+    </div>`;
   }
 
   function renderTable() {
     const rows = visibleTypes();
     const showInstr = includeInstructionsChecked();
+    const autoExpandKey =
+      showInstr && filter === "missing_in_wms" ? "missing+instr" : "";
+    if (autoExpandKey && autoExpandKey !== lastAutoExpandKey) {
+      rows.forEach((t) => {
+        const id = String(t.id || "");
+        if (id) expanded.add(id);
+      });
+    }
+    lastAutoExpandKey = autoExpandKey;
+    updateFilterHint();
     els.diffBody.innerHTML = "";
     els.emptyState.hidden = rows.length > 0;
     rows.forEach((t) => {
@@ -223,17 +293,8 @@
       els.diffBody.appendChild(tr);
       if (isOpen) {
         steps.forEach((step) => {
-          const stepKey = `${id}::${step.id}`;
-          const instrOpen = showInstr && expandedInstr.has(stepKey);
           const cfgN = (step.configInstructions || []).length;
           const wmsN = (step.wmsInstructions || []).length;
-          const instrExpandBtn = showInstr
-            ? `<button type="button" class="sync-expand sync-expand-instr" data-expand-instr="${esc(
-                stepKey
-              )}" aria-label="Toggle instructions">
-                <i class="fa-solid fa-chevron-${instrOpen ? "down" : "right"}"></i>
-              </button>`
-            : "";
           const instrCounts = showInstr
             ? `<span class="sync-instr-counts">${cfgN} cfg / ${wmsN} wms</span>`
             : "";
@@ -245,7 +306,6 @@
           sr.innerHTML = `
             <td></td>
             <td class="sync-step-indent">
-              ${instrExpandBtn}
               ${esc(step.id)}
               ${instrCounts}
             </td>
@@ -253,7 +313,7 @@
             <td></td>
             <td></td>`;
           els.diffBody.appendChild(sr);
-          if (instrOpen) {
+          if (showInstr) {
             const ir = document.createElement("tr");
             ir.className = "sync-instr-row";
             ir.innerHTML = `
@@ -604,14 +664,6 @@
   });
 
   els.diffBody.addEventListener("click", (e) => {
-    const expandInstr = e.target.closest("[data-expand-instr]");
-    if (expandInstr) {
-      const key = expandInstr.getAttribute("data-expand-instr");
-      if (expandedInstr.has(key)) expandedInstr.delete(key);
-      else expandedInstr.add(key);
-      renderTable();
-      return;
-    }
     const expandBtn = e.target.closest("[data-expand]");
     if (expandBtn) {
       const id = expandBtn.getAttribute("data-expand");
@@ -654,7 +706,10 @@
 
   els.pushBtn.onclick = () => runPush();
   if (els.includeInstructions) {
-    els.includeInstructions.addEventListener("change", () => renderTable());
+    els.includeInstructions.addEventListener("change", () => {
+      updateFilterHint();
+      renderTable();
+    });
   }
 
   els.pullBtn.onclick = () => runPull();
