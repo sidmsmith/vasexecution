@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-07-17T04:29:49.881Z",
+  "updatedAt": "2026-07-17T04:35:26.155Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1354,7 +1354,7 @@
     "Verizon Laptop Prep": {
       "title": "Verizon Laptop Prep",
       "description": "Verizon Laptop Prep",
-      "iconUrl": "/assets/icons/vas-type-default.svg",
+      "iconUrl": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_Yoga_9i_2_in_1_Aura_Edition_v01.png",
       "content": [],
       "instructions": [],
       "images": [],
@@ -1400,7 +1400,7 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.png",
               "caption": "",
-              "scale": 100
+              "scale": 48
             }
           ],
           "layout": {
@@ -1490,7 +1490,7 @@
     "Accessories Bundle": {
       "title": "Accessories Bundle",
       "description": "Accessories Bundle",
-      "iconUrl": "/assets/icons/vas-type-default.svg",
+      "iconUrl": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254064/sidney/SHI_1.png",
       "content": [],
       "instructions": [],
       "images": [],
@@ -1567,7 +1567,7 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_2.png",
               "caption": "",
-              "scale": 23
+              "scale": 10
             }
           ],
           "layout": {
