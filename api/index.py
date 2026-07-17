@@ -1,5 +1,5 @@
-# api/index.py — VAS Execution v0.1.0
-# Phase 1: ORG auth + oLPN VAS lookup (requestor IDs → assigned services). No performVas.
+﻿# api/index.py â€” VAS Execution v0.1.0
+# Phase 1: ORG auth + oLPN VAS lookup (requestor IDs â†’ assigned services). No performVas.
 from flask import Flask, request, jsonify, send_from_directory
 import base64
 import copy
@@ -40,7 +40,7 @@ GITHUB_REF = os.getenv("GITHUB_REF", "main").strip()
 APP_NAME = "vasexecution"
 APP_VERSION = "0.3.1"
 
-# mawm_api_library/_conventions statuses.json → assigned_service_status
+# mawm_api_library/_conventions statuses.json â†’ assigned_service_status
 # Also documented in olpn_vas_sequential.py (1000 created, 2000 in progress, 5000 complete)
 ASSIGNED_SERVICE_STATUS = {
     "1000": "Created",
@@ -331,7 +331,7 @@ def extract_assigned_service_records(payload: Any) -> List[Dict[str, Any]]:
 
 def olpn_search_body_with_requestor_ids(olpn: str) -> Dict[str, Any]:
     """
-    Attempt A — requestor IDs + header AssignedService + detail ItemIds.
+    Attempt A â€” requestor IDs + header AssignedService + detail ItemIds.
 
     Nesting AssignedService under OlpnDetail returns HTTP 500 on some oLPNs.
     Header-level AssignedService (null) is safe and returns oLPN-level services.
@@ -357,7 +357,7 @@ def olpn_search_body_with_requestor_ids(olpn: str) -> Dict[str, Any]:
 
 
 def olpn_search_body_with_assigned_service_fallback(olpn: str) -> Dict[str, Any]:
-    """Attempt B — detail AssignedService (may 500 for some oLPNs; try after A)."""
+    """Attempt B â€” detail AssignedService (may 500 for some oLPNs; try after A)."""
     return {
         "Query": f"OlpnId='{olpn}'",
         "Template": {
@@ -1231,9 +1231,11 @@ def _stable_step_instruction_id(
 
     Namespaced by type + step so shared step names across VAS types cannot
     collide. Prefers an existing content-block id when present; otherwise uses
-    INS{n}. Long candidates are shortened with a content hash. used_ids ensures
-    uniqueness within a single push payload.
+    INS{n}. MAWM InstructionId max size is 50 — long candidates are shortened
+    with a content hash. used_ids ensures uniqueness within a single push payload.
     """
+    # MAWM field size for InstructionId / StepInstructionId (fwe::10007).
+    max_len = 50
     seq = max(1, int(sequence))
     tid = str(type_id or "").strip()
     sid = str(step_id or "").strip()
@@ -1244,17 +1246,23 @@ def _stable_step_instruction_id(
         candidate = f"{tid}_{sid}_INS{seq}" if tid or sid else f"INS{seq}"
     candidate = candidate.strip("_") or f"INS{seq}"
 
-    if len(candidate) > 100:
+    if len(candidate) > max_len:
         digest = hashlib.sha1(
             f"{tid}|{sid}|{seq}|{bid}|{text}".encode("utf-8")
         ).hexdigest()[:16]
         candidate = f"VAS_{digest}_INS{seq}"
+        if len(candidate) > max_len:
+            candidate = candidate[:max_len]
 
     if used_ids is not None:
         base = candidate
         n = 2
         while candidate in used_ids:
-            candidate = f"{base}_{n}"
+            suffix = f"_{n}"
+            trunc = max_len - len(suffix)
+            candidate = (base[:trunc] if trunc > 0 else base[:max_len]) + suffix
+            if len(candidate) > max_len:
+                candidate = candidate[:max_len]
             n += 1
         used_ids.add(candidate)
     return candidate
@@ -1867,7 +1875,7 @@ def vas_sync_diff():
 def vas_sync_push():
     """
     Create-only push of draft VAS types to WMS.
-    Existing ProvidedServiceId → skip entire type (report missing steps; no merge).
+    Existing ProvidedServiceId â†’ skip entire type (report missing steps; no merge).
     dryRun=true returns the plan without calling save APIs.
     """
     data = request.json or {}
@@ -1940,7 +1948,7 @@ def vas_sync_push():
             skip_row = {
                 "id": type_id,
                 "reason": "service_exists",
-                "message": "ProvidedService already exists in WMS — merge required",
+                "message": "ProvidedService already exists in WMS â€” merge required",
                 "missingSteps": missing_steps,
             }
             skipped.append(skip_row)
@@ -2024,7 +2032,7 @@ def vas_sync_push():
                     )
                     break
             else:
-                # all instructions ok — fall through to service save
+                # all instructions ok â€” fall through to service save
                 pass
             if any(f.get("id") == type_id for f in failed):
                 continue
@@ -2144,12 +2152,12 @@ def vas_sync_push_instructions():
 
         raw_svc, err = fetch_provided_service_raw(org, token, type_id)
         if err or not raw_svc:
-            # Not in WMS — create-only path must be used instead
+            # Not in WMS â€” create-only path must be used instead
             skip_row = {
                 "id": type_id,
                 "reason": "service_missing",
                 "message": err
-                or "ProvidedService not in WMS — use Push missing (create-only)",
+                or "ProvidedService not in WMS â€” use Push missing (create-only)",
             }
             skipped.append(skip_row)
             plan.append(
@@ -2467,11 +2475,11 @@ def save_vas_config():
         return jsonify(
             {
                 "success": False,
-                "error": "Save not configured — set GITHUB_TOKEN on the server (Vercel env)",
+                "error": "Save not configured â€” set GITHUB_TOKEN on the server (Vercel env)",
             }
         )
     if not verify_manhattan_token(org, token):
-        return jsonify({"success": False, "error": "Session expired — authenticate again"})
+        return jsonify({"success": False, "error": "Session expired â€” authenticate again"})
 
     file_path = f"config/orgs/{org}.json"
     vas_types = config.get("vasTypes") if isinstance(config.get("vasTypes"), dict) else {}
@@ -2495,7 +2503,7 @@ def save_vas_config():
                 return jsonify(
                     {
                         "success": True,
-                        "message": f"No overrides for {org} — nothing to save",
+                        "message": f"No overrides for {org} â€” nothing to save",
                         "deleted": False,
                     }
                 )
@@ -2519,7 +2527,7 @@ def save_vas_config():
             return jsonify(
                 {
                     "success": True,
-                    "message": f"Removed {org} overrides — Vercel will redeploy shortly",
+                    "message": f"Removed {org} overrides â€” Vercel will redeploy shortly",
                     "deleted": True,
                 }
             )
@@ -2560,7 +2568,7 @@ def save_vas_config():
         return jsonify(
             {
                 "success": True,
-                "message": f"Saved {org} VAS config — please wait ~1 minute for deploy",
+                "message": f"Saved {org} VAS config â€” please wait ~1 minute for deploy",
                 "commit": commit_sha,
                 "path": file_path,
             }
