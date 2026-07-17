@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-07-17T03:34:29.967Z",
+  "updatedAt": "2026-07-17T03:37:25.498Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1398,7 +1398,7 @@
             {
               "id": "img_vftjowdk",
               "type": "image",
-              "url": "Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.jpg",
+              "url": "Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.png",
               "caption": "",
               "scale": 80
             }
