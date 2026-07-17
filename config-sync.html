@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VAS WMS Sync v0.3.0</title>
+  <title>VAS WMS Sync v0.3.1</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <link href="/css/flowthrough-shared.css" rel="stylesheet" />
@@ -17,7 +17,7 @@
     <header class="app-header">
       <div class="header-body">
         <h1>VAS WMS Sync</h1>
-        <div class="subtitle">v0.3.0 — draft vs Provided Services</div>
+        <div class="subtitle">v0.3.1 — draft vs Provided Services (incl. instructions)</div>
       </div>
       <div class="header-actions">
         <a class="btn btn-outline-secondary btn-sm" href="/admin.html">Config Admin</a>
@@ -42,6 +42,7 @@
           <button type="button" class="btn btn-sm btn-outline-secondary sync-filter" data-filter="missing_in_wms">Missing in WMS</button>
           <button type="button" class="btn btn-sm btn-outline-secondary sync-filter" data-filter="missing_in_config">Missing in config</button>
           <button type="button" class="btn btn-sm btn-outline-secondary sync-filter" data-filter="aligned">Aligned</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary sync-filter" data-filter="instructions_differ">Instructions differ</button>
         </div>
         <div class="sync-actions">
           <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="refreshBtn">
@@ -49,6 +50,9 @@
           </button>
           <button type="button" class="btn btn-outline-primary btn-sm mb-0" id="pushBtn">
             <i class="fa-solid fa-cloud-arrow-up"></i> Push missing to WMS
+          </button>
+          <button type="button" class="btn btn-outline-warning btn-sm mb-0" id="pushInstrBtn">
+            <i class="fa-solid fa-file-lines"></i> Push instructions (merge)
           </button>
           <button type="button" class="btn btn-outline-primary btn-sm mb-0" id="pullBtn">
             <i class="fa-solid fa-cloud-arrow-down"></i> Pull missing into draft

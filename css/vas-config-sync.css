@@ -140,6 +140,66 @@
   color: var(--status-chip-fg, var(--text));
 }
 
+.sync-badge-instructions_aligned {
+  background: rgba(22, 163, 74, 0.18);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  color: var(--status-chip-fg, var(--text));
+}
+
+.sync-badge-instructions_differ,
+.sync-badge-instructions_missing_in_wms,
+.sync-badge-instructions_missing_in_config {
+  background: rgba(249, 115, 22, 0.28);
+  border: 1px solid rgba(251, 146, 60, 0.55);
+  color: var(--status-chip-fg, var(--text));
+}
+
+.sync-instr-counts {
+  margin-left: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--muted, #adb5bd);
+}
+
+.sync-instr-detail {
+  padding: 0.35rem 0.75rem 0.75rem 2.25rem !important;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.sync-instr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  table-layout: fixed;
+}
+
+.sync-instr-table th,
+.sync-instr-table td {
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.45rem;
+  vertical-align: top;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.sync-instr-table th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+}
+
+.sync-instr-seq {
+  width: 2rem;
+  color: var(--muted, #adb5bd);
+}
+
+.sync-instr-empty {
+  color: var(--muted, #6c757d);
+  font-style: italic;
+}
+
+.sync-instr-row td {
+  background: rgba(0, 0, 0, 0.12);
+}
+
 .sync-warn {
   font-size: 0.78rem;
   color: #fbbf24;
