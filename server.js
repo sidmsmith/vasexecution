@@ -68,9 +68,18 @@ app.get('/admin.html', (req, res) => {
   }
 });
 
+app.get('/config-sync.html', (req, res) => {
+  if (!sendRootFile(res, 'config-sync.html')) {
+    res.status(404).send('config-sync.html not found');
+  }
+});
+
 app.get(/^(?!\/api).*$/, (req, res) => {
   if (req.path === '/admin.html') {
     if (sendRootFile(res, 'admin.html')) return;
+  }
+  if (req.path === '/config-sync.html') {
+    if (sendRootFile(res, 'config-sync.html')) return;
   }
   // Missing static assets must 404 — never SPA-fallback JSON/CSS/JS to index.html
   if (/\.\w+$/.test(req.path)) {

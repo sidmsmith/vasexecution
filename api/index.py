@@ -36,7 +36,7 @@ GITHUB_REPO = os.getenv("GITHUB_REPO", "sidmsmith/vasexecution").strip()
 GITHUB_REF = os.getenv("GITHUB_REF", "main").strip()
 
 APP_NAME = "vasexecution"
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 
 # mawm_api_library/_conventions statuses.json → assigned_service_status
 # Also documented in olpn_vas_sequential.py (1000 created, 2000 in progress, 5000 complete)
@@ -1041,67 +1041,822 @@ def perform_vas():
     )
 
 
+def _id_whitespace_warning(field: str, raw: Any) -> Optional[Dict[str, str]]:
+    """Warn when a WMS id has leading/trailing whitespace or differs after strip."""
+    if raw is None:
+        return None
+    raw_s = str(raw)
+    trimmed = raw_s.strip()
+    if not trimmed:
+        return None
+    if raw_s != trimmed:
+        return {
+            "code": "id_whitespace",
+            "field": field,
+            "raw": raw_s,
+            "trimmed": trimmed,
+            "message": f"{field} has leading/trailing whitespace",
+        }
+    return None
+
+
+def normalize_provided_service_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize one providedService search row; strip IDs; collect whitespace warnings."""
+    warnings: List[Dict[str, str]] = []
+    raw_type_id = row.get("ProvidedServiceId")
+    type_warn = _id_whitespace_warning("ProvidedServiceId", raw_type_id)
+    if type_warn:
+        warnings.append(type_warn)
+    type_id = str(raw_type_id or "").strip()
+
+    steps: List[Dict[str, Any]] = []
+    for step in as_list(row.get("ProvidedServiceStep")):
+        if not isinstance(step, dict):
+            continue
+        raw_step_id = step.get("ProvidedServiceStepId")
+        step_warn = _id_whitespace_warning("ProvidedServiceStepId", raw_step_id)
+        if step_warn:
+            warnings.append(step_warn)
+        step_id = str(raw_step_id or "").strip()
+        if not step_id:
+            continue
+        instructions = []
+        for instr in as_list(step.get("StepInstruction")):
+            if not isinstance(instr, dict):
+                continue
+            text = instr.get("InstructionText")
+            if not text:
+                continue
+            instructions.append(
+                {
+                    "StepInstructionId": str(
+                        instr.get("StepInstructionId") or ""
+                    ).strip()
+                    or None,
+                    "InstructionText": text,
+                    "Sequence": instr.get("Sequence"),
+                }
+            )
+        steps.append(
+            {
+                "ProvidedServiceStepId": step_id,
+                "Description": step.get("Description"),
+                "StepSequence": step.get("StepSequence"),
+                "Instructions": instructions,
+            }
+        )
+
+    return {
+        "ProvidedServiceId": type_id,
+        "Description": row.get("Description"),
+        "ServiceTypeId": row.get("ServiceTypeId"),
+        "ProvidedServiceStep": steps,
+        "warnings": warnings,
+    }
+
+
+def fetch_all_vas_provided_services(
+    org: str, token: str
+) -> Tuple[Optional[List[Dict[str, Any]]], Optional[str]]:
+    """Paginate providedService/search (ServiceTypeId='VAS') until empty page."""
+    path = "/aux-svcs/api/aux-svcs/providedService/search"
+    page_size = 100
+    page = 0
+    rows: List[Dict[str, Any]] = []
+    while True:
+        body = {"Query": "ServiceTypeId='VAS'", "Size": page_size, "Page": page}
+        try:
+            response, payload = post_manhattan(org, token, path, body)
+        except Exception as e:
+            return None, str(e)
+        if response.status_code != 200 or not isinstance(payload, dict):
+            return None, f"providedService search failed. HTTP {response.status_code}"
+        batch = payload.get("data") if isinstance(payload.get("data"), list) else []
+        for row in batch:
+            if isinstance(row, dict):
+                rows.append(row)
+        if len(batch) < page_size:
+            break
+        page += 1
+
+    services: List[Dict[str, Any]] = []
+    seen: Set[str] = set()
+    for row in rows:
+        svc = normalize_provided_service_row(row)
+        sid = svc.get("ProvidedServiceId") or ""
+        if not sid or sid in seen:
+            continue
+        seen.add(sid)
+        services.append(svc)
+    return services, None
+
+
+def _config_vas_types(config: Any) -> Dict[str, Any]:
+    if not isinstance(config, dict):
+        return {}
+    types = config.get("vasTypes")
+    return types if isinstance(types, dict) else {}
+
+
+def _ordered_config_step_ids(entry: Dict[str, Any]) -> List[str]:
+    steps = entry.get("steps") if isinstance(entry.get("steps"), dict) else {}
+    known = {str(k).strip() for k in steps.keys() if str(k).strip()}
+    order: List[str] = []
+    seen: Set[str] = set()
+    raw_order = entry.get("stepOrder")
+    if isinstance(raw_order, list):
+        for sid in raw_order:
+            key = str(sid or "").strip()
+            if key and key in known and key not in seen:
+                order.append(key)
+                seen.add(key)
+    for key in steps.keys():
+        sid = str(key or "").strip()
+        if sid and sid not in seen:
+            order.append(sid)
+            seen.add(sid)
+    return order
+
+
+def _first_text_from_step(step_entry: Any) -> str:
+    if not isinstance(step_entry, dict):
+        return ""
+    content = step_entry.get("content")
+    if isinstance(content, list):
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "image":
+                continue
+            text = str(block.get("text") or block.get("InstructionText") or "").strip()
+            if text:
+                return text
+    instructions = step_entry.get("instructions")
+    if isinstance(instructions, list):
+        for ins in instructions:
+            if isinstance(ins, dict):
+                text = str(ins.get("text") or ins.get("InstructionText") or "").strip()
+                if text:
+                    return text
+            elif isinstance(ins, str) and ins.strip():
+                return ins.strip()
+    return ""
+
+
+def _default_sections_for_pull(title: str) -> Dict[str, Any]:
+    return {
+        "signature": {
+            "enabled": False,
+            "required": False,
+            "label": f"{title} Signature",
+        },
+        "photos": {
+            "enabled": False,
+            "required": False,
+            "label": f"{title} Photos",
+        },
+        "markupPad": {
+            "enabled": False,
+            "required": False,
+            "label": f"{title} Markup",
+            "mode": "photo",
+        },
+    }
+
+
+def _wms_step_to_config(step: Dict[str, Any]) -> Dict[str, Any]:
+    step_id = str(step.get("ProvidedServiceStepId") or "").strip()
+    title = str(step.get("Description") or step_id).strip() or step_id
+    content: List[Dict[str, Any]] = []
+    for i, instr in enumerate(as_list(step.get("Instructions"))):
+        if not isinstance(instr, dict):
+            continue
+        text = str(instr.get("InstructionText") or "").strip()
+        if not text:
+            continue
+        instr_id = str(instr.get("StepInstructionId") or "").strip() or f"ins_{i}"
+        content.append(
+            {
+                "id": instr_id,
+                "type": "text",
+                "text": text,
+                "bold": False,
+                "italic": False,
+                "underline": False,
+                "color": "#000000",
+                "fontSize": 100,
+                "listMarker": "bullet",
+            }
+        )
+    return {"title": title, "content": content}
+
+
+def _wms_service_to_config_entry(svc: Dict[str, Any]) -> Dict[str, Any]:
+    type_id = str(svc.get("ProvidedServiceId") or "").strip()
+    title = str(svc.get("Description") or type_id).strip() or type_id
+    steps_map: Dict[str, Any] = {}
+    step_order: List[str] = []
+    raw_steps = [
+        s for s in as_list(svc.get("ProvidedServiceStep")) if isinstance(s, dict)
+    ]
+
+    def seq_key(s: Dict[str, Any]) -> Tuple[int, str]:
+        try:
+            seq = int(s.get("StepSequence") or 0)
+        except (TypeError, ValueError):
+            seq = 0
+        return (seq, str(s.get("ProvidedServiceStepId") or ""))
+
+    for step in sorted(raw_steps, key=seq_key):
+        sid = str(step.get("ProvidedServiceStepId") or "").strip()
+        if not sid or sid in steps_map:
+            continue
+        steps_map[sid] = _wms_step_to_config(step)
+        step_order.append(sid)
+    return {
+        "title": title,
+        "description": title,
+        "iconUrl": "",
+        "content": [],
+        "instructions": [],
+        "images": [],
+        "steps": steps_map,
+        "stepOrder": step_order,
+        "sections": _default_sections_for_pull(title),
+    }
+
+
+def _build_provided_service_payload(
+    type_id: str,
+    entry: Dict[str, Any],
+    include_instructions: bool,
+) -> Tuple[Dict[str, Any], List[Dict[str, str]]]:
+    """Build MAWM providedService/save payload + optional top-level instructions."""
+    description = str(
+        entry.get("description") or entry.get("title") or type_id
+    ).strip() or type_id
+    step_ids = _ordered_config_step_ids(entry)
+    steps_src = entry.get("steps") if isinstance(entry.get("steps"), dict) else {}
+    provided_steps: List[Dict[str, Any]] = []
+    top_instructions: List[Dict[str, str]] = []
+
+    for idx, step_id in enumerate(step_ids, start=1):
+        step_entry = steps_src.get(step_id) or steps_src.get(step_id.strip()) or {}
+        if not isinstance(step_entry, dict):
+            step_entry = {}
+        step_desc = str(step_entry.get("title") or step_id).strip() or step_id
+        step_payload: Dict[str, Any] = {
+            "ProvidedServiceStepId": step_id,
+            "StepSequence": idx,
+            "Description": step_desc,
+        }
+        if include_instructions:
+            text = _first_text_from_step(step_entry)
+            instr_id = f"{step_id}_INS1"
+            if text:
+                top_instructions.append(
+                    {"InstructionId": instr_id, "InstructionText": text}
+                )
+                step_payload["StepInstruction"] = [
+                    {"StepInstructionId": instr_id, "Sequence": 1, "InstructionText": text}
+                ]
+            else:
+                step_payload["StepInstruction"] = []
+        provided_steps.append(step_payload)
+
+    payload = {
+        "ProvidedServiceId": type_id,
+        "Description": description,
+        "ServiceTypeId": "VAS",
+        "ProvidedServiceStep": provided_steps,
+    }
+    return payload, top_instructions
+
+
+def _extract_mawm_error(body: Any) -> str:
+    if isinstance(body, str):
+        return body[:240]
+    if not isinstance(body, dict):
+        return str(body)[:240]
+    messages = body.get("messages", {})
+    if isinstance(messages, dict):
+        msg_list = messages.get("Message", [])
+        if isinstance(msg_list, list) and msg_list:
+            parts = []
+            for msg in msg_list:
+                if isinstance(msg, dict):
+                    parts.append(
+                        str(msg.get("Description") or msg.get("message") or msg)
+                    )
+                else:
+                    parts.append(str(msg))
+            return " | ".join(parts)[:240]
+    return str(
+        body.get("message") or body.get("rootCause") or body.get("error") or body
+    )[:240]
+
+
+def compute_vas_sync_diff(
+    config: Dict[str, Any], wms_services: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """Diff merged draft vasTypes against WMS provided services (strip IDs)."""
+    draft_types = _config_vas_types(config)
+    wms_by_id: Dict[str, Dict[str, Any]] = {}
+    for svc in wms_services:
+        sid = str(svc.get("ProvidedServiceId") or "").strip()
+        if sid:
+            wms_by_id[sid] = svc
+
+    draft_ids = {
+        str(k).strip(): draft_types[k]
+        for k in draft_types.keys()
+        if str(k).strip()
+    }
+    all_ids = sorted(set(draft_ids.keys()) | set(wms_by_id.keys()), key=str.lower)
+
+    types_out: List[Dict[str, Any]] = []
+    summary = {
+        "aligned": 0,
+        "missing_in_wms": 0,
+        "missing_in_config": 0,
+        "id_whitespace": 0,
+        "types": 0,
+        "steps_aligned": 0,
+        "steps_missing_in_wms": 0,
+        "steps_missing_in_config": 0,
+    }
+
+    for type_id in all_ids:
+        draft_entry = draft_ids.get(type_id)
+        wms_svc = wms_by_id.get(type_id)
+        warnings: List[Dict[str, Any]] = []
+        if wms_svc:
+            for w in as_list(wms_svc.get("warnings")):
+                if isinstance(w, dict):
+                    warnings.append(w)
+                    if w.get("code") == "id_whitespace":
+                        summary["id_whitespace"] += 1
+
+        if draft_entry is not None and wms_svc is not None:
+            type_status = "aligned"
+            summary["aligned"] += 1
+        elif draft_entry is not None:
+            type_status = "missing_in_wms"
+            summary["missing_in_wms"] += 1
+        else:
+            type_status = "missing_in_config"
+            summary["missing_in_config"] += 1
+
+        draft_step_ids = (
+            _ordered_config_step_ids(draft_entry)
+            if isinstance(draft_entry, dict)
+            else []
+        )
+        wms_steps = (
+            [
+                s
+                for s in as_list(wms_svc.get("ProvidedServiceStep"))
+                if isinstance(s, dict)
+            ]
+            if wms_svc
+            else []
+        )
+        wms_step_ids = [
+            str(s.get("ProvidedServiceStepId") or "").strip()
+            for s in wms_steps
+            if str(s.get("ProvidedServiceStepId") or "").strip()
+        ]
+        wms_step_set = set(wms_step_ids)
+        draft_step_set = set(draft_step_ids)
+        all_step_ids = sorted(
+            draft_step_set | wms_step_set, key=lambda x: (x.lower(), x)
+        )
+
+        steps_out: List[Dict[str, Any]] = []
+        for step_id in all_step_ids:
+            in_draft = step_id in draft_step_set
+            in_wms = step_id in wms_step_set
+            if in_draft and in_wms:
+                step_status = "aligned"
+                summary["steps_aligned"] += 1
+            elif in_draft:
+                step_status = "missing_in_wms"
+                summary["steps_missing_in_wms"] += 1
+            else:
+                step_status = "missing_in_config"
+                summary["steps_missing_in_config"] += 1
+            steps_out.append({"id": step_id, "status": step_status})
+
+        draft_title = ""
+        if isinstance(draft_entry, dict):
+            draft_title = str(
+                draft_entry.get("title") or draft_entry.get("description") or type_id
+            )
+        wms_desc = str((wms_svc or {}).get("Description") or "") if wms_svc else ""
+
+        types_out.append(
+            {
+                "id": type_id,
+                "status": type_status,
+                "title": draft_title or wms_desc or type_id,
+                "wmsDescription": wms_desc or None,
+                "steps": steps_out,
+                "warnings": warnings,
+            }
+        )
+
+    summary["types"] = len(types_out)
+    return {"types": types_out, "summary": summary}
+
+
 @app.route("/api/provided_services", methods=["POST"])
 def provided_services():
-    """VAS Type catalog: providedService/search where ServiceTypeId='VAS'."""
+    """VAS Type catalog: paginated providedService/search where ServiceTypeId='VAS'."""
     data = request.json or {}
     org = (data.get("org") or "").strip()
     token = data.get("token")
     if not all([org, token]):
         return jsonify({"success": False, "error": "Missing data"})
-    path = "/aux-svcs/api/aux-svcs/providedService/search"
-    body = {"Query": "ServiceTypeId='VAS'", "Size": 100, "Page": 0}
-    try:
-        response, payload = post_manhattan(org, token, path, body)
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
-    if response.status_code != 200 or not isinstance(payload, dict):
-        return jsonify(
-            {
-                "success": False,
-                "error": f"providedService search failed. HTTP {response.status_code}",
-            }
-        )
-    rows = payload.get("data") if isinstance(payload.get("data"), list) else []
-    services = []
-    for row in rows:
-        if not isinstance(row, dict):
+    services, err = fetch_all_vas_provided_services(org, token)
+    if err:
+        return jsonify({"success": False, "error": err})
+    public = []
+    for svc in services or []:
+        row = {k: v for k, v in svc.items() if k != "warnings"}
+        public.append(row)
+    return jsonify(
+        {"success": True, "services": public, "count": len(public)}
+    )
+
+
+@app.route("/api/vas_sync_diff", methods=["POST"])
+def vas_sync_diff():
+    """Compare merged draft config against live WMS provided services."""
+    data = request.json or {}
+    org = (data.get("org") or "").strip()
+    token = data.get("token")
+    config = data.get("config")
+    if not all([org, token]):
+        return jsonify({"success": False, "error": "Missing data"})
+    if not isinstance(config, dict):
+        return jsonify({"success": False, "error": "Missing config"})
+
+    services, err = fetch_all_vas_provided_services(org, token)
+    if err:
+        return jsonify({"success": False, "error": err})
+    diff = compute_vas_sync_diff(config, services or [])
+    return jsonify(
+        {
+            "success": True,
+            "types": diff["types"],
+            "summary": diff["summary"],
+            "wmsCount": len(services or []),
+        }
+    )
+
+
+@app.route("/api/vas_sync_push", methods=["POST"])
+def vas_sync_push():
+    """
+    Create-only push of draft VAS types to WMS.
+    Existing ProvidedServiceId → skip entire type (report missing steps; no merge).
+    dryRun=true returns the plan without calling save APIs.
+    """
+    data = request.json or {}
+    org = (data.get("org") or "").strip()
+    token = data.get("token")
+    config = data.get("config")
+    type_ids_raw = data.get("typeIds")
+    include_instructions = bool(data.get("includeInstructions"))
+    dry_run = data.get("dryRun", True)
+    if dry_run is None:
+        dry_run = True
+    dry_run = bool(dry_run)
+
+    if not all([org, token]):
+        return jsonify({"success": False, "error": "Missing data"})
+    if not isinstance(config, dict):
+        return jsonify({"success": False, "error": "Missing config"})
+
+    draft_types = _config_vas_types(config)
+    services, err = fetch_all_vas_provided_services(org, token)
+    if err:
+        return jsonify({"success": False, "error": err})
+    wms_by_id = {
+        str(s.get("ProvidedServiceId") or "").strip(): s
+        for s in (services or [])
+        if str(s.get("ProvidedServiceId") or "").strip()
+    }
+
+    if isinstance(type_ids_raw, list) and type_ids_raw:
+        target_ids = [str(x).strip() for x in type_ids_raw if str(x).strip()]
+    else:
+        # Default: all draft types missing entirely from WMS
+        target_ids = [
+            str(k).strip()
+            for k in draft_types.keys()
+            if str(k).strip() and str(k).strip() not in wms_by_id
+        ]
+
+    created: List[str] = []
+    skipped: List[Dict[str, Any]] = []
+    failed: List[Dict[str, Any]] = []
+    details: List[Dict[str, Any]] = []
+    plan: List[Dict[str, Any]] = []
+
+    instruction_path = "/aux-svcs/api/aux-svcs/instruction/save"
+    service_path = "/aux-svcs/api/aux-svcs/providedService/save"
+
+    for type_id in target_ids:
+        entry = None
+        for key, val in draft_types.items():
+            if str(key).strip() == type_id and isinstance(val, dict):
+                entry = val
+                break
+        if entry is None:
+            failed.append({"id": type_id, "error": "Type not found in config"})
+            details.append(
+                {"id": type_id, "action": "failed", "error": "Type not found in config"}
+            )
             continue
-        steps = []
-        for step in as_list(row.get("ProvidedServiceStep")):
-            if not isinstance(step, dict):
-                continue
-            instructions = []
-            for instr in as_list(step.get("StepInstruction")):
-                if isinstance(instr, dict) and instr.get("InstructionText"):
-                    instructions.append(
-                        {
-                            "StepInstructionId": instr.get("StepInstructionId"),
-                            "InstructionText": instr.get("InstructionText"),
-                            "Sequence": instr.get("Sequence"),
-                        }
-                    )
-            steps.append(
+
+        wms_svc = wms_by_id.get(type_id)
+        if wms_svc is not None:
+            draft_steps = set(_ordered_config_step_ids(entry))
+            wms_steps = {
+                str(s.get("ProvidedServiceStepId") or "").strip()
+                for s in as_list(wms_svc.get("ProvidedServiceStep"))
+                if isinstance(s, dict) and str(s.get("ProvidedServiceStepId") or "").strip()
+            }
+            missing_steps = sorted(draft_steps - wms_steps, key=str.lower)
+            skip_row = {
+                "id": type_id,
+                "reason": "service_exists",
+                "message": "ProvidedService already exists in WMS — merge required",
+                "missingSteps": missing_steps,
+            }
+            skipped.append(skip_row)
+            plan.append(
                 {
-                    "ProvidedServiceStepId": str(
-                        step.get("ProvidedServiceStepId") or ""
-                    ).strip(),
-                    "Description": step.get("Description"),
-                    "StepSequence": step.get("StepSequence"),
-                    "Instructions": instructions,
+                    "id": type_id,
+                    "action": "skip",
+                    "reason": "service_exists",
+                    "missingSteps": missing_steps,
                 }
             )
-        services.append(
+            details.append(
+                {
+                    "id": type_id,
+                    "action": "skip",
+                    "reason": "service_exists",
+                    "missingSteps": missing_steps,
+                    "message": skip_row["message"],
+                }
+            )
+            continue
+
+        payload, top_instructions = _build_provided_service_payload(
+            type_id, entry, include_instructions
+        )
+        plan.append(
             {
-                "ProvidedServiceId": str(
-                    row.get("ProvidedServiceId") or ""
-                ).strip(),
-                "Description": row.get("Description"),
-                "ServiceTypeId": row.get("ServiceTypeId"),
-                "ProvidedServiceStep": steps,
+                "id": type_id,
+                "action": "create",
+                "stepCount": len(payload.get("ProvidedServiceStep") or []),
+                "includeInstructions": include_instructions,
+                "instructionCount": len(top_instructions),
             }
         )
-    return jsonify({"success": True, "services": services, "count": len(services)})
+
+        if dry_run:
+            details.append(
+                {
+                    "id": type_id,
+                    "action": "create",
+                    "dryRun": True,
+                    "stepCount": len(payload.get("ProvidedServiceStep") or []),
+                }
+            )
+            continue
+
+        # Pre-create top-level instructions when requested
+        if include_instructions and top_instructions:
+            for instr in top_instructions:
+                try:
+                    ir, ibody = post_manhattan(org, token, instruction_path, instr)
+                except Exception as e:
+                    failed.append({"id": type_id, "error": f"instruction save: {e}"})
+                    details.append(
+                        {
+                            "id": type_id,
+                            "action": "failed",
+                            "error": f"instruction save: {e}",
+                        }
+                    )
+                    break
+                ok = (
+                    200 <= ir.status_code < 300
+                    and isinstance(ibody, dict)
+                    and ibody.get("success") is not False
+                )
+                if not ok:
+                    err_text = _extract_mawm_error(ibody)
+                    failed.append(
+                        {
+                            "id": type_id,
+                            "error": f"instruction {instr.get('InstructionId')}: {err_text}",
+                        }
+                    )
+                    details.append(
+                        {
+                            "id": type_id,
+                            "action": "failed",
+                            "error": f"instruction {instr.get('InstructionId')}: {err_text}",
+                        }
+                    )
+                    break
+            else:
+                # all instructions ok — fall through to service save
+                pass
+            if any(f.get("id") == type_id for f in failed):
+                continue
+
+        try:
+            sr, sbody = post_manhattan(org, token, service_path, payload)
+        except Exception as e:
+            failed.append({"id": type_id, "error": str(e)})
+            details.append({"id": type_id, "action": "failed", "error": str(e)})
+            continue
+
+        ok = (
+            200 <= sr.status_code < 300
+            and isinstance(sbody, dict)
+            and sbody.get("success") is not False
+        )
+        if ok:
+            created.append(type_id)
+            details.append(
+                {
+                    "id": type_id,
+                    "action": "created",
+                    "stepCount": len(payload.get("ProvidedServiceStep") or []),
+                }
+            )
+        else:
+            err_text = _extract_mawm_error(sbody)
+            failed.append({"id": type_id, "error": err_text})
+            details.append(
+                {
+                    "id": type_id,
+                    "action": "failed",
+                    "error": err_text,
+                    "httpStatus": sr.status_code,
+                }
+            )
+
+    return jsonify(
+        {
+            "success": True,
+            "dryRun": dry_run,
+            "created": created,
+            "skipped": skipped,
+            "failed": failed,
+            "details": details,
+            "plan": plan,
+            "summary": {
+                "create": sum(1 for p in plan if p.get("action") == "create"),
+                "skip": sum(1 for p in plan if p.get("action") == "skip"),
+                "created": len(created),
+                "failed": len(failed),
+            },
+        }
+    )
+
+
+@app.route("/api/vas_sync_pull", methods=["POST"])
+def vas_sync_pull():
+    """Merge WMS-only types/steps into the draft config (does not save to GitHub)."""
+    data = request.json or {}
+    org = (data.get("org") or "").strip()
+    token = data.get("token")
+    config = data.get("config")
+    type_ids_raw = data.get("typeIds")
+
+    if not all([org, token]):
+        return jsonify({"success": False, "error": "Missing data"})
+    if not isinstance(config, dict):
+        return jsonify({"success": False, "error": "Missing config"})
+
+    services, err = fetch_all_vas_provided_services(org, token)
+    if err:
+        return jsonify({"success": False, "error": err})
+
+    out_config = json.loads(json.dumps(config))
+    if not isinstance(out_config.get("vasTypes"), dict):
+        out_config["vasTypes"] = {}
+    if not isinstance(out_config.get("items"), dict):
+        out_config["items"] = {}
+    vas_types = out_config["vasTypes"]
+
+    wms_by_id = {
+        str(s.get("ProvidedServiceId") or "").strip(): s
+        for s in (services or [])
+        if str(s.get("ProvidedServiceId") or "").strip()
+    }
+
+    draft_ids = {str(k).strip() for k in vas_types.keys() if str(k).strip()}
+
+    if isinstance(type_ids_raw, list) and type_ids_raw:
+        target_ids = [str(x).strip() for x in type_ids_raw if str(x).strip()]
+    else:
+        # Default: WMS types missing from config, plus types with missing steps
+        target_ids = []
+        for wid, svc in wms_by_id.items():
+            if wid not in draft_ids:
+                target_ids.append(wid)
+                continue
+            entry = None
+            for k, v in vas_types.items():
+                if str(k).strip() == wid:
+                    entry = v if isinstance(v, dict) else {}
+                    break
+            draft_steps = set(_ordered_config_step_ids(entry or {}))
+            wms_steps = {
+                str(s.get("ProvidedServiceStepId") or "").strip()
+                for s in as_list(svc.get("ProvidedServiceStep"))
+                if isinstance(s, dict) and str(s.get("ProvidedServiceStepId") or "").strip()
+            }
+            if wms_steps - draft_steps:
+                target_ids.append(wid)
+
+    pulled: List[Dict[str, Any]] = []
+    for type_id in target_ids:
+        wms_svc = wms_by_id.get(type_id)
+        if not wms_svc:
+            continue
+
+        # Find existing draft key (preserve original key casing if present)
+        existing_key = None
+        for k in list(vas_types.keys()):
+            if str(k).strip() == type_id:
+                existing_key = k
+                break
+
+        if existing_key is None:
+            entry = _wms_service_to_config_entry(wms_svc)
+            vas_types[type_id] = entry
+            pulled.append(
+                {
+                    "id": type_id,
+                    "action": "added_type",
+                    "steps": list((entry.get("steps") or {}).keys()),
+                }
+            )
+            continue
+
+        entry = vas_types[existing_key]
+        if not isinstance(entry, dict):
+            entry = _wms_service_to_config_entry(wms_svc)
+            vas_types[existing_key] = entry
+            pulled.append(
+                {
+                    "id": type_id,
+                    "action": "replaced_invalid_entry",
+                    "steps": list((entry.get("steps") or {}).keys()),
+                }
+            )
+            continue
+
+        if not isinstance(entry.get("steps"), dict):
+            entry["steps"] = {}
+        added_steps: List[str] = []
+        draft_steps = set(_ordered_config_step_ids(entry))
+        for step in as_list(wms_svc.get("ProvidedServiceStep")):
+            if not isinstance(step, dict):
+                continue
+            sid = str(step.get("ProvidedServiceStepId") or "").strip()
+            if not sid or sid in draft_steps:
+                continue
+            entry["steps"][sid] = _wms_step_to_config(step)
+            added_steps.append(sid)
+        if added_steps:
+            order = _ordered_config_step_ids(entry)
+            for sid in added_steps:
+                if sid not in order:
+                    order.append(sid)
+            entry["stepOrder"] = order
+            pulled.append(
+                {"id": type_id, "action": "added_steps", "steps": added_steps}
+            )
+
+    return jsonify(
+        {
+            "success": True,
+            "config": out_config,
+            "pulled": pulled,
+            "summary": {"pulledTypes": len(pulled)},
+        }
+    )
 
 
 @app.route("/api/save_vas_config", methods=["POST"])

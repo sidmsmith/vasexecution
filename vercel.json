@@ -15,6 +15,7 @@
         "includeFiles": [
           "index.html",
           "admin.html",
+          "config-sync.html",
           "css/**",
           "js/**",
           "config/**",
