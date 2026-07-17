@@ -106,12 +106,13 @@
     );
   }
 
+  function includeInstructionsChecked() {
+    return !!(els.includeInstructions && els.includeInstructions.checked);
+  }
+
   function visibleTypes() {
     const list = Array.isArray(diffTypes) ? diffTypes : [];
     if (filter === "all") return list;
-    if (filter === "instructions_differ") {
-      return list.filter((t) => typeHasInstructionDiff(t));
-    }
     return list.filter((t) => t && t.status === filter);
   }
 
@@ -125,7 +126,7 @@
 
   function updateSelectionHint() {
     const n = selected.size;
-    const includeInstr = !!(els.includeInstructions && els.includeInstructions.checked);
+    const includeInstr = includeInstructionsChecked();
     els.selectionHint.textContent = n
       ? `${n} type${n === 1 ? "" : "s"} selected`
       : includeInstr
@@ -176,6 +177,7 @@
 
   function renderTable() {
     const rows = visibleTypes();
+    const showInstr = includeInstructionsChecked();
     els.diffBody.innerHTML = "";
     els.emptyState.hidden = rows.length > 0;
     rows.forEach((t) => {
@@ -193,9 +195,10 @@
           return `<div class="sync-warn">${esc(w.message || w.code || "")}</div>`;
         })
         .join("");
-      const typeInstrBadge = t.instructionStatus
-        ? ` ${badge(t.instructionStatus)}`
-        : "";
+      const typeInstrBadge =
+        showInstr && t.instructionStatus
+          ? ` ${badge(t.instructionStatus)}`
+          : "";
       const tr = document.createElement("tr");
       tr.className = "sync-type-row";
       tr.dataset.typeId = id;
@@ -221,25 +224,32 @@
       if (isOpen) {
         steps.forEach((step) => {
           const stepKey = `${id}::${step.id}`;
-          const instrOpen = expandedInstr.has(stepKey);
+          const instrOpen = showInstr && expandedInstr.has(stepKey);
           const cfgN = (step.configInstructions || []).length;
           const wmsN = (step.wmsInstructions || []).length;
+          const instrExpandBtn = showInstr
+            ? `<button type="button" class="sync-expand sync-expand-instr" data-expand-instr="${esc(
+                stepKey
+              )}" aria-label="Toggle instructions">
+                <i class="fa-solid fa-chevron-${instrOpen ? "down" : "right"}"></i>
+              </button>`
+            : "";
+          const instrCounts = showInstr
+            ? `<span class="sync-instr-counts">${cfgN} cfg / ${wmsN} wms</span>`
+            : "";
+          const instrStatusBadge = showInstr
+            ? ` ${badge(step.instructionStatus || "instructions_aligned")}`
+            : "";
           const sr = document.createElement("tr");
           sr.className = "sync-step-row";
           sr.innerHTML = `
             <td></td>
             <td class="sync-step-indent">
-              <button type="button" class="sync-expand sync-expand-instr" data-expand-instr="${esc(
-                stepKey
-              )}" aria-label="Toggle instructions">
-                <i class="fa-solid fa-chevron-${instrOpen ? "down" : "right"}"></i>
-              </button>
+              ${instrExpandBtn}
               ${esc(step.id)}
-              <span class="sync-instr-counts">${cfgN} cfg / ${wmsN} wms</span>
+              ${instrCounts}
             </td>
-            <td>${badge(step.status)} ${badge(
-              step.instructionStatus || "instructions_aligned"
-            )}</td>
+            <td>${badge(step.status)}${instrStatusBadge}</td>
             <td></td>
             <td></td>`;
           els.diffBody.appendChild(sr);
@@ -408,9 +418,7 @@
   }
 
   async function runPush() {
-    const includeInstructions = !!(
-      els.includeInstructions && els.includeInstructions.checked
-    );
+    const includeInstructions = includeInstructionsChecked();
     const createIds = pushCreateIds();
     const mergeIds = includeInstructions ? pushMergeIds() : [];
 
@@ -646,7 +654,7 @@
 
   els.pushBtn.onclick = () => runPush();
   if (els.includeInstructions) {
-    els.includeInstructions.addEventListener("change", () => updateSelectionHint());
+    els.includeInstructions.addEventListener("change", () => renderTable());
   }
 
   els.pullBtn.onclick = () => runPull();
