@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-07-17T03:13:47.713Z",
+  "updatedAt": "2026-07-17T03:34:29.967Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1376,7 +1376,7 @@
             {
               "id": "ins_dgm3v72k",
               "type": "text",
-              "text": "Set default passwords\n",
+              "text": "Set default passwords",
               "bold": false,
               "italic": false,
               "underline": false,
@@ -1398,9 +1398,9 @@
             {
               "id": "img_vftjowdk",
               "type": "image",
-              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1752528139/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.jpg",
+              "url": "Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.jpg",
               "caption": "",
-              "scale": 47
+              "scale": 80
             }
           ],
           "layout": {
@@ -1430,7 +1430,7 @@
             {
               "id": "ins_glju9tft",
               "type": "text",
-              "text": "Attach Asset Tag\n",
+              "text": "Attach Asset Tag",
               "bold": false,
               "italic": false,
               "underline": false,
