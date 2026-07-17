@@ -833,7 +833,7 @@
       svc.Description && svc.Description !== svc.ProvidedServiceId
         ? " — " + esc(svc.Description)
         : ""
-    }</div>
+    }${iconHtml}</div>
             ${itemBlock}
           </div>
         </div>
@@ -849,7 +849,6 @@
               }>Active step</option>
             </select>
           </label>
-          ${iconHtml}
           ${statusBadgeHtml(svc.StatusId, svc.AssignedServiceStatusDesc)}
         </div>
       </div>

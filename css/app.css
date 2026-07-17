@@ -205,8 +205,16 @@ body {
 }
 
 .service-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
   font-weight: 700;
   font-size: 1.05rem;
+}
+.service-title .service-type-icon {
+  width: 2.35rem;
+  height: 2.35rem;
 }
 
 .service-item-row {
@@ -392,7 +400,7 @@ body {
 .badge.status-chip {
   display: inline-block;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.72rem;
   line-height: 1.25;
   letter-spacing: 0.01em;
   padding: 0.28em 0.65em;
@@ -540,10 +548,6 @@ body {
   align-items: center;
   gap: 0.55rem;
   flex-shrink: 0;
-}
-.service-header-end .service-type-icon {
-  width: 2.75rem;
-  height: 2.75rem;
 }
 .service-views .line-nav-item:hover {
   border-color: var(--primary);
