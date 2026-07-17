@@ -25,6 +25,16 @@
     "instructions_missing_in_wms",
     "instructions_missing_in_config"
   ]);
+  /** Push-direction instruction gaps (config → WMS). */
+  const PUSH_INSTR_STATUSES = new Set([
+    "instructions_differ",
+    "instructions_missing_in_wms"
+  ]);
+  /** Pull-direction instruction gaps (WMS → config). */
+  const PULL_INSTR_STATUSES = new Set([
+    "instructions_differ",
+    "instructions_missing_in_config"
+  ]);
   const confirmModalEl = document.getElementById("confirmModal");
   const confirmModal =
     confirmModalEl && window.bootstrap
@@ -117,6 +127,74 @@
     );
   }
 
+  function normalizeInstrText(text) {
+    return String(text ?? "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  /** Config instruction texts absent from WMS (push-direction text gap). */
+  function stepHasConfigTextsMissingInWms(step) {
+    if (!step) return false;
+    const cfg = Array.isArray(step.configInstructions)
+      ? step.configInstructions
+      : [];
+    const wms = Array.isArray(step.wmsInstructions) ? step.wmsInstructions : [];
+    const wmsNorm = new Set(wms.map(normalizeInstrText).filter(Boolean));
+    return cfg.some((text) => {
+      const n = normalizeInstrText(text);
+      return n && !wmsNorm.has(n);
+    });
+  }
+
+  /** WMS instruction texts absent from config (pull-direction text gap). */
+  function stepHasWmsTextsMissingInConfig(step) {
+    if (!step) return false;
+    const cfg = Array.isArray(step.configInstructions)
+      ? step.configInstructions
+      : [];
+    const wms = Array.isArray(step.wmsInstructions) ? step.wmsInstructions : [];
+    const cfgNorm = new Set(cfg.map(normalizeInstrText).filter(Boolean));
+    return wms.some((text) => {
+      const n = normalizeInstrText(text);
+      return n && !cfgNorm.has(n);
+    });
+  }
+
+  /**
+   * Instruction gaps in the push direction: status markers and/or config
+   * texts not present in WMS. Used by Missing in WMS filter membership
+   * regardless of the Include WMS instructions checkbox.
+   */
+  function typeHasPushInstructionGap(t) {
+    if (!t) return false;
+    if (PUSH_INSTR_STATUSES.has(t.instructionStatus)) return true;
+    const steps = Array.isArray(t.steps) ? t.steps : [];
+    return steps.some(
+      (s) =>
+        (s && PUSH_INSTR_STATUSES.has(s.instructionStatus)) ||
+        stepHasConfigTextsMissingInWms(s)
+    );
+  }
+
+  /**
+   * Instruction gaps in the pull direction: status markers and/or WMS
+   * texts not present in config. Used by Missing in config filter membership
+   * regardless of the Include WMS instructions checkbox.
+   */
+  function typeHasPullInstructionGap(t) {
+    if (!t) return false;
+    if (PULL_INSTR_STATUSES.has(t.instructionStatus)) return true;
+    const steps = Array.isArray(t.steps) ? t.steps : [];
+    return steps.some(
+      (s) =>
+        (s && PULL_INSTR_STATUSES.has(s.instructionStatus)) ||
+        stepHasWmsTextsMissingInConfig(s)
+    );
+  }
+
   /** Type or any step absent from WMS (presence gap — ignores instruction text). */
   function typeHasPresenceGapInWms(t) {
     if (!t) return false;
@@ -139,26 +217,18 @@
   function typeNeedsPushToWms(t) {
     if (!t) return false;
     if (typeHasPresenceGapInWms(t)) return true;
-    return typeHasInstructionDiff(t);
+    return typeHasPushInstructionGap(t);
   }
 
   /** Types/steps absent from config, or instruction gaps/diffs to pull. */
   function typeNeedsPullToConfig(t) {
     if (!t) return false;
     if (typeHasPresenceGapInConfig(t)) return true;
-    return typeHasInstructionDiff(t);
+    return typeHasPullInstructionGap(t);
   }
 
   function includeInstructionsChecked() {
     return !!(els.includeInstructions && els.includeInstructions.checked);
-  }
-
-  function normalizeInstrText(text) {
-    return String(text ?? "")
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .join(" ");
   }
 
   function anyMissingFilterActive() {
@@ -179,26 +249,14 @@
     const wantConfig = missingFilters.has("missing_in_config");
     if (!wantWms && !wantConfig) return list;
 
-    // Presence gaps (type or step missing) always count. Instruction-only gaps
-    // only when Include WMS instructions is checked.
-    if (includeInstructionsChecked()) {
-      return list.filter((t) => {
-        if (wantWms && wantConfig) {
-          return typeNeedsPushToWms(t) || typeNeedsPullToConfig(t);
-        }
-        if (wantWms) return typeNeedsPushToWms(t);
-        return typeNeedsPullToConfig(t);
-      });
-    }
+    // Missing filters always consider types, steps, and instruction gaps.
+    // Include WMS instructions only controls detail-row display, not membership.
     return list.filter((t) => {
-      if (!t) return false;
       if (wantWms && wantConfig) {
-        return (
-          typeHasPresenceGapInWms(t) || typeHasPresenceGapInConfig(t)
-        );
+        return typeNeedsPushToWms(t) || typeNeedsPullToConfig(t);
       }
-      if (wantWms) return typeHasPresenceGapInWms(t);
-      return typeHasPresenceGapInConfig(t);
+      if (wantWms) return typeNeedsPushToWms(t);
+      return typeNeedsPullToConfig(t);
     });
   }
 
@@ -237,22 +295,16 @@
   }
 
   function updateFilterHint() {
-    const showInstr = includeInstructionsChecked();
     if (els.filterHint) {
       els.filterHint.hidden = false;
-      els.filterHint.textContent = showInstr
-        ? "Missing buttons include types/steps with missing or differing instructions. Select both Missing buttons together to see all gaps."
-        : "Missing buttons include types and steps absent from WMS or config. Select both together to see all presence gaps.";
+      els.filterHint.textContent =
+        "Missing filters include types, steps, and instruction gaps. Select both Missing buttons together to see all gaps.";
     }
     if (els.missingInWmsFilterBtn) {
-      els.missingInWmsFilterBtn.textContent = showInstr
-        ? "Missing in WMS (+ instr)"
-        : "Missing in WMS";
+      els.missingInWmsFilterBtn.textContent = "Missing in WMS";
     }
     if (els.missingInConfigFilterBtn) {
-      els.missingInConfigFilterBtn.textContent = showInstr
-        ? "Missing in config (+ instr)"
-        : "Missing in config";
+      els.missingInConfigFilterBtn.textContent = "Missing in config";
     }
   }
 
@@ -352,10 +404,10 @@
     const rows = visibleTypes();
     const showInstr = includeInstructionsChecked();
     const missingKey = [...missingFilters].sort().join(",");
-    // Auto-expand under Missing filters so step-level gaps (e.g. aligned type
-    // with a step missing_in_wms) are visible without a manual click.
+    // Auto-expand under Missing filters so step/instruction gaps are visible
+    // without a manual click (instruction detail rows still need the checkbox).
     const autoExpandKey = anyMissingFilterActive()
-      ? `missing:${missingKey}${showInstr ? "+instr" : ""}`
+      ? `missing:${missingKey}`
       : "";
     if (autoExpandKey && autoExpandKey !== lastAutoExpandKey) {
       rows.forEach((t) => {
