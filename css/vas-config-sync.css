@@ -32,7 +32,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1.25rem;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 0.65rem;
   padding: 0.5rem 0.65rem;
   border: 1px solid var(--border);
@@ -40,9 +40,16 @@
   background: var(--input-bg);
 }
 
+.sync-option-note {
+  flex-basis: 100%;
+  margin-top: -0.35rem;
+  max-width: 40rem;
+}
+
 .sync-summary {
   font-size: 0.85rem;
   color: var(--muted, #6c757d);
+  margin-left: auto;
 }
 
 .sync-select-row {
