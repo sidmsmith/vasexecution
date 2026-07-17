@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-07-16T21:47:19.638Z",
+  "updatedAt": "2026-07-17T00:40:26.575Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -75,6 +75,9 @@
           }
         }
       },
+      "stepOrder": [
+        "Create UPC Tag"
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -178,6 +181,9 @@
           }
         }
       },
+      "stepOrder": [
+        "Build Packaging"
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -284,6 +290,10 @@
           }
         }
       },
+      "stepOrder": [
+        "Print Dicks Price Tickets",
+        "Apply Labels"
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -387,6 +397,9 @@
           }
         }
       },
+      "stepOrder": [
+        "Engrave with appropriate letter"
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -454,6 +467,9 @@
           }
         }
       },
+      "stepOrder": [
+        "1"
+      ],
       "sections": {
         "signature": {
           "enabled": false,
@@ -610,6 +626,10 @@
           }
         }
       },
+      "stepOrder": [
+        "Wrap",
+        "Tie Bow"
+      ],
       "sections": {
         "signature": {
           "enabled": false,
@@ -637,6 +657,7 @@
       "instructions": [],
       "images": [],
       "steps": {},
+      "stepOrder": [],
       "sections": {
         "signature": {
           "enabled": false,
@@ -740,6 +761,9 @@
           }
         }
       },
+      "stepOrder": [
+        "Etched with Picture"
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -819,6 +843,9 @@
           }
         }
       },
+      "stepOrder": [
+        "Print Price Ticket"
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -898,6 +925,9 @@
           }
         }
       },
+      "stepOrder": [
+        "Promotion Flyer"
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -1016,6 +1046,10 @@
           }
         }
       },
+      "stepOrder": [
+        "Repack",
+        "Repack into 4 packs of 3"
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -1107,6 +1141,9 @@
           }
         }
       },
+      "stepOrder": [
+        "Reverse VAS"
+      ],
       "sections": {
         "signature": {
           "enabled": false,
@@ -1198,6 +1235,9 @@
           }
         }
       },
+      "stepOrder": [
+        "Engrave with S"
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -1289,6 +1329,9 @@
           }
         }
       },
+      "stepOrder": [
+        "Repack into 4 packs of 3"
+      ],
       "sections": {
         "signature": {
           "enabled": true,
@@ -1304,6 +1347,142 @@
           "enabled": true,
           "required": false,
           "label": "Walmart-Repack Markup",
+          "mode": "photo"
+        }
+      }
+    },
+    "Verizon Laptop Prep": {
+      "title": "Verizon Laptop Prep",
+      "description": "Verizon Laptop Prep",
+      "iconUrl": "/assets/icons/vas-type-default.svg",
+      "content": [],
+      "instructions": [],
+      "images": [],
+      "steps": {
+        "Flash BIOS": {
+          "title": "Flash BIOS",
+          "content": [
+            {
+              "id": "ins_w95idiam",
+              "type": "text",
+              "text": "Configure boot sequence",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_dgm3v72k",
+              "type": "text",
+              "text": "Set default passwords\n",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_1ln2jdve",
+              "type": "text",
+              "text": "Update Power Management",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "img_vftjowdk",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1752528139/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.jpg",
+              "caption": "",
+              "scale": 47
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_w95idiam",
+                  "ins_dgm3v72k",
+                  "ins_1ln2jdve"
+                ]
+              },
+              {
+                "id": "col_ota6b4vw",
+                "width": 1,
+                "blockIds": [
+                  "img_vftjowdk"
+                ]
+              }
+            ]
+          }
+        },
+        "Asset Tag": {
+          "title": "Asset Tag",
+          "content": [
+            {
+              "id": "ins_glju9tft",
+              "type": "text",
+              "text": "Attach Asset Tag\n",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_izy5dbwy",
+              "type": "text",
+              "text": "Log Tag in tracking system",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_glju9tft",
+                  "ins_izy5dbwy"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "stepOrder": [
+        "Flash BIOS",
+        "Asset Tag"
+      ],
+      "sections": {
+        "signature": {
+          "enabled": false,
+          "required": false,
+          "label": "Verizon Laptop Prep Signature"
+        },
+        "photos": {
+          "enabled": false,
+          "required": false,
+          "label": "Verizon Laptop Prep Photos"
+        },
+        "markupPad": {
+          "enabled": false,
+          "required": false,
+          "label": "Verizon Laptop Prep Markup",
           "mode": "photo"
         }
       }
@@ -1374,6 +1553,7 @@
         }
       ],
       "steps": {},
+      "stepOrder": [],
       "sections": {
         "signature": {
           "enabled": false,
@@ -1443,6 +1623,7 @@
       ],
       "images": [],
       "steps": {},
+      "stepOrder": [],
       "sections": {
         "signature": {
           "enabled": true,
@@ -1492,6 +1673,7 @@
       ],
       "images": [],
       "steps": {},
+      "stepOrder": [],
       "sections": {
         "signature": {
           "enabled": false,
