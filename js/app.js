@@ -870,13 +870,37 @@
     </article>`;
   }
 
+  /** Primary: MAWM Sequence; secondary: ProvidedServiceId then Description (base). */
+  function compareAssignedServices(a, b) {
+    const seqA = Number(a?.Sequence);
+    const seqB = Number(b?.Sequence);
+    const aHas = Number.isFinite(seqA);
+    const bHas = Number.isFinite(seqB);
+    if (aHas && bHas && seqA !== seqB) return seqA - seqB;
+    if (aHas !== bHas) return aHas ? -1 : 1;
+    const idCmp = String(a?.ProvidedServiceId || "").localeCompare(
+      String(b?.ProvidedServiceId || ""),
+      undefined,
+      { sensitivity: "base" }
+    );
+    if (idCmp) return idCmp;
+    const descCmp = String(a?.Description || "").localeCompare(
+      String(b?.Description || ""),
+      undefined,
+      { sensitivity: "base" }
+    );
+    if (descCmp) return descCmp;
+    return String(a?.ServiceRequestorId || "").localeCompare(
+      String(b?.ServiceRequestorId || ""),
+      undefined,
+      { sensitivity: "base" }
+    );
+  }
+
   function renderServices(services) {
-    const list = Array.isArray(services) ? services : [];
-    // oLPN services first, then item — indices must match DOM card order for nav
-    currentServices = [
-      ...list.filter((s) => s.IsOlpnLevel),
-      ...list.filter((s) => !s.IsOlpnLevel)
-    ];
+    const list = Array.isArray(services) ? services.slice() : [];
+    list.sort(compareAssignedServices);
+    currentServices = list;
     activeServiceIndex = 0;
     if (!currentServices.length) {
       els.serviceList.innerHTML =

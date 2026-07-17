@@ -446,12 +446,25 @@ def is_olpn_level_service(svc: Dict[str, Any]) -> bool:
     return False
 
 
-def sort_services_olpn_then_item(services: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def parse_service_sequence(value: Any) -> Optional[float]:
+    """Coerce MAWM AssignedService.Sequence to a number; None if missing/invalid."""
+    if value is None or value == "":
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def sort_services_by_sequence(services: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Primary: Sequence ascending (missing last). Secondary: ProvidedServiceId, then Description."""
+
     def sort_key(svc: Dict[str, Any]):
-        group = 0 if is_olpn_level_service(svc) else 1
+        seq = parse_service_sequence(svc.get("Sequence"))
         return (
-            group,
-            str(svc.get("ProvidedServiceId") or ""),
+            seq if seq is not None else float("inf"),
+            str(svc.get("ProvidedServiceId") or "").casefold(),
+            str(svc.get("Description") or "").casefold(),
             str(svc.get("ServiceRequestorId") or ""),
         )
 
@@ -507,12 +520,16 @@ def summarize_service(
                 "Instructions": instructions,
             }
         )
+    sequence = parse_service_sequence(svc.get("Sequence"))
+    if sequence is not None and sequence.is_integer():
+        sequence = int(sequence)
     return {
         "ProvidedServiceId": str(svc.get("ProvidedServiceId") or "").strip(),
         "Description": svc.get("Description") or svc.get("ProvidedServiceId"),
         "ServiceRequestorTypeId": svc.get("ServiceRequestorTypeId"),
         "ServiceRequestorId": requestor_id,
         "ServiceUomId": svc.get("ServiceUomId"),
+        "Sequence": sequence,
         "AssignedServiceStatusDesc": service_status_desc,
         "StatusId": service_status_id,
         "ItemId": item_id or None,
@@ -621,7 +638,7 @@ def enrich_and_sort_services(
     summarized = [
         summarize_service(svc, item_map, items_by_id) for svc in raw_services
     ]
-    return sort_services_olpn_then_item(summarized), item_map
+    return sort_services_by_sequence(summarized), item_map
 
 
 def fetch_paginated_ids(org: str, token: str, api_path: str, id_field: str, query: str = ""):
