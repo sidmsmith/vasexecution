@@ -740,8 +740,8 @@
 
   async function runSave() {
     if (!draft || !org || !token) return;
-    if (!confirm("Save draft to GitHub and deploy?")) return;
-    status("Saving to GitHub...");
+    if (!confirm("Save draft to the cloud and deploy?")) return;
+    status("Saving to the cloud...");
     const payload = {
       version: draft.version || 1,
       updatedAt: new Date().toISOString(),

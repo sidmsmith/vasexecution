@@ -1335,7 +1335,7 @@
   };
   document.getElementById("saveBtn").onclick = async () => {
     syncEditorToDraft();
-    status("Saving to GitHub...");
+    status("Saving to the cloud...");
     const payload = {
       version: draft.version || 1,
       updatedAt: new Date().toISOString(),

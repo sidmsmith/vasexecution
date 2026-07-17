@@ -180,9 +180,16 @@
   function renderItemImage(url) {
     const safe = String(url || "").trim();
     if (!safe) return "";
-    return `<span class="item-image-wrap item-image-wrap--inline" data-image-url="${esc(safe)}">
-      <img class="item-image-thumb" src="${esc(safe)}" alt="" loading="lazy" decoding="async"
-        onerror="this.closest('.item-image-wrap')?.remove()" />
+    const candidates =
+      window.VasConfig && typeof window.VasConfig.imageUrlCandidates === "function"
+        ? window.VasConfig.imageUrlCandidates(safe)
+        : [safe];
+    const first = candidates[0] || safe;
+    const candJson = esc(JSON.stringify(candidates));
+    return `<span class="item-image-wrap item-image-wrap--inline" data-image-url="${esc(first)}">
+      <img class="item-image-thumb" src="${esc(first)}" alt="" loading="lazy" decoding="async"
+        data-img-candidates="${candJson}" data-img-candidate-idx="0"
+        onerror="window.VasConfig&&window.VasConfig.advanceImageFallback(this)" />
     </span>`;
   }
 

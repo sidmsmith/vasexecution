@@ -2520,7 +2520,7 @@ def save_vas_config():
                 return jsonify(
                     {
                         "success": True,
-                        "message": f"No overrides for {org} â€” nothing to save",
+                        "message": f"No overrides for {org} — nothing to save",
                         "deleted": False,
                     }
                 )
@@ -2544,7 +2544,7 @@ def save_vas_config():
             return jsonify(
                 {
                     "success": True,
-                    "message": f"Removed {org} overrides â€” Vercel will redeploy shortly",
+                    "message": f"Removed {org} overrides — deploy will start shortly",
                     "deleted": True,
                 }
             )
@@ -2585,7 +2585,7 @@ def save_vas_config():
         return jsonify(
             {
                 "success": True,
-                "message": f"Saved {org} VAS config â€” please wait ~1 minute for deploy",
+                "message": f"Saved {org} VAS config — please wait ~1 minute for deploy",
                 "commit": commit_sha,
                 "path": file_path,
             }

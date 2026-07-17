@@ -182,6 +182,62 @@
     };
   }
 
+  const IMAGE_FILE_EXTS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
+
+  function urlPathname(url) {
+    try {
+      return new URL(url, "https://example.invalid").pathname;
+    } catch {
+      return String(url || "").split("?")[0].split("#")[0];
+    }
+  }
+
+  /** True when the URL path already ends with a known image extension. */
+  function hasImageFileExtension(url) {
+    return /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(urlPathname(url));
+  }
+
+  /**
+   * Build <img src> candidates.
+   * - Explicit extension (e.g. .png): use that URL only — never fall back to .jpg.
+   * - Extensionless: try common extensions, then the bare URL.
+   */
+  function imageUrlCandidates(url) {
+    const raw = String(url || "").trim();
+    if (!raw) return [];
+    if (isPdfUrl(raw)) return [raw];
+    if (hasImageFileExtension(raw)) return [raw];
+    const base = raw.replace(/\/+$/, "");
+    const out = IMAGE_FILE_EXTS.map((ext) => base + ext);
+    out.push(base);
+    return out;
+  }
+
+  /** onerror handler: try next candidate, then remove the wrap. */
+  function advanceImageFallback(img) {
+    if (!img) return;
+    let list = [];
+    try {
+      list = JSON.parse(img.getAttribute("data-img-candidates") || "[]");
+    } catch {
+      list = [];
+    }
+    if (!Array.isArray(list)) list = [];
+    const i = Number(img.getAttribute("data-img-candidate-idx") || "0") + 1;
+    if (i < list.length) {
+      img.setAttribute("data-img-candidate-idx", String(i));
+      img.src = list[i];
+      const btn = img.closest(".vas-content-image-btn");
+      if (btn) btn.dataset.imageUrl = list[i];
+      const wrap = img.closest(".item-image-wrap");
+      if (wrap) wrap.dataset.imageUrl = list[i];
+      return;
+    }
+    const host =
+      img.closest(".vas-content-image") || img.closest(".item-image-wrap");
+    if (host) host.remove();
+  }
+
   /** Shared HTML for execution + admin preview content images. */
   function renderContentImageHtml(block, escFn) {
     const esc =
@@ -198,18 +254,22 @@
     const imgStyle = imageBlockStyle(block);
     const caption = String((block && block.caption) || "").trim();
     const title = isPdf ? "Open PDF" : "Open";
+    const candidates = isPdf ? [displayUrl] : imageUrlCandidates(displayUrl);
+    const first = candidates[0] || displayUrl;
+    const candJson = esc(JSON.stringify(candidates));
     const onError = isPdf
       ? `if(!this.dataset.fb){this.dataset.fb='1';this.src='${PDF_PLACEHOLDER_URL}';}else{this.closest('.vas-content-image')?.remove();}`
-      : "this.closest('.vas-content-image')?.remove()";
+      : "window.VasConfig&&window.VasConfig.advanceImageFallback(this)";
     return `<div class="vas-content-image${isPdf ? " is-pdf" : ""}">
       <button type="button" class="vas-content-image-btn" data-image-url="${esc(
-        displayUrl
+        first
       )}" data-open-url="${esc(openUrl)}" data-media-kind="${
       isPdf ? "pdf" : "image"
     }" data-image-caption="${esc(caption)}" title="${esc(title)}">
         ${isPdf ? '<span class="vas-pdf-badge">PDF</span>' : ""}
-        <img src="${esc(displayUrl)}" alt="${esc(caption)}" loading="lazy"
+        <img src="${esc(first)}" alt="${esc(caption)}" loading="lazy"
           style="${esc(imgStyle)}"
+          data-img-candidates="${candJson}" data-img-candidate-idx="0"
           onerror="${onError}" />
       </button>
       ${caption ? `<div class="caption">${esc(caption)}</div>` : ""}
@@ -640,6 +700,9 @@
     isCloudinaryDeliveryUrl,
     cloudinaryPdfPreviewUrl,
     contentImageUrls,
+    hasImageFileExtension,
+    imageUrlCandidates,
+    advanceImageFallback,
     renderContentImageHtml,
     PDF_PLACEHOLDER_URL,
     DEFAULT_TEXT_COLOR,
