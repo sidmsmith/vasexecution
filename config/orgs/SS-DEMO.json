@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-07-17T05:06:50.964Z",
+  "updatedAt": "2026-07-17T15:24:34.942Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1363,31 +1363,20 @@
           "title": "Flash BIOS",
           "content": [
             {
-              "id": "ins_w95idiam",
-              "type": "text",
-              "text": "Configure boot sequence",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
               "id": "ins_dgm3v72k",
               "type": "text",
               "text": "Set default passwords",
-              "bold": false,
+              "bold": true,
               "italic": false,
               "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
+              "color": "#f90b0b",
+              "fontSize": 129,
+              "listMarker": "star"
             },
             {
-              "id": "ins_1ln2jdve",
+              "id": "ins_w95idiam",
               "type": "text",
-              "text": "Update Power Management",
+              "text": "Configure boot sequence",
               "bold": false,
               "italic": false,
               "underline": false,
@@ -1400,7 +1389,18 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.png",
               "caption": "",
-              "scale": 35
+              "scale": 63
+            },
+            {
+              "id": "ins_1ln2jdve",
+              "type": "text",
+              "text": "Update Power Management",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
             }
           ],
           "layout": {
@@ -1409,9 +1409,8 @@
                 "id": "col_0",
                 "width": 1,
                 "blockIds": [
-                  "ins_w95idiam",
                   "ins_dgm3v72k",
-                  "ins_1ln2jdve"
+                  "ins_w95idiam"
                 ]
               },
               {
@@ -1419,6 +1418,13 @@
                 "width": 1,
                 "blockIds": [
                   "img_z0cnaddw"
+                ]
+              },
+              {
+                "id": "col_ai8w7m0k",
+                "width": 1,
+                "blockIds": [
+                  "ins_1ln2jdve"
                 ]
               }
             ]
@@ -1462,11 +1468,39 @@
               }
             ]
           }
+        },
+        "RKs Step": {
+          "title": "RKs Step",
+          "content": [
+            {
+              "id": "ins_haqdfohx",
+              "type": "text",
+              "text": "RKs instruction 1",
+              "bold": true,
+              "italic": false,
+              "underline": true,
+              "color": "#1983e6",
+              "fontSize": 134,
+              "listMarker": "check"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_haqdfohx"
+                ]
+              }
+            ]
+          }
         }
       },
       "stepOrder": [
+        "Asset Tag",
         "Flash BIOS",
-        "Asset Tag"
+        "RKs Step"
       ],
       "sections": {
         "signature": {
