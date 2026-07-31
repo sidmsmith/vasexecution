@@ -164,7 +164,7 @@
         ${
           selectedStep
             ? `<h6 class="text-muted" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.03em">Instructions — ${U.esc(selectedStep.id)}</h6>
-               ${U.diffLinesHtml(selectedStep.configInstructions, selectedStep.wmsInstructions)}`
+               ${U.diffLinesHtml(selectedStep)}`
             : ""
         }
       `;

@@ -132,15 +132,25 @@
   color: var(--text-muted);
 }
 .diff-text { flex: 1 1 auto; }
-.diff-tag {
+.diff-tags {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: center;
+}
+.diff-tag {
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--text-muted);
   white-space: nowrap;
-  align-self: center;
+}
+/* Same violet used for the Not Deployed badge — an independent axis from
+   the amber/blue WMS-gap tag it can sit next to, never replaces it. */
+.diff-tag-not-deployed {
+  color: #c084fc;
 }
 .diff-line-config-only {
   background: rgba(234, 179, 8, 0.12);

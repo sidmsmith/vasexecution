@@ -40,24 +40,60 @@
     return lines;
   }
 
-  function diffLinesHtml(configTexts, wmsTexts) {
+  /**
+   * Draft vs. deployed, for one step — same unifiedDiffLines mechanism used
+   * for draft vs. WMS, just pointed at a different second source. Falls back
+   * to configInstructions (i.e. "nothing changed") when a step has no
+   * deployedInstructions override, so most steps don't need to carry this
+   * field at all. kind "config-only" here means "in your draft, not in
+   * what's actually deployed" — a locally-added, unsaved line.
+   */
+  function stepDeployDiff(step) {
+    if (!step) return [];
+    const deployed = Array.isArray(step.deployedInstructions)
+      ? step.deployedInstructions
+      : step.configInstructions || [];
+    return unifiedDiffLines(step.configInstructions, deployed);
+  }
+
+  /** Whole step added/removed locally (stepNotDeployed flag) or has any undeployed line. */
+  function stepHasUndeployedChange(step) {
+    if (!step) return false;
+    if (step.stepNotDeployed) return true;
+    return stepDeployDiff(step).some((l) => l.kind !== "both");
+  }
+
+  function diffLinesHtml(step) {
+    const configTexts = (step && step.configInstructions) || [];
+    const wmsTexts = (step && step.wmsInstructions) || [];
     const lines = unifiedDiffLines(configTexts, wmsTexts);
     if (!lines.length) {
       return `<div class="diff-empty">No instructions on either side.</div>`;
     }
+    const undeployedNorm = new Set(
+      stepDeployDiff(step)
+        .filter((l) => l.kind === "config-only")
+        .map((l) => normalizeText(l.text))
+    );
     return `<ul class="diff-lines">${lines
       .map((l) => {
         const mark = l.kind === "config-only" ? "+" : l.kind === "wms-only" ? "−" : "";
+        const wmsTag =
+          l.kind === "config-only"
+            ? "missing in WMS"
+            : l.kind === "wms-only"
+              ? "missing in config"
+              : "";
+        // A wms-only line is content that exists only in WMS, so it can't
+        // also be a locally-added draft line — no undeployed check needed.
+        const isUndeployed = l.kind !== "wms-only" && undeployedNorm.has(normalizeText(l.text));
         return `<li class="diff-line diff-line-${l.kind}">
           <span class="diff-gutter">${mark}</span>
           <span class="diff-text">${esc(l.text)}</span>
-          ${
-            l.kind === "config-only"
-              ? '<span class="diff-tag">only in config</span>'
-              : l.kind === "wms-only"
-                ? '<span class="diff-tag">only in WMS</span>'
-                : ""
-          }
+          <span class="diff-tags">
+            ${wmsTag ? `<span class="diff-tag">${wmsTag}</span>` : ""}
+            ${isUndeployed ? '<span class="diff-tag diff-tag-not-deployed">not deployed</span>' : ""}
+          </span>
         </li>`;
       })
       .join("")}</ul>`;
@@ -116,11 +152,14 @@
    */
   function stepGapBadge(step) {
     if (!step) return "";
-    if (step.status === "missing_in_wms") return badge("missing_in_wms");
-    if (step.status === "missing_in_config") return badge("missing_in_config");
     const badges = [];
-    if (stepHasPushTextGap(step)) badges.push(badge("missing_in_wms"));
-    if (stepHasPullTextGap(step)) badges.push(badge("missing_in_config"));
+    if (step.status === "missing_in_wms") badges.push(badge("missing_in_wms"));
+    else if (step.status === "missing_in_config") badges.push(badge("missing_in_config"));
+    else {
+      if (stepHasPushTextGap(step)) badges.push(badge("missing_in_wms"));
+      if (stepHasPullTextGap(step)) badges.push(badge("missing_in_config"));
+    }
+    if (stepHasUndeployedChange(step)) badges.push(badge("not_deployed", "not deployed"));
     return badges.join(" ");
   }
 
@@ -228,9 +267,12 @@
 
   /** One step's title + merged diff — the expanded-view content shared by C and D. */
   function stepDiffBlockHtml(step) {
+    const notDeployedBadge = stepHasUndeployedChange(step)
+      ? ` ${badge("not_deployed", "not deployed")}`
+      : "";
     return `<div class="mb-2">
-      <div class="sync-step-row-title mb-1">${esc(step.id)}</div>
-      ${diffLinesHtml(step.configInstructions, step.wmsInstructions)}
+      <div class="sync-step-row-title mb-1">${esc(step.id)}${notDeployedBadge}</div>
+      ${diffLinesHtml(step)}
     </div>`;
   }
 

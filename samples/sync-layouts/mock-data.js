@@ -9,9 +9,11 @@
  *   - whole type missing in WMS / missing in config
  *   - fully aligned
  *   - local draft not yet deployed (independent of WMS diff state)
+ *   - local draft not yet deployed AND has a real gap (a step deleted in
+ *     Admin but not yet Saved & Deployed — see "Verizon Desktop Prep")
  */
 window.SYNC_MOCK = {
-  wmsCount: 7,
+  wmsCount: 8,
   types: [
     {
       id: "Verizon Laptop Prep",
@@ -154,6 +156,45 @@ window.SYNC_MOCK = {
           instructionStatus: "instructions_aligned",
           configInstructions: ["Engrave with appropriate letter", "Gift Pack in blue box"],
           wmsInstructions: ["Engrave with appropriate letter", "Gift Pack in blue box"]
+        }
+      ]
+    },
+    {
+      // Recreates the original "delete RKs Step in Admin, don't Save &
+      // Deploy yet" scenario, PLUS a second, finer-grained edit in the same
+      // session — added one new instruction line to Asset Tag, also unsaved
+      // and not yet in WMS either. Demonstrates both granularities the Sync
+      // page needs to surface: stepNotDeployed marks a whole step that was
+      // added/removed locally (RKs Step — present in deployed+WMS, absent
+      // from draft); deployedInstructions marks individual lines that exist
+      // in the draft but not in what's actually deployed (Asset Tag's new
+      // "Confirm serial number" line). Both are independent of the
+      // draft-vs-WMS comparison — RKs Step happens to also be a real
+      // Missing in config gap; the new Asset Tag line happens to also be a
+      // real Missing in WMS gap, since neither has reached WMS yet either.
+      id: "Verizon Desktop Prep",
+      title: "Verizon Desktop Prep",
+      wmsDescription: "Verizon Desktop Prep",
+      status: "aligned",
+      instructionStatus: "instructions_differ",
+      notYetDeployed: true,
+      warnings: [],
+      steps: [
+        {
+          id: "Asset Tag",
+          status: "aligned",
+          instructionStatus: "instructions_differ",
+          configInstructions: ["Attach Asset Tag", "Confirm serial number"],
+          deployedInstructions: ["Attach Asset Tag"],
+          wmsInstructions: ["Attach Asset Tag"]
+        },
+        {
+          id: "RKs Step",
+          status: "missing_in_config",
+          instructionStatus: "instructions_missing_in_config",
+          stepNotDeployed: true,
+          configInstructions: [],
+          wmsInstructions: ["Complete RKs check", "Log RKs result"]
         }
       ]
     },
