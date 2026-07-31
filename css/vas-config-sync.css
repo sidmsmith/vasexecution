@@ -221,6 +221,12 @@ table.table.sync-table {
   color: var(--status-chip-fg, #f5f5f5);
 }
 
+.sync-badge-not_deployed {
+  background: rgba(148, 163, 184, 0.22);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  color: var(--status-chip-fg, #f5f5f5);
+}
+
 .sync-instr-counts {
   margin-left: 0.4rem;
   font-size: 0.72rem;

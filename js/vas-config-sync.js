@@ -3,7 +3,12 @@
   let token = null;
   let org = null;
   let defaultsDoc = null;
+  /** Effective config used for diffing: local (unsaved) draft when present, else deployed. */
   let draft = null;
+  /** Freshly-fetched deployed doc (defaults + org overlay) — always the real, live-pushable state. */
+  let deployedDraft = null;
+  /** True when `draft` came from localStorage rather than the deployed JSON files. */
+  let usingLocalDraft = false;
   /** @type {Array|null} */
   let diffTypes = null;
   /** @type {object|null} */
@@ -25,16 +30,16 @@
     "instructions_missing_in_wms",
     "instructions_missing_in_config"
   ]);
-  /** Push-direction instruction gaps (config → WMS). */
-  const PUSH_INSTR_STATUSES = new Set([
-    "instructions_differ",
-    "instructions_missing_in_wms"
-  ]);
-  /** Pull-direction instruction gaps (WMS → config). */
-  const PULL_INSTR_STATUSES = new Set([
-    "instructions_differ",
-    "instructions_missing_in_config"
-  ]);
+  /**
+   * Push/pull-direction instruction gaps. Deliberately exclude
+   * "instructions_differ" — the backend uses that as a catch-all whenever
+   * both sides have text but the lists don't match exactly (config has
+   * extra, WMS has extra, reordered, reworded, ...), so it doesn't imply a
+   * gap in either specific direction. Directionality for "differ" cases is
+   * determined precisely by the per-text helpers below instead.
+   */
+  const PUSH_INSTR_STATUSES = new Set(["instructions_missing_in_wms"]);
+  const PULL_INSTR_STATUSES = new Set(["instructions_missing_in_config"]);
   const confirmModalEl = document.getElementById("confirmModal");
   const confirmModal =
     confirmModalEl && window.bootstrap
@@ -110,6 +115,31 @@
     } catch {
       return null;
     }
+  }
+
+  function entriesEqual(a, b) {
+    return JSON.stringify(a || null) === JSON.stringify(b || null);
+  }
+
+  /** Read the Admin page's autosaved draft for this org, if any. */
+  function readLocalDraft() {
+    if (!org) return null;
+    try {
+      const raw = localStorage.getItem(`vas_draft:${org}`);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Type exists in WMS or config but the effective (local) draft hasn't been deployed yet. */
+  function typeNotYetDeployed(t) {
+    if (!t || !usingLocalDraft) return false;
+    const id = String(t.id);
+    return !entriesEqual(
+      draft && draft.vasTypes && draft.vasTypes[id],
+      deployedDraft && deployedDraft.vasTypes && deployedDraft.vasTypes[id]
+    );
   }
 
   function badge(statusKey) {
@@ -457,6 +487,9 @@
         showInstr && t.instructionStatus
           ? ` ${badge(t.instructionStatus)}`
           : "";
+      const notDeployedBadge = t.notYetDeployed
+        ? ` <span class="sync-badge sync-badge-not_deployed" title="Local draft has unsaved changes for this type — Save &amp; Deploy in Admin before pushing to WMS">not deployed</span>`
+        : "";
       const tr = document.createElement("tr");
       tr.className = "sync-type-row";
       tr.dataset.typeId = id;
@@ -475,7 +508,7 @@
           <span class="sync-type-id">${esc(id)}</span>
           <span class="sync-type-title">${esc(t.title || "")}</span>
         </td>
-        <td>${badge(t.status)}${typeInstrBadge}</td>
+        <td>${badge(t.status)}${typeInstrBadge}${notDeployedBadge}</td>
         <td>${steps.length}</td>
         <td>${warnHtml || "—"}</td>`;
       els.diffBody.appendChild(tr);
@@ -518,6 +551,7 @@
       }
     });
     updateSelectionHint();
+    updatePushBtnState();
   }
 
   async function loadDraft() {
@@ -526,15 +560,30 @@
     if (!defaultsRaw) {
       status("Could not load /config/vas.default.json", "error");
       draft = VasConfig.emptyConfig();
+      deployedDraft = draft;
+      usingLocalDraft = false;
       return;
     }
     defaultsDoc = VasConfig.normalizeConfig(defaultsRaw);
     const orgDoc = await fetchJson(
       `/config/orgs/${encodeURIComponent(org)}.json${bust}`
     );
-    draft = orgDoc
+    deployedDraft = orgDoc
       ? VasConfig.mergeVasConfigs(defaultsDoc, orgDoc)
       : VasConfig.normalizeConfig(JSON.parse(JSON.stringify(defaultsDoc)));
+
+    const localRaw = readLocalDraft();
+    const localNormalized = localRaw ? VasConfig.normalizeConfig(localRaw) : null;
+    if (
+      localNormalized &&
+      JSON.stringify(localNormalized) !== JSON.stringify(deployedDraft)
+    ) {
+      draft = localNormalized;
+      usingLocalDraft = true;
+    } else {
+      draft = deployedDraft;
+      usingLocalDraft = false;
+    }
   }
 
   async function refreshDiff() {
@@ -551,6 +600,9 @@
     }
     diffTypes = res.types || [];
     diffSummary = res.summary || {};
+    diffTypes.forEach((t) => {
+      if (t) t.notYetDeployed = typeNotYetDeployed(t);
+    });
     // Drop selections that no longer exist
     const known = new Set(diffTypes.map((t) => String(t.id)));
     for (const id of Array.from(selected)) {
@@ -558,10 +610,11 @@
     }
     renderSummary();
     renderTable();
+    updatePushBtnState();
     status(
-      `Diff ready — ${diffSummary.types || 0} types (WMS catalog ${
-        res.wmsCount ?? "?"
-      })`,
+      usingLocalDraft
+        ? `Diff ready (against unsaved local draft) — ${diffSummary.types || 0} types (WMS catalog ${res.wmsCount ?? "?"})`
+        : `Diff ready — ${diffSummary.types || 0} types (WMS catalog ${res.wmsCount ?? "?"})`,
       "success"
     );
   }
@@ -607,7 +660,7 @@
       });
     }
     return (diffTypes || [])
-      .filter((t) => t && t.status === "missing_in_wms")
+      .filter((t) => t && t.status === "missing_in_wms" && !t.notYetDeployed)
       .map((t) => String(t.id));
   }
 
@@ -624,13 +677,31 @@
       typeHasInstructionDiff(t) || typeHasStepsMissingInWms(t);
     const candidates = selected.size
       ? Array.from(selected).map((id) => typeById(id)).filter(Boolean)
-      : (diffTypes || []).filter(needsMerge);
+      : (diffTypes || []).filter((t) => needsMerge(t) && !t.notYetDeployed);
     return candidates
       .filter(
         (t) =>
           typeExistsInWms(t) && t.status !== "missing_in_config" && needsMerge(t)
       )
       .map((t) => String(t.id));
+  }
+
+  /** Any currently-selected type has unsaved local changes not yet deployed. */
+  function selectionHasUndeployed() {
+    if (!selected.size) return false;
+    return Array.from(selected).some((id) => {
+      const t = typeById(id);
+      return !!(t && t.notYetDeployed);
+    });
+  }
+
+  function updatePushBtnState() {
+    if (!els.pushBtn) return;
+    const blocked = selectionHasUndeployed();
+    els.pushBtn.disabled = blocked;
+    els.pushBtn.title = blocked
+      ? "Selected type(s) have unsaved local changes — Save & Deploy in Admin first, or deselect them"
+      : "";
   }
 
   function openConfirm(title, html, action) {
@@ -669,6 +740,12 @@
   }
 
   async function runPush() {
+    if (selectionHasUndeployed()) {
+      return status(
+        "Selected type(s) have unsaved local changes — Save & Deploy in Admin first, or deselect them",
+        "error"
+      );
+    }
     const includeInstructions = includeInstructionsChecked();
     const createIds = pushCreateIds();
     const mergeIds = includeInstructions ? pushMergeIds() : [];
@@ -883,6 +960,7 @@
       if (check.checked) selected.add(id);
       else selected.delete(id);
       updateSelectionHint();
+      updatePushBtnState();
       return;
     }
     const row = e.target.closest(".sync-type-row");

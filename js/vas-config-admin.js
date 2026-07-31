@@ -4,6 +4,9 @@
   let org = null;
   let defaultsDoc = null;
   let draft = null;
+  /** Freshly-fetched deployed doc (defaults + org overlay) captured at loadDraft() time. */
+  let deployedSnapshot = null;
+  let localPersistTimer = null;
   let tab = "types"; // types | items
   let selectedKey = null;
   let selectedStepId = null;
@@ -50,6 +53,8 @@
     previewHost: document.getElementById("previewHost"),
     configTabSelect: document.getElementById("configTabSelect"),
     deleteKeyBtn: document.getElementById("deleteKeyBtn"),
+    discardLocalBtn: document.getElementById("discardLocalBtn"),
+    draftDirtyBadge: document.getElementById("draftDirtyBadge"),
     addEntryBtn: document.getElementById("addEntryBtn"),
     addEntryBtnLabel: document.getElementById("addEntryBtnLabel"),
     previewThemeBtn: document.getElementById("previewThemeBtn"),
@@ -60,6 +65,71 @@
   function status(text, type = "info") {
     els.status.textContent = text || "";
     els.status.className = "app-status " + type;
+  }
+
+  function draftStorageKey() {
+    return org ? `vas_draft:${org}` : null;
+  }
+
+  function configsEqual(a, b) {
+    return (
+      JSON.stringify(VasConfig.normalizeConfig(a)) ===
+      JSON.stringify(VasConfig.normalizeConfig(b))
+    );
+  }
+
+  function updateDirtyIndicator() {
+    if (!els.draftDirtyBadge) return;
+    const dirty = !!(draft && deployedSnapshot && !configsEqual(draft, deployedSnapshot));
+    els.draftDirtyBadge.classList.toggle("d-none", !dirty);
+  }
+
+  /** Immediate write-through to localStorage; used at explicit checkpoints. */
+  function persistDraftLocal() {
+    const key = draftStorageKey();
+    if (!key || !draft) return;
+    try {
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          version: draft.version || 1,
+          vasTypes: draft.vasTypes,
+          items: draft.items,
+          savedAt: new Date().toISOString()
+        })
+      );
+    } catch (e) {
+      // Private browsing / quota exceeded — degrade silently, editing still works.
+    }
+    updateDirtyIndicator();
+  }
+
+  /** Debounced autosave — called from renderPreview() on every edit. */
+  function scheduleLocalPersist() {
+    clearTimeout(localPersistTimer);
+    localPersistTimer = setTimeout(persistDraftLocal, 500);
+  }
+
+  function readLocalDraft() {
+    const key = draftStorageKey();
+    if (!key) return null;
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function clearLocalDraft() {
+    const key = draftStorageKey();
+    if (!key) return;
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      // ignore
+    }
   }
 
   function esc(value) {
@@ -985,6 +1055,7 @@
 
   function renderPreview() {
     syncEditorToDraft();
+    scheduleLocalPersist();
     const entry = currentEntry();
     if (!entry) {
       previewThemeScope = null;
@@ -1067,30 +1138,57 @@
     if (!defaultsRaw) {
       status("Could not load /config/vas.default.json", "error");
       draft = VasConfig.emptyConfig();
+      deployedSnapshot = null;
       renderEntrySelect();
       renderEditor();
       renderPreview();
+      updateDirtyIndicator();
       return;
     }
     defaultsDoc = VasConfig.normalizeConfig(defaultsRaw);
     const orgDoc = await fetchJson(
       `/config/orgs/${encodeURIComponent(org)}.json${bust}`
     );
-    draft = orgDoc
+    const deployedDraft = orgDoc
       ? VasConfig.mergeVasConfigs(defaultsDoc, orgDoc)
       : VasConfig.normalizeConfig(JSON.parse(JSON.stringify(defaultsDoc)));
+    deployedSnapshot = JSON.parse(JSON.stringify(deployedDraft));
+
+    const localRaw = readLocalDraft();
+    let restoredLocal = false;
+    if (localRaw) {
+      const localNormalized = VasConfig.normalizeConfig(localRaw);
+      if (!configsEqual(localNormalized, deployedDraft)) {
+        draft = localNormalized;
+        restoredLocal = true;
+      } else {
+        draft = deployedDraft;
+      }
+    } else {
+      draft = deployedDraft;
+    }
+
     selectedKey = Object.keys(draft.vasTypes)[0] || null;
     tab = "types";
     els.configTabSelect.value = "types";
     renderEntrySelect();
     renderEditor();
     renderPreview();
-    status(
-      `Authenticated (${org}) — ${Object.keys(draft.vasTypes).length} VAS Types, ${
-        Object.keys(draft.items).length
-      } Items`,
-      "success"
-    );
+    updateDirtyIndicator();
+    if (restoredLocal) {
+      const savedAt = localRaw && localRaw.savedAt;
+      status(
+        `Restored unsaved local changes${savedAt ? ` from ${new Date(savedAt).toLocaleString()}` : ""} — not yet deployed`,
+        "info"
+      );
+    } else {
+      status(
+        `Authenticated (${org}) — ${Object.keys(draft.vasTypes).length} VAS Types, ${
+          Object.keys(draft.items).length
+        } Items`,
+        "success"
+      );
+    }
     await refreshWmsStepMatch();
   }
 
@@ -1319,6 +1417,7 @@
       renderEntrySelect();
       renderEditor();
       renderPreview();
+      persistDraftLocal();
       status("Imported into local draft (not deployed)", "success");
     } catch (err) {
       status(err.message || "Import failed", "error");
@@ -1331,8 +1430,16 @@
     draft = VasConfig.normalizeConfig(JSON.parse(JSON.stringify(defaultsDoc)));
     selectedKey = Object.keys(draft.vasTypes)[0] || null;
     switchTab("types");
+    persistDraftLocal();
     status("Draft reset to defaults", "success");
   };
+  if (els.discardLocalBtn) {
+    els.discardLocalBtn.onclick = async () => {
+      if (!confirm("Discard unsaved local changes and reload from the last deployed config?")) return;
+      clearLocalDraft();
+      await loadDraft();
+    };
+  }
   document.getElementById("saveBtn").onclick = async () => {
     syncEditorToDraft();
     status("Saving to the cloud...");
@@ -1344,6 +1451,9 @@
     };
     const res = await api("save_vas_config", { org, token, config: payload });
     if (!res.success) return status(res.error || "Save failed", "error");
+    deployedSnapshot = JSON.parse(JSON.stringify(VasConfig.normalizeConfig(draft)));
+    persistDraftLocal();
+    updateDirtyIndicator();
     status(res.message || "Saved", "success");
   };
 

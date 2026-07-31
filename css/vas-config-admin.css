@@ -1,5 +1,26 @@
 /* VAS admin extras on top of checklist-admin / flowthrough-shared */
 
+.draft-dirty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(234, 179, 8, 0.18);
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  color: var(--text, #e8eaed);
+  white-space: nowrap;
+}
+
+.draft-dirty-badge i {
+  font-size: 0.5rem;
+  color: #facc15;
+}
+
 .entry-select-row {
   display: flex;
   align-items: flex-end;

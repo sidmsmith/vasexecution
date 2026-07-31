@@ -57,6 +57,12 @@
           <button type="button" class="btn btn-outline-warning btn-sm mb-0" id="resetBtn">
             <i class="fa-solid fa-eraser"></i> Reset to default
           </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="discardLocalBtn" title="Discard unsaved local changes and reload from the last deployed config">
+            <i class="fa-solid fa-rotate-left"></i> Discard local changes
+          </button>
+          <span id="draftDirtyBadge" class="draft-dirty-badge d-none">
+            <i class="fa-solid fa-circle"></i> Unsaved local changes
+          </span>
           <button type="button" class="btn btn-success" id="saveBtn">
             <i class="fa-solid fa-cloud-arrow-up"></i> Save &amp; Deploy
           </button>
