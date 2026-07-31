@@ -1203,6 +1203,8 @@
     localStorage.setItem("vas_lastOrg", org);
     els.orgSection.style.display = "none";
     els.mainUI.style.display = "block";
+    const syncLink = document.getElementById("syncNavLink");
+    if (syncLink) syncLink.href = `/config-sync.html?org=${encodeURIComponent(org)}`;
     await loadDraft();
   }
 

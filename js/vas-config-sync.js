@@ -490,6 +490,26 @@
       const notDeployedBadge = t.notYetDeployed
         ? ` <span class="sync-badge sync-badge-not_deployed" title="Local draft has unsaved changes for this type — Save &amp; Deploy in Admin before pushing to WMS">not deployed</span>`
         : "";
+      // Step-level gap counts, shown even when the row is collapsed — the
+      // type-level status only reflects whether the TYPE itself exists on
+      // both sides, so e.g. "aligned" can still be hiding a missing step.
+      const stepsMissingInWmsCount = steps.filter(
+        (s) => s && s.status === "missing_in_wms"
+      ).length;
+      const stepsMissingInConfigCount = steps.filter(
+        (s) => s && s.status === "missing_in_config"
+      ).length;
+      const stepGapBadges =
+        (stepsMissingInWmsCount
+          ? ` <span class="sync-badge sync-badge-missing_in_wms" title="Step(s) present in config but not in WMS">${stepsMissingInWmsCount} step${
+              stepsMissingInWmsCount === 1 ? "" : "s"
+            } missing in WMS</span>`
+          : "") +
+        (stepsMissingInConfigCount
+          ? ` <span class="sync-badge sync-badge-missing_in_config" title="Step(s) present in WMS but not in config">${stepsMissingInConfigCount} step${
+              stepsMissingInConfigCount === 1 ? "" : "s"
+            } missing in config</span>`
+          : "");
       const tr = document.createElement("tr");
       tr.className = "sync-type-row";
       tr.dataset.typeId = id;
@@ -508,7 +528,7 @@
           <span class="sync-type-id">${esc(id)}</span>
           <span class="sync-type-title">${esc(t.title || "")}</span>
         </td>
-        <td>${badge(t.status)}${typeInstrBadge}${notDeployedBadge}</td>
+        <td>${badge(t.status)}${typeInstrBadge}${notDeployedBadge}${stepGapBadges}</td>
         <td>${steps.length}</td>
         <td>${warnHtml || "—"}</td>`;
       els.diffBody.appendChild(tr);
@@ -630,6 +650,8 @@
     localStorage.setItem("vas_lastOrg", org);
     els.orgSection.style.display = "none";
     els.mainUI.style.display = "block";
+    const adminLink = document.getElementById("adminNavLink");
+    if (adminLink) adminLink.href = `/admin.html?org=${encodeURIComponent(org)}`;
     await loadDraft();
     await refreshDiff();
   }
