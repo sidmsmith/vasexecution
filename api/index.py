@@ -2114,8 +2114,10 @@ def vas_sync_push_instructions():
     For each selected typeId:
       1) providedService/search by ProvidedServiceId (full current definition)
       2) Replace StepInstruction lists on steps present in config
-      3) instruction/save for new/changed InstructionIds
-      4) ONE providedService/save with the merged payload
+      3) Create any config steps absent from WMS (with their instructions),
+         appended after the existing WMS steps
+      4) instruction/save for new/changed InstructionIds
+      5) ONE providedService/save with the merged payload
 
     Create-only push (vas_sync_push) remains unchanged for brand-new types.
     dryRun=true returns the plan without calling save APIs.
@@ -2203,7 +2205,8 @@ def vas_sync_push_instructions():
         merged["ServiceTypeId"] = merged.get("ServiceTypeId") or "VAS"
 
         steps_src = entry.get("steps") if isinstance(entry.get("steps"), dict) else {}
-        config_step_ids = set(_ordered_config_step_ids(entry))
+        config_step_ids_ordered = _ordered_config_step_ids(entry)
+        config_step_ids = set(config_step_ids_ordered)
         wms_steps = [
             s
             for s in as_list(merged.get("ProvidedServiceStep"))
@@ -2214,8 +2217,16 @@ def vas_sync_push_instructions():
             for s in wms_steps
             if str(s.get("ProvidedServiceStepId") or "").strip()
         }
+        used_instruction_ids: Set[str] = set()
+        for s in wms_steps:
+            for instr in as_list(s.get("StepInstruction")):
+                if isinstance(instr, dict):
+                    iid = str(instr.get("StepInstructionId") or "").strip()
+                    if iid:
+                        used_instruction_ids.add(iid)
+
         steps_updated: List[str] = []
-        steps_skipped_missing: List[str] = []
+        steps_created: List[str] = []
         all_saves: List[Dict[str, str]] = []
         instruction_count = 0
 
@@ -2237,14 +2248,66 @@ def vas_sync_push_instructions():
             all_saves.extend(saves)
             instruction_count += len(new_instrs)
 
-        for sid in sorted(config_step_ids - wms_step_ids, key=str.lower):
-            steps_skipped_missing.append(sid)
+        # Steps present in config but absent from WMS: create them on this
+        # existing type instead of only reporting the gap. Previously these
+        # were collected into "steps_skipped_missing" and never actually
+        # appended to the save payload, so they could never reach WMS.
+        missing_step_ids = [
+            sid for sid in config_step_ids_ordered if sid not in wms_step_ids
+        ]
+        if missing_step_ids:
+            try:
+                max_seq = max(
+                    (int(s.get("StepSequence") or 0) for s in wms_steps),
+                    default=0,
+                )
+            except (TypeError, ValueError):
+                max_seq = len(wms_steps)
+            new_step_payloads: List[Dict[str, Any]] = []
+            for offset, step_id in enumerate(missing_step_ids, start=1):
+                step_entry = steps_src.get(step_id) or steps_src.get(step_id.strip()) or {}
+                if not isinstance(step_entry, dict):
+                    step_entry = {}
+                step_desc = str(step_entry.get("title") or step_id).strip() or step_id
+                new_step_instrs: List[Dict[str, Any]] = []
+                for seq, (instr_text, block_id) in enumerate(
+                    _instruction_texts_from_step(step_entry), start=1
+                ):
+                    instr_id = _stable_step_instruction_id(
+                        type_id,
+                        step_id,
+                        seq,
+                        block_id=block_id,
+                        text=instr_text,
+                        used_ids=used_instruction_ids,
+                    )
+                    all_saves.append(
+                        {"InstructionId": instr_id, "InstructionText": instr_text}
+                    )
+                    new_step_instrs.append(
+                        {
+                            "StepInstructionId": instr_id,
+                            "Sequence": seq,
+                            "InstructionText": instr_text,
+                        }
+                    )
+                new_step_payloads.append(
+                    {
+                        "ProvidedServiceStepId": step_id,
+                        "StepSequence": max_seq + offset,
+                        "Description": step_desc,
+                        "StepInstruction": new_step_instrs,
+                    }
+                )
+                instruction_count += len(new_step_instrs)
+            merged["ProvidedServiceStep"] = wms_steps + new_step_payloads
+            steps_created.extend(missing_step_ids)
 
         plan_row = {
             "id": type_id,
             "action": "merge_instructions",
             "stepsUpdated": steps_updated,
-            "stepsMissingInWms": steps_skipped_missing,
+            "stepsCreated": steps_created,
             "instructionCount": instruction_count,
             "instructionSaveCount": len(all_saves),
         }
@@ -2314,9 +2377,9 @@ def vas_sync_push_instructions():
                     "id": type_id,
                     "action": "merged",
                     "stepsUpdated": steps_updated,
+                    "stepsCreated": steps_created,
                     "instructionCount": instruction_count,
                     "instructionSaveCount": len(all_saves),
-                    "stepsMissingInWms": steps_skipped_missing,
                 }
             )
         else:

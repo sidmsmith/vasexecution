@@ -197,6 +197,12 @@
   function typeHasPresenceGapInWms(t) {
     if (!t) return false;
     if (t.status === "missing_in_wms") return true;
+    return typeHasStepsMissingInWms(t);
+  }
+
+  /** Any step absent from WMS on a type that itself exists in WMS. */
+  function typeHasStepsMissingInWms(t) {
+    if (!t) return false;
     return (Array.isArray(t.steps) ? t.steps : []).some(
       (s) => s && s.status === "missing_in_wms"
     );
@@ -334,7 +340,7 @@
     els.selectionHint.textContent = n
       ? `${n} type${n === 1 ? "" : "s"} selected`
       : includeInstr
-        ? "No selection — push creates Missing in WMS and merges types with instruction diffs"
+        ? "No selection — push creates Missing in WMS types and merges/creates steps on types with diffs"
         : "No selection — push creates types Missing in WMS only";
     const vis = visibleTypes();
     const allSelected =
@@ -607,19 +613,22 @@
 
   /**
    * Merge targets when Include WMS instructions is on:
-   * selected existing types with instruction diffs, or all such types when none selected.
-   * Excludes missing_in_wms (those are created with full instructions instead).
+   * selected existing types with instruction diffs and/or steps missing from
+   * WMS, or all such types when none selected. Excludes missing_in_wms types
+   * at the top level (those are created with full instructions instead) —
+   * a type that exists in WMS but is missing one of its steps still
+   * qualifies, and the merge call creates that step.
    */
   function pushMergeIds() {
+    const needsMerge = (t) =>
+      typeHasInstructionDiff(t) || typeHasStepsMissingInWms(t);
     const candidates = selected.size
       ? Array.from(selected).map((id) => typeById(id)).filter(Boolean)
-      : (diffTypes || []).filter((t) => typeHasInstructionDiff(t));
+      : (diffTypes || []).filter(needsMerge);
     return candidates
       .filter(
         (t) =>
-          typeExistsInWms(t) &&
-          t.status !== "missing_in_config" &&
-          typeHasInstructionDiff(t)
+          typeExistsInWms(t) && t.status !== "missing_in_config" && needsMerge(t)
       )
       .map((t) => String(t.id));
   }
@@ -647,11 +656,11 @@
   function formatMergePlanLine(p) {
     if (p.action === "merge_instructions") {
       const steps = (p.stepsUpdated || []).join(", ") || "none";
-      const missing = (p.stepsMissingInWms || []).join(", ");
+      const created = (p.stepsCreated || []).join(", ");
       return `<li><strong>${esc(p.id)}</strong> — merge instructions (${
         p.instructionCount || 0
       } on steps: ${esc(steps)}${
-        missing ? `; steps missing in WMS: ${esc(missing)}` : ""
+        created ? `; steps created in WMS: ${esc(created)}` : ""
       }; ${p.instructionSaveCount || 0} instruction/save)</li>`;
     }
     return `<li><strong>${esc(p.id)}</strong> — skip merge (${esc(
@@ -667,8 +676,8 @@
     if (!createIds.length && !mergeIds.length) {
       return status(
         includeInstructions
-          ? "Nothing to push — no Missing in WMS types and no instruction diffs to merge"
-          : "Nothing to push — no Missing in WMS types (check Include WMS instructions to also merge diffs)",
+          ? "Nothing to push — no Missing in WMS types and no instruction/step diffs to merge"
+          : "Nothing to push — no Missing in WMS types (check Include WMS instructions to also merge instruction/step diffs)",
         "error"
       );
     }
@@ -719,8 +728,8 @@
     ].join("");
 
     const note = includeInstructions
-      ? "Creates missing types with full instructions, and merges StepInstruction lists onto existing types that differ."
-      : "Creates missing types only (no instruction merge). Check Include WMS instructions to also sync instruction diffs.";
+      ? "Creates missing types with full instructions, and on existing types merges StepInstruction lists and creates any steps missing from WMS."
+      : "Creates missing types only (no merge). Check Include WMS instructions to also sync instruction diffs and missing steps on existing types.";
 
     openConfirm(
       "Push to WMS",
