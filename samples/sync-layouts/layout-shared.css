@@ -1,0 +1,285 @@
+/* Static Sync-page layout mockups — extends app.css + vas-config-sync.css */
+
+/* Bootstrap's default .text-muted (~near-black, meant for light backgrounds)
+   is effectively invisible on this dark theme — app.css never overrides it,
+   so every plain .text-muted usage on these mockup pages needs this fix. */
+.text-muted {
+  color: var(--text-muted, #999) !important;
+}
+
+/* Bootstrap's disabled-button color comes from a --bs-btn-disabled-color
+   custom property set per-variant, which a plain `color:` override in
+   app.css doesn't reach — these mockups use disabled buttons as inert
+   placeholders, so make sure they still read clearly. */
+.btn-outline-primary:disabled,
+.btn-outline-primary.disabled {
+  color: var(--primary, #0d6efd);
+  border-color: var(--primary, #0d6efd);
+  opacity: 0.6;
+}
+.btn-outline-secondary:disabled,
+.btn-outline-secondary.disabled {
+  color: var(--text, #e0e0e0);
+  border-color: var(--border, #333);
+  opacity: 0.6;
+}
+
+/* Bootstrap resets checkboxes to a plain white box, which reads as a stark
+   jarring square on this dark theme rather than "invisible" — theme it so
+   it's clearly visible and consistent instead. */
+.form-check-input {
+  background-color: var(--input-bg, #2d2d2d);
+  border-color: var(--text-muted, #999);
+}
+.form-check-input:checked {
+  background-color: var(--primary, #0d6efd);
+  border-color: var(--primary, #0d6efd);
+}
+
+/* Fixed column widths (paired with a <colgroup> in the HTML) so switching
+   attention-strip filters — which changes the visible rows' content length —
+   doesn't reflow the table horizontally between renders. */
+.sync-table {
+  table-layout: fixed;
+}
+.sync-table td,
+.sync-table th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expand-all-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-muted, #999);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.expand-all-btn:hover {
+  color: var(--text, #e0e0e0);
+  text-decoration: underline;
+}
+
+/* Give "not deployed" its own distinct color — not the shipped gray (which
+   reads as inert metadata) and definitely not green (which would visually
+   agree with "aligned" when the point is that alignment hasn't been
+   verified against what's actually live yet). Violet, used nowhere else. */
+.sync-badge-not_deployed {
+  background: rgba(168, 85, 247, 0.28) !important;
+  border: 1px solid rgba(192, 132, 252, 0.55) !important;
+}
+.sync-status-secondary {
+  font-size: 0.72rem;
+  color: var(--text-muted, #999);
+}
+
+.mock-banner {
+  background: rgba(13, 110, 253, 0.15);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+.mock-banner a { color: #93c5fd; }
+.mock-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+.mock-nav a {
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.82rem;
+}
+.mock-nav a:hover { border-color: var(--primary); }
+.mock-nav a.active {
+  background: rgba(13, 110, 253, 0.25);
+  border-color: var(--primary);
+}
+
+/* --- Unified instruction diff --- */
+.diff-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.diff-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.4rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text, #e8eaed);
+}
+.diff-line:last-child { border-bottom: none; }
+.diff-gutter {
+  flex: 0 0 auto;
+  width: 1rem;
+  text-align: center;
+  font-weight: 700;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  color: var(--text-muted);
+}
+.diff-text { flex: 1 1 auto; }
+.diff-tag {
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  align-self: center;
+}
+.diff-line-config-only {
+  background: rgba(234, 179, 8, 0.12);
+}
+.diff-line-config-only .diff-gutter { color: #facc15; }
+.diff-line-wms-only {
+  background: rgba(59, 130, 246, 0.12);
+}
+.diff-line-wms-only .diff-gutter { color: #60a5fa; }
+.diff-empty {
+  padding: 0.65rem;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* --- Layout A: list + detail --- */
+.sync-main-detail {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.sync-type-list {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.6rem;
+  max-height: 70vh;
+  overflow: auto;
+}
+.sync-type-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  margin-bottom: 0.4rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.sync-type-list-item:last-child { margin-bottom: 0; }
+.sync-type-list-item.active {
+  border-color: var(--primary);
+  background: rgba(13, 110, 253, 0.18);
+}
+.sync-status-dot {
+  flex: 0 0 auto;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+}
+.sync-status-dot.dot-aligned { background: #4ade80; }
+.sync-status-dot.dot-missing_in_wms { background: #facc15; }
+.sync-status-dot.dot-missing_in_config { background: #60a5fa; }
+.sync-status-dot.dot-not_deployed { background: #c084fc; }
+.sync-type-list-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.sync-type-list-title strong {
+  display: block;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sync-type-list-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.sync-detail-panel {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+.sync-step-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.1rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.sync-step-row:last-child { border-bottom: none; }
+.sync-step-row.active { color: var(--primary); }
+.sync-step-row-title { font-weight: 600; font-size: 0.9rem; }
+
+/* --- Layout B: decluttered table --- */
+.sync-row-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.sync-gap-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* --- Layout C: attention-first --- */
+.attention-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.attention-card {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  cursor: pointer;
+  text-align: left;
+}
+.attention-card:hover { border-color: var(--primary); }
+.attention-card.active {
+  border-color: var(--primary);
+  background: rgba(13, 110, 253, 0.14);
+}
+.attention-card .count {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.attention-card .label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+.attention-card.card-wms .count { color: #facc15; }
+.attention-card.card-config .count { color: #60a5fa; }
+.attention-card.card-instr .count { color: #fb923c; }
+.attention-card.card-aligned .count { color: #4ade80; }
+.attention-card.card-all .count { color: var(--text, #e0e0e0); }
+.attention-card.card-deploy .count { color: #c084fc; }

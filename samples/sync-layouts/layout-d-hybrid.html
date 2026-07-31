@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Layout D — Attention + compact rows</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link href="../../css/app.css" rel="stylesheet" />
+  <link href="../../css/vas-config-sync.css" rel="stylesheet" />
+  <link href="layout-shared.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="main-card" style="max-width:1200px">
+    <h2 class="text-center mb-2 app-title">Layout D — Attention + compact rows</h2>
+    <p class="text-center text-muted mb-3" style="font-size:0.9rem">
+      C's attention strip and expand-in-place, but the collapsed list is B's compact single-row table
+      (status pill + gap note in the same row as the VAS Type) instead of stacked cards.
+    </p>
+    <div id="chrome"></div>
+
+    <div class="attention-strip" id="attentionStrip"></div>
+
+    <div class="sync-select-row">
+      <label class="d-flex align-items-center gap-2">
+        <input type="checkbox" class="form-check-input" id="selectAllVisible" />
+        Select all visible
+      </label>
+      <span id="selectionHint" class="text-muted"></span>
+      <div class="sync-actions ms-auto" id="refreshButtonWrap"></div>
+      <div class="sync-actions" id="actionButtons"></div>
+      <div class="sync-actions" id="saveButtonWrap"></div>
+    </div>
+
+    <div class="sync-table-wrap">
+      <table class="table sync-table mb-0">
+        <colgroup>
+          <col style="width:2.75rem" />
+          <col style="width:2.75rem" />
+          <col />
+          <col style="width:22rem" />
+          <col style="width:5rem" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="2">
+              <button type="button" class="btn btn-link btn-sm p-0 expand-all-btn" id="expandAllBtn"></button>
+            </th>
+            <th>VAS Type</th>
+            <th>Status</th>
+            <th>Steps</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="mock-data.js"></script>
+  <script src="mock-utils.js"></script>
+  <script>
+    const U = window.SyncUI;
+    /** @type {"all"|"wms"|"config"|"instr"|"deploy"|"aligned"} */
+    let activeCategory = "all";
+    const expanded = new Set();
+    const selected = new Set();
+
+    document.getElementById("chrome").innerHTML = U.chrome("layout-d-hybrid.html");
+    document.getElementById("refreshButtonWrap").innerHTML = U.refreshButtonHtml();
+    document.getElementById("actionButtons").innerHTML = U.actionButtonsHtml({
+      pushEnabled: false,
+      pullEnabled: false
+    });
+    document.getElementById("saveButtonWrap").innerHTML = U.saveButtonHtml();
+
+    function typeById(id) {
+      return window.SYNC_MOCK.types.find((t) => t.id === id);
+    }
+
+    function categoryCounts() {
+      const list = window.SYNC_MOCK.types;
+      return {
+        all: list.length,
+        wms: list.filter((t) => U.typeNeedsPushToWms(t)).length,
+        config: list.filter((t) => U.typeNeedsPullToConfig(t)).length,
+        instr: list.filter(U.hasWordingDiff).length,
+        deploy: list.filter((t) => t.notYetDeployed).length,
+        aligned: list.filter(U.isAligned).length
+      };
+    }
+
+    function visibleTypes() {
+      const list = window.SYNC_MOCK.types;
+      if (activeCategory === "wms") return list.filter((t) => U.typeNeedsPushToWms(t));
+      if (activeCategory === "config") return list.filter((t) => U.typeNeedsPullToConfig(t));
+      if (activeCategory === "instr") return list.filter(U.hasWordingDiff);
+      if (activeCategory === "deploy") return list.filter((t) => t.notYetDeployed);
+      if (activeCategory === "aligned") return list.filter(U.isAligned);
+      return list; // "all"
+    }
+
+    function renderStrip() {
+      const c = categoryCounts();
+      const cards = [
+        ["all", "card-all", c.all, "All"],
+        ["wms", "card-wms", c.wms, "Missing in WMS"],
+        ["config", "card-config", c.config, "Missing in config"],
+        ["instr", "card-instr", c.instr, "Wording differs"],
+        ["deploy", "card-deploy", c.deploy, "Not deployed"],
+        ["aligned", "card-aligned", c.aligned, "Aligned"]
+      ];
+      document.getElementById("attentionStrip").innerHTML = cards
+        .map(
+          ([key, cls, count, label]) => `
+        <button type="button" class="attention-card ${cls}${activeCategory === key ? " active" : ""}" data-cat="${key}">
+          <div class="count">${count}</div>
+          <div class="label">${U.esc(label)}</div>
+        </button>`
+        )
+        .join("");
+      document.querySelectorAll("[data-cat]").forEach((btn) => {
+        btn.onclick = () => {
+          activeCategory = btn.dataset.cat;
+          renderAll();
+        };
+      });
+    }
+
+    function allVisibleExpanded() {
+      const vis = visibleTypes();
+      return vis.length > 0 && vis.every((t) => expanded.has(t.id));
+    }
+
+    function renderExpandAllBtn() {
+      const btn = document.getElementById("expandAllBtn");
+      btn.textContent = allVisibleExpanded() ? "Collapse all" : "Expand all";
+      btn.onclick = () => {
+        const vis = visibleTypes();
+        if (allVisibleExpanded()) vis.forEach((t) => expanded.delete(t.id));
+        else vis.forEach((t) => expanded.add(t.id));
+        renderTable();
+      };
+    }
+
+    function renderTable() {
+      const rows = visibleTypes();
+      renderExpandAllBtn();
+
+      document.getElementById("tableBody").innerHTML = rows.length
+        ? rows
+            .map((t) => {
+              const isOpen = expanded.has(t.id);
+              const detailRow = isOpen
+                ? `<tr class="sync-instr-row">
+                    <td></td>
+                    <td></td>
+                    <td colspan="3">${U.stepDiffListHtml(t)}</td>
+                  </tr>`
+                : "";
+              return `<tr class="sync-type-row" data-toggle="${U.esc(t.id)}">
+                <td><input type="checkbox" class="form-check-input type-check" data-id="${U.esc(t.id)}" ${
+                selected.has(t.id) ? "checked" : ""
+              } /></td>
+                <td><span class="sync-expand"><i class="fa-solid fa-chevron-${isOpen ? "down" : "right"}"></i></span></td>
+                <td><span class="sync-type-id">${U.esc(t.title)}</span></td>
+                <td><div class="sync-row-status">${U.typeStatusHtml(t)}${U.gapNote(t)}</div></td>
+                <td>${(t.steps || []).length}</td>
+              </tr>${detailRow}`;
+            })
+            .join("")
+        : `<tr><td colspan="5" class="sync-empty">Nothing here.</td></tr>`;
+
+      document.querySelectorAll("[data-toggle]").forEach((el) => {
+        el.onclick = (e) => {
+          if (e.target.closest("input")) return; // checkbox click shouldn't also toggle expand
+          const id = el.dataset.toggle;
+          if (expanded.has(id)) expanded.delete(id);
+          else expanded.add(id);
+          renderTable();
+        };
+      });
+      document.querySelectorAll(".type-check").forEach((cb) => {
+        cb.onclick = (e) => e.stopPropagation();
+        cb.onchange = (e) => {
+          const id = e.target.dataset.id;
+          if (e.target.checked) selected.add(id);
+          else selected.delete(id);
+          renderSelectionHint();
+        };
+      });
+      renderSelectionHint();
+    }
+
+    function renderSelectionHint() {
+      const n = selected.size;
+      document.getElementById("selectionHint").textContent = n
+        ? `${n} type${n === 1 ? "" : "s"} selected`
+        : "";
+      const vis = visibleTypes();
+      document.getElementById("selectAllVisible").checked =
+        vis.length > 0 && vis.every((t) => selected.has(t.id));
+
+      // Smart enable: Push only lights up if the selection has something to
+      // push, Pull only if it has something to pull — a selection of already-
+      // aligned types leaves both grey rather than implying there's an action.
+      const selectedTypes = Array.from(selected).map(typeById).filter(Boolean);
+      const pushEnabled = selectedTypes.some((t) => U.typeNeedsPushToWms(t));
+      const pullEnabled = selectedTypes.some((t) => U.typeNeedsPullToConfig(t));
+      U.updateActionButtons(pushEnabled, pullEnabled);
+    }
+
+    function renderAll() {
+      renderStrip();
+      renderTable();
+    }
+
+    document.getElementById("selectAllVisible").onchange = (e) => {
+      const vis = visibleTypes();
+      if (e.target.checked) vis.forEach((t) => selected.add(t.id));
+      else vis.forEach((t) => selected.delete(t.id));
+      renderTable();
+    };
+
+    renderAll();
+  </script>
+</body>
+</html>

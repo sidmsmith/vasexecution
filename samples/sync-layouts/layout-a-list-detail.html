@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Layout A — List + detail</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link href="../../css/app.css" rel="stylesheet" />
+  <link href="../../css/vas-config-sync.css" rel="stylesheet" />
+  <link href="layout-shared.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="main-card" style="max-width:1200px">
+    <h2 class="text-center mb-2 app-title">Layout A — List + detail</h2>
+    <p class="text-center text-muted mb-3" style="font-size:0.9rem">
+      Only one type expanded at a time — the list stays scannable, detail lives in one place.
+    </p>
+    <div id="chrome"></div>
+
+    <div class="sync-toolbar">
+      <div class="sync-filters" id="filterButtons"></div>
+      <label class="d-flex align-items-center gap-2" style="font-size:0.85rem; color:var(--text-muted)">
+        <input type="checkbox" class="form-check-input" id="includeInstr" />
+        Include instruction wording differences in Missing filters
+      </label>
+    </div>
+
+    <div class="sync-main-detail">
+      <div class="sync-type-list" id="typeList"></div>
+      <div class="sync-detail-panel" id="detailPanel"></div>
+    </div>
+  </div>
+
+  <script src="mock-data.js"></script>
+  <script src="mock-utils.js"></script>
+  <script>
+    const U = window.SyncUI;
+    let filterMode = "all"; // all | missing_in_wms | missing_in_config | aligned
+    let includeInstr = false;
+    let selectedId = window.SYNC_MOCK.types[0].id;
+    let selectedStepId = null;
+
+    document.getElementById("chrome").innerHTML = U.chrome("layout-a-list-detail.html");
+
+    function typeById(id) {
+      return window.SYNC_MOCK.types.find((t) => t.id === id);
+    }
+
+    function visibleTypes() {
+      const list = window.SYNC_MOCK.types;
+      if (filterMode === "all") return list;
+      if (filterMode === "aligned") {
+        return list.filter(U.isAligned);
+      }
+      if (filterMode === "missing_in_wms") {
+        return list.filter((t) =>
+          includeInstr ? U.typeNeedsPushToWms(t) : t.status === "missing_in_wms" || U.stepsMissingInWms(t).length
+        );
+      }
+      return list.filter((t) =>
+        includeInstr ? U.typeNeedsPullToConfig(t) : t.status === "missing_in_config" || U.stepsMissingInConfig(t).length
+      );
+    }
+
+    function renderFilterButtons() {
+      const counts = {
+        all: window.SYNC_MOCK.types.length,
+        missing_in_wms: window.SYNC_MOCK.types.filter((t) =>
+          includeInstr ? U.typeNeedsPushToWms(t) : t.status === "missing_in_wms" || U.stepsMissingInWms(t).length
+        ).length,
+        missing_in_config: window.SYNC_MOCK.types.filter((t) =>
+          includeInstr ? U.typeNeedsPullToConfig(t) : t.status === "missing_in_config" || U.stepsMissingInConfig(t).length
+        ).length,
+        aligned: window.SYNC_MOCK.types.filter(U.isAligned).length
+      };
+      const defs = [
+        ["all", "All"],
+        ["missing_in_wms", `Missing in WMS (${counts.missing_in_wms})`],
+        ["missing_in_config", `Missing in config (${counts.missing_in_config})`],
+        ["aligned", `Aligned (${counts.aligned})`]
+      ];
+      document.getElementById("filterButtons").innerHTML = defs
+        .map(
+          ([key, label]) =>
+            `<button type="button" class="btn btn-sm btn-outline-secondary sync-filter${
+              filterMode === key ? " active" : ""
+            }" data-filter="${key}">${U.esc(label)}</button>`
+        )
+        .join("");
+      document.querySelectorAll("[data-filter]").forEach((btn) => {
+        btn.onclick = () => {
+          filterMode = btn.dataset.filter;
+          renderAll();
+        };
+      });
+    }
+
+    function renderTypeList() {
+      const rows = visibleTypes();
+      if (!selectedId || !rows.some((t) => t.id === selectedId)) {
+        selectedId = rows[0] ? rows[0].id : null;
+        selectedStepId = null;
+      }
+      document.getElementById("typeList").innerHTML = rows
+        .map((t) => {
+          const gaps = U.typeGapCounts(t);
+          const metaParts = [];
+          if (gaps.stepsMissingInWms) metaParts.push(`${gaps.stepsMissingInWms} step(s) → WMS`);
+          if (gaps.stepsMissingInConfig) metaParts.push(`${gaps.stepsMissingInConfig} step(s) → config`);
+          if (t.notYetDeployed) metaParts.push("not deployed");
+          return `<button type="button" class="sync-type-list-item${
+            t.id === selectedId ? " active" : ""
+          }" data-id="${U.esc(t.id)}">
+            <span class="sync-status-dot dot-${U.esc(U.typeStatusKey(t))}"></span>
+            <span class="sync-type-list-title">
+              <strong>${U.esc(t.title)}</strong>
+              <span class="sync-type-list-meta">${U.esc(metaParts.join(" · ") || "no gaps")}</span>
+            </span>
+          </button>`;
+        })
+        .join("") || `<div class="sync-empty">No types match this filter.</div>`;
+      document.querySelectorAll("[data-id]").forEach((btn) => {
+        btn.onclick = () => {
+          selectedId = btn.dataset.id;
+          selectedStepId = null;
+          renderDetail();
+          renderTypeList();
+        };
+      });
+    }
+
+    function renderDetail() {
+      const panel = document.getElementById("detailPanel");
+      const t = typeById(selectedId);
+      if (!t) {
+        panel.innerHTML = `<div class="sync-empty">Select a type on the left.</div>`;
+        return;
+      }
+      if (!selectedStepId) selectedStepId = (t.steps[0] || {}).id || null;
+      const stepsHtml = (t.steps || [])
+        .map((s) => {
+          const gapBadge = U.stepGapBadge(s);
+          return `<div class="sync-step-row${s.id === selectedStepId ? " active" : ""}" data-step-id="${U.esc(s.id)}">
+            <span class="sync-step-row-title">${U.esc(s.id)}</span>
+            ${gapBadge}
+          </div>`;
+        })
+        .join("");
+      const selectedStep = (t.steps || []).find((s) => s.id === selectedStepId);
+      panel.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h5 class="mb-0">${U.esc(t.title)} ${U.typeStatusHtml(t)}</h5>
+          <div class="d-flex gap-2">
+            ${U.actionButtonsHtml({
+              pushId: "detailPushBtn",
+              pullId: "detailPullBtn",
+              pushEnabled: U.typeNeedsPushToWms(t),
+              pullEnabled: U.typeNeedsPullToConfig(t)
+            })}
+          </div>
+        </div>
+        <div class="mb-3">${stepsHtml}</div>
+        ${
+          selectedStep
+            ? `<h6 class="text-muted" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.03em">Instructions — ${U.esc(selectedStep.id)}</h6>
+               ${U.diffLinesHtml(selectedStep.configInstructions, selectedStep.wmsInstructions)}`
+            : ""
+        }
+      `;
+      panel.querySelectorAll("[data-step-id]").forEach((row) => {
+        row.onclick = () => {
+          selectedStepId = row.dataset.stepId;
+          renderDetail();
+        };
+      });
+    }
+
+    function renderAll() {
+      renderFilterButtons();
+      renderTypeList();
+      renderDetail();
+    }
+
+    document.getElementById("includeInstr").onchange = (e) => {
+      includeInstr = e.target.checked;
+      renderAll();
+    };
+
+    renderAll();
+  </script>
+</body>
+</html>
