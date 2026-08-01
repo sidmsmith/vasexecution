@@ -1061,7 +1061,6 @@
     openConfirm(
       "Pull missing into draft",
       `<p>Pull will merge <strong>${pulled.length}</strong> change(s) from WMS into the local draft.</p>
-       <p class="small text-muted mb-2">Applied locally right away (same draft Admin uses) — use Save &amp; Deploy when ready to commit to GitHub.</p>
        <ul class="confirm-plan-list">${lines}</ul>`,
       async () => {
         draft = VasConfig.normalizeConfig(res.config);
