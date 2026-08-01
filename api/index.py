@@ -2510,15 +2510,62 @@ def vas_sync_pull():
         if not isinstance(entry.get("steps"), dict):
             entry["steps"] = {}
         added_steps: List[str] = []
+        merged_steps: List[str] = []
         draft_steps = set(_ordered_config_step_ids(entry))
         for step in as_list(wms_svc.get("ProvidedServiceStep")):
             if not isinstance(step, dict):
                 continue
             sid = str(step.get("ProvidedServiceStepId") or "").strip()
-            if not sid or sid in draft_steps:
+            if not sid:
                 continue
-            entry["steps"][sid] = _wms_step_to_config(step)
-            added_steps.append(sid)
+            if sid not in draft_steps:
+                entry["steps"][sid] = _wms_step_to_config(step)
+                added_steps.append(sid)
+                continue
+
+            # Step already exists in config — the loop above only ever adds
+            # brand-new steps, so a WMS instruction line missing from an
+            # already-existing step's content (the type/step both aligned,
+            # only the instruction text differs) was never reachable by
+            # Pull at all. Merge any such lines in here, matched by
+            # normalized text so an already-present line is never duplicated.
+            step_entry = entry["steps"].get(sid)
+            if not isinstance(step_entry, dict):
+                continue
+            if not isinstance(step_entry.get("content"), list):
+                step_entry["content"] = []
+            existing_norm = {
+                _normalize_instruction_text(t)
+                for t, _bid in _instruction_texts_from_step(step_entry)
+            }
+            added_texts: List[str] = []
+            for i, instr in enumerate(as_list(step.get("Instructions"))):
+                if not isinstance(instr, dict):
+                    continue
+                text = str(instr.get("InstructionText") or "").strip()
+                if not text:
+                    continue
+                norm = _normalize_instruction_text(text)
+                if norm in existing_norm:
+                    continue
+                existing_norm.add(norm)
+                instr_id = str(instr.get("StepInstructionId") or "").strip() or f"ins_{i}"
+                step_entry["content"].append(
+                    {
+                        "id": instr_id,
+                        "type": "text",
+                        "text": text,
+                        "bold": False,
+                        "italic": False,
+                        "underline": False,
+                        "color": "#000000",
+                        "fontSize": 100,
+                        "listMarker": "bullet",
+                    }
+                )
+                added_texts.append(text)
+            if added_texts:
+                merged_steps.append(sid)
         if added_steps:
             order = _ordered_config_step_ids(entry)
             for sid in added_steps:
@@ -2527,6 +2574,10 @@ def vas_sync_pull():
             entry["stepOrder"] = order
             pulled.append(
                 {"id": type_id, "action": "added_steps", "steps": added_steps}
+            )
+        if merged_steps:
+            pulled.append(
+                {"id": type_id, "action": "merged_instructions", "steps": merged_steps}
             )
 
     return jsonify(
