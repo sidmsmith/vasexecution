@@ -1,0 +1,496 @@
+/* Static mobile execution layout mockups — extends css/app.css (same tokens: --bg-dark,
+   --card-bg, --border, --text, --primary, --success, --danger already match both apps). */
+
+/* Bootstrap's own .text-muted utility is a fixed #6c757d, not theme-aware — on the
+   default dark theme that reads as low-contrast dark grey on near-black. Route it
+   through our theme token instead so it stays legible in every theme below. */
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* ---------- mock-only theme toggle (chrome area, not part of the card design itself) ---------- */
+.mock-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+.mock-theme-toggle-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-right: 0.15rem;
+}
+.mock-theme-btn {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.mock-theme-btn.active {
+  border-color: var(--primary);
+  background: rgba(13, 110, 253, 0.18);
+  font-weight: 600;
+}
+
+/* ---------- shared mock chrome (same pattern as samples/execution-layouts) ---------- */
+.mock-banner {
+  background: rgba(13, 110, 253, 0.15);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+.mock-banner a { color: #93c5fd; }
+.mock-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+.mock-nav a {
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.82rem;
+}
+.mock-nav a:hover { border-color: var(--primary); }
+.mock-nav a.active {
+  background: rgba(13, 110, 253, 0.25);
+  border-color: var(--primary);
+}
+.olpn-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+.mock-phone-frame {
+  position: relative;
+  max-width: 430px;
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--bg-dark);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+.mock-phone-screen {
+  position: relative;
+  height: 780px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  /* Hint to let vertical scroll/pan happen natively; horizontal swipe (Design C's
+     swipe-between-Types) is handled in JS via pointer events, not native scroll. */
+  touch-action: pan-y;
+}
+
+/* Design C: brief slide-in on swipe-triggered Type navigation only (tap navigation
+   stays instant). Class is added/removed by setupSwipeNav() in layout-c-refined.html. */
+@keyframes mcardSwipeIn {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.mcard-swipe-anim { animation: mcardSwipeIn 0.18s ease; }
+
+/* ---------- persistent brand header: theme logo + centered title, same on every screen ---------- */
+.mock-brand-header {
+  text-align: center;
+  padding: 1.1rem 1rem 0.75rem;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+}
+.mock-brand-header .theme-logo {
+  display: none;
+  max-height: 50px;
+  margin: 0 auto 0.5rem;
+}
+
+/* ---------- shared camera-icon button (styling reference: driver_pickup's .camera-btn,
+   theme --primary explicitly rather than the success-tinted .btn-primary override below) ---------- */
+.mock-camera-btn {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* ---------- shared header section: oLPN + Order, above the card list (both designs) ---------- */
+.mock-olpn-header {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+.mock-olpn-header-id { font-weight: 700; font-size: 1rem; }
+.mock-olpn-header-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem; }
+.mock-olpn-header-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+/* Wraps a standalone oLPN header that sits above a sticky screen-level topbar
+   (i.e. outside any already-padded card-list/body container). */
+.mock-olpn-header-wrap { padding: 0.85rem 1rem 0; }
+
+/* =====================================================================
+   DESIGN A — "Card-first" (.mcard-*)
+   Type cards -> Type detail with a step accordion; instructions always
+   render inline (never a third drill-down level).
+   ===================================================================== */
+
+.mcard-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+}
+.mcard-back {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.1rem;
+  padding: 0.15rem 0.35rem;
+  line-height: 1;
+  cursor: pointer;
+  visibility: hidden;
+}
+.mcard-back.visible { visibility: visible; }
+.mcard-topbar-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mcard-topbar-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.mcard-topbar-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+}
+.mcard-topbar-text { flex: 1 1 auto; min-width: 0; }
+.mcard-body { padding: 0.85rem 1rem 2rem; flex: 1 1 auto; }
+
+.mcard-type-list { display: flex; flex-direction: column; gap: 0.7rem; }
+.mcard-type {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.85rem 0.9rem;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  min-height: 4.5rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+.mcard-type:active { background: rgba(13, 110, 253, 0.1); border-color: var(--primary); }
+.mcard-type-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+}
+.mcard-type-text { min-width: 0; flex: 1 1 auto; }
+.mcard-type-title {
+  font-weight: 700;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mcard-type-progress { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem; }
+.mcard-type-end { display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; flex-shrink: 0; }
+.mcard-chevron { color: var(--text-muted); font-size: 0.85rem; }
+
+.mcard-step-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.mcard-step {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+.mcard-step-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 0.9rem;
+  cursor: pointer;
+}
+.mcard-step-title { font-weight: 700; font-size: 0.95rem; }
+.mcard-step-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.1rem; }
+.mcard-step-end { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.mcard-step-chevron { transition: transform 0.15s ease; color: var(--text-muted); }
+.mcard-step.expanded .mcard-step-chevron { transform: rotate(90deg); }
+.mcard-step-body { display: none; padding: 0 0.9rem 0.9rem; border-top: 1px solid var(--border); }
+.mcard-step.expanded .mcard-step-body { display: block; padding-top: 0.75rem; }
+.mcard-step.complete { border-color: rgba(74, 222, 128, 0.45); }
+
+.mcard-qty-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+.mcard-stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.mcard-stepper button {
+  background: var(--input-bg);
+  color: var(--text);
+  border: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.mcard-stepper button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.mcard-stepper input {
+  width: 3rem;
+  text-align: center;
+  border: none;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  height: 2.25rem;
+  background: var(--card-bg);
+  color: var(--text);
+}
+.mcard-complete-btn {
+  flex: 1 1 auto;
+  height: 2.5rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--success);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.mcard-complete-btn:active { background: var(--success-hover); }
+.mcard-complete-btn:disabled {
+  background: #888;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.mcard-capture-list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1rem; }
+.mcard-capture-card {
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.mcard-capture-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem; }
+.mcard-sig-pad {
+  height: 90px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.mcard-type-actions { display: flex; gap: 0.6rem; padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.mcard-type-actions button {
+  flex: 1 1 auto;
+  height: 2.4rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+/* =====================================================================
+   DESIGN B — "Supplier Enablement-aligned" (.se-*)
+   Mirrors supplierenablement: criteria/search screen, single-column
+   po-card-item-style Type cards. Tap opens an in-page steps screen with
+   the same nested step-card look supplierenablement uses inside its
+   bottom sheet — without the slide-up drawer itself.
+   ===================================================================== */
+
+.se-search-screen { padding: 1rem; }
+.se-card-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+}
+.se-field-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.35rem; display: block; }
+.se-criteria-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  font-size: 1rem;
+}
+.se-input-camera-row { display: flex; gap: 0.5rem; align-items: stretch; }
+.se-input-camera-row .se-criteria-input { width: auto; flex: 1 1 auto; }
+.se-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem; }
+.se-load-btn {
+  margin-top: 0.85rem;
+  width: 100%;
+  height: 2.6rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.se-results-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-dark);
+  z-index: 5;
+}
+.se-back-btn {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.se-results-status { font-size: 0.8rem; color: var(--text-muted); }
+
+.se-card-list { padding: 0.85rem 1rem 2rem; display: flex; flex-direction: column; }
+.se-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.se-card:active { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); border-color: var(--primary); }
+.se-card-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.se-card-id { font-weight: 700; color: var(--primary); font-size: 0.98rem; display: flex; align-items: center; gap: 0.5rem; }
+.se-card-id img { width: 1.6rem; height: 1.6rem; object-fit: contain; }
+.se-card-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #fff;
+  white-space: nowrap;
+}
+.se-card-status.complete { background: var(--success); }
+.se-card-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.25rem; }
+.se-card-meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; }
+.se-card-meta strong { color: var(--text-secondary); font-weight: 600; }
+
+/* Steps screen (replaces the earlier bottom-sheet interaction — same nested
+   card look, just a normal in-page screen instead of a slide-up drawer). */
+.se-steps-body { padding: 0.85rem 1rem 2rem; }
+.se-steps-footer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.se-steps-footer-status { flex: 1 1 auto; font-size: 0.82rem; color: var(--text-muted); }
+.se-steps-cta {
+  border: none;
+  border-radius: 8px;
+  background: var(--success);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  font-size: 0.88rem;
+}
+
+.se-line-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 0.9rem;
+  margin-bottom: 0.75rem;
+  background: var(--input-bg);
+}
+.se-line-card:last-child { margin-bottom: 0; }
+.se-line-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.se-line-title { font-weight: 700; font-size: 0.92rem; }
+.se-line-qty-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.se-line-qty-grid strong { display: block; color: var(--text); font-size: 0.95rem; font-weight: 700; }
+.se-line-actions { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.65rem; }
+.se-line-qty-input {
+  width: 3.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.35rem 0.4rem;
+  text-align: center;
+}
+.se-line-complete-btn {
+  flex: 1 1 auto;
+  border: none;
+  border-radius: 6px;
+  background: var(--success);
+  color: #fff;
+  font-weight: 600;
+  height: 2.1rem;
+  font-size: 0.82rem;
+}
+
+/* ---------- content-block formatting (shared, both designs) ---------- */
+/* app.css already collapses .vas-content-columns to 1fr under 768px, and both
+   mockups render at phone width, so no extra column CSS is needed here. */
+.mcard-step-body .vas-content-list,
+.se-line-card .vas-content-list { font-size: 0.9rem; }

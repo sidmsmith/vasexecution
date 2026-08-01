@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design C — Refined mobile execution</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link href="../../css/app.css" rel="stylesheet" />
+  <link href="layout-shared.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="main-card">
+    <h2 class="text-center mb-2 app-title">Design C — Refined (A + B combined)</h2>
+    <div id="chrome"></div>
+    <p class="text-muted small mb-3">
+      Same auth &rarr; oLPN &rarr; results &rarr; steps flow and <code>po-card-item</code>-style
+      Type cards as B, with two refinements from A: the steps screen's Type header now matches A's
+      title/subtitle style (plus the Type icon and status badge), and the per-step qty control uses
+      A's &minus;/+ stepper &mdash; both hidden entirely once a step is complete, since there's
+      nothing left to do.
+    </p>
+    <div class="mock-phone-frame">
+      <!--
+        Same gear icon/position as the real app's #themeSelectorBtn (.theme-selector-btn,
+        top-right of the shell, opens the theme picker). Purely decorative here — it just
+        cycles the mock's own Dark/SHI toggle above, since that's already this page's real
+        theme switcher.
+
+        Production note: js/app.js (~line 1249) hides #themeSelectorBtn entirely when the
+        page is loaded with ?theme=N in the URL, and pre-selects (and locks in via
+        localStorage) a specific theme when loaded with ?theme=<key> — i.e. an org-branded
+        deployment can be pinned to one theme with no picker exposed to the end user. Any
+        production version of this mobile design should carry that same ?theme=N gate over
+        onto this gear icon, not just show it unconditionally.
+      -->
+      <button type="button" class="theme-selector-btn" id="mockGearBtn" title="Select Theme">
+        <i class="fas fa-gear"></i>
+      </button>
+      <div class="mock-brand-header">
+        <img id="mockThemeLogo" class="theme-logo" alt="" />
+        <h2 class="text-center app-title mb-0">VAS Execution</h2>
+      </div>
+      <!--
+        Production note: navigation here (auth -> oLPN -> results -> steps, and swiping
+        between Types) is plain in-memory state with no history entries — there's nothing
+        for a hardware/browser back gesture to act on either way in this static mockup, so
+        there's no real bug to fix here. That stops being true once this is wired into the
+        real routed app: back should step up one screen level (steps -> results -> oLPN),
+        not exit the page. Add real history.pushState/popstate handling for that screen
+        stack when this gets ported, matching whatever routing convention the rest of the
+        app already uses.
+      -->
+      <div class="mock-phone-screen" id="screen"></div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../js/confirm-dialog.js"></script>
+  <script src="../../js/inspection-themes.js"></script>
+  <script src="../../js/vas-config.js"></script>
+  <script src="mock-data.js"></script>
+  <script src="mock-utils.js"></script>
+  <script>
+    document.getElementById("chrome").innerHTML = MockUI.chrome("layout-c-refined.html");
+    MockUI.initMockTheme(document.getElementById("mockThemeLogo"));
+    document.getElementById("mockGearBtn").onclick = () => {
+      const other = document.querySelector("[data-mock-theme-btn]:not(.active)");
+      if (other) other.click();
+    };
+
+    const state = {
+      screen: "auth", // "auth" | "olpn" | "results" | "steps"
+      stepsIdx: null
+    };
+
+    /** Qty staged (typed via -/+) but not yet submitted — separate from
+     *  step.comp, which only changes when "Complete" is actually clicked. */
+    const stagedQty = {};
+    function getStaged(step) {
+      return stagedQty[step.id] || 0;
+    }
+
+    function svcByIdx(idx) {
+      return MOCK.services.find((s) => s.idx === idx);
+    }
+
+    function authScreenHtml() {
+      return `<div class="se-search-screen">
+        <div class="se-card-panel">
+          <label class="se-field-label">ORG</label>
+          <input class="se-criteria-input" id="mockOrgInput" value="SS-DEMO" />
+          <button type="button" class="se-load-btn" id="mockSignInBtn">Sign in</button>
+        </div>
+      </div>`;
+    }
+
+    function olpnScreenHtml() {
+      return `<div class="se-search-screen">
+        <div class="se-card-panel">
+          <label class="se-field-label">Find oLPN</label>
+          <div class="se-input-camera-row">
+            <input class="se-criteria-input" id="criteriaInput" value="${MockUI.esc(MOCK.olpnId)}" />
+            <button type="button" class="mock-camera-btn" title="Scan barcode with camera"><i class="fas fa-camera"></i></button>
+          </div>
+          <div class="se-hint">Ready &mdash; oLPN preloaded, ${MOCK.services.length} assigned service(s).</div>
+          <button type="button" class="se-load-btn" id="loadBtn">Load oLPN</button>
+        </div>
+      </div>`;
+    }
+
+    /** oLPN-level rollup across every step in every service: Created only if
+     *  every step is still untouched, Complete only if every step is fully
+     *  done, In Progress for anything in between (including a step that's
+     *  partially staged/completed via qty > 1). */
+    function olpnStatusLabel() {
+      const allSteps = MOCK.services.flatMap((s) => s.steps);
+      if (allSteps.every((s) => s.comp >= s.req)) return "Complete";
+      if (allSteps.every((s) => s.comp === 0)) return "Created";
+      return "In Progress";
+    }
+
+    function olpnHeaderHtml() {
+      const total = MOCK.services.length;
+      const label = olpnStatusLabel();
+      return `<div class="mock-olpn-header">
+        <div class="mock-olpn-header-top">
+          <div class="mock-olpn-header-id">oLPN ${MockUI.esc(MOCK.olpnId)}</div>
+          <span class="badge status-chip ${MockUI.statusBadgeClass(label)}">${MockUI.esc(label)}</span>
+        </div>
+        <div class="mock-olpn-header-sub">Order ${MockUI.esc(MOCK.orderId)} &middot; ${total} service${total === 1 ? "" : "s"}</div>
+      </div>`;
+    }
+
+    function cardHtml(svc) {
+      const cfg = MockUI.typeCfg(svc);
+      const { total, done } = MockUI.serviceProgress(svc);
+      return `<div class="se-card" data-type-idx="${svc.idx}">
+        <div class="se-card-top">
+          <span class="se-card-id">
+            <img src="${MockUI.esc(cfg.icon)}" alt="" onerror="this.style.display='none'" />
+            ${MockUI.esc(svc.ProvidedServiceId)}
+          </span>
+          <span class="badge status-chip ${MockUI.statusBadgeClass(MockUI.serviceStatusLabel(svc))}">${MockUI.esc(MockUI.serviceStatusLabel(svc))}</span>
+        </div>
+        <div class="se-card-meta">
+          <div class="se-card-meta-row">
+            <span><strong>Steps</strong> ${total}</span>
+            <span><strong>Complete</strong> ${done}</span>
+            <span><strong>Remaining</strong> ${total - done}</span>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function resultsScreenHtml() {
+      return `<div class="se-results-toolbar">
+          <button type="button" class="se-back-btn" id="backToSearch">&lsaquo; Filters</button>
+        </div>
+        <div class="se-card-list">
+          ${olpnHeaderHtml()}
+          ${MOCK.services.map(cardHtml).join("")}
+        </div>`;
+    }
+
+    /** A-style -/+ stepper + narrowed complete button — omitted entirely once
+     *  the step is complete, since there's nothing left to adjust or complete.
+     *  -/+ only stage a qty (this step's own "qty to complete"); nothing is
+     *  submitted until Complete is clicked. Complete stays disabled at 0
+     *  staged; -/+ disable at the 0 / remaining-qty ends. */
+    function qtyRowHtml(step) {
+      const isComplete = step.comp >= step.req;
+      if (isComplete) return "";
+      const remaining = step.req - step.comp;
+      const staged = getStaged(step);
+      return `<div class="mcard-qty-row">
+        <div class="mcard-stepper">
+          <button type="button" data-qty-dec="${MockUI.esc(step.id)}"${staged <= 0 ? " disabled" : ""}>&minus;</button>
+          <input type="text" readonly value="${staged}" data-qty-value="${MockUI.esc(step.id)}" />
+          <button type="button" data-qty-inc="${MockUI.esc(step.id)}"${staged >= remaining ? " disabled" : ""}>+</button>
+        </div>
+        <button type="button" class="mcard-complete-btn" data-step-complete="${MockUI.esc(step.id)}"${staged <= 0 ? " disabled" : ""}>
+          Complete
+        </button>
+      </div>`;
+    }
+
+    function lineCardHtml(svc, step) {
+      const isComplete = step.comp >= step.req;
+      return `<div class="se-line-card" data-step-id="${MockUI.esc(step.id)}">
+        <div class="se-line-top">
+          <span class="se-line-title">${MockUI.esc(step.desc)}</span>
+          <span class="badge status-chip ${MockUI.statusBadgeClass(MockUI.stepStatusLabel(step))}">${MockUI.esc(MockUI.stepStatusLabel(step))}</span>
+        </div>
+        <div class="se-line-qty-grid">
+          <div><strong>${step.req}</strong>Requested</div>
+          <div><strong>${step.req - step.comp}</strong>Remaining</div>
+          <div><strong>${step.comp}</strong>Completed</div>
+        </div>
+        ${MockUI.stepContentHtml(svc, step.id)}
+        ${qtyRowHtml(step)}
+      </div>`;
+    }
+
+    /** Position of this Type among all services, for the swipe indicator
+     *  and to know the prev/next targets — by array position, not literal
+     *  idx value, so it stays correct even if idx has gaps. */
+    function typeNavInfo(idx) {
+      const list = MOCK.services;
+      const i = list.findIndex((s) => s.idx === idx);
+      return {
+        position: i + 1,
+        total: list.length,
+        prev: i > 0 ? list[i - 1] : null,
+        next: i >= 0 && i < list.length - 1 ? list[i + 1] : null
+      };
+    }
+
+    /** Same title/subtitle shape as Design A's topbar, plus the Type icon,
+     *  status badge, and a "Type X of N" position indicator so the
+     *  swipe-between-Types gesture (see setupSwipeNav) is discoverable
+     *  instead of a hidden, undiscoverable gesture. */
+    function typeHeaderHtml(svc) {
+      const cfg = MockUI.typeCfg(svc);
+      const { total, done } = MockUI.serviceProgress(svc);
+      const statusCls = MockUI.statusBadgeClass(MockUI.serviceStatusLabel(svc));
+      const nav = typeNavInfo(svc.idx);
+      return `<div class="mcard-topbar">
+        <button type="button" class="mcard-back visible" data-back>&lsaquo;</button>
+        <img class="mcard-topbar-icon" src="${MockUI.esc(cfg.icon)}" alt="" onerror="this.style.visibility='hidden'" />
+        <div class="mcard-topbar-text">
+          <div class="mcard-topbar-title">${MockUI.esc(svc.ProvidedServiceId)}</div>
+          <div class="mcard-topbar-sub">${done} of ${total} steps complete &middot; Type ${nav.position} of ${nav.total}</div>
+        </div>
+        <span class="badge status-chip ${statusCls}">${MockUI.esc(MockUI.serviceStatusLabel(svc))}</span>
+      </div>`;
+    }
+
+    function stepsScreenHtml(idx) {
+      const svc = svcByIdx(idx);
+      const { total, done } = MockUI.serviceProgress(svc);
+      const allDone = done >= total;
+      return `<div class="mock-olpn-header-wrap">${olpnHeaderHtml()}</div>
+        ${typeHeaderHtml(svc)}
+        <div class="se-steps-body">
+          ${svc.steps.map((st) => lineCardHtml(svc, st)).join("")}
+        </div>
+        <div class="se-steps-footer">
+          <span class="se-steps-footer-status">${done} of ${total} steps complete</span>
+          ${allDone ? "" : `<button type="button" class="se-steps-cta" id="stepsCompleteAll">Complete All</button>`}
+        </div>`;
+    }
+
+    function render() {
+      const el = document.getElementById("screen");
+      const renderers = {
+        auth: authScreenHtml,
+        olpn: olpnScreenHtml,
+        results: resultsScreenHtml,
+        steps: () => stepsScreenHtml(state.stepsIdx)
+      };
+      el.innerHTML = renderers[state.screen]();
+
+      if (state.screen === "auth") {
+        document.getElementById("mockSignInBtn").onclick = () => {
+          state.screen = "olpn";
+          render();
+        };
+      } else if (state.screen === "olpn") {
+        document.getElementById("loadBtn").onclick = () => {
+          state.screen = "results";
+          render();
+        };
+      } else if (state.screen === "results") {
+        document.getElementById("backToSearch").onclick = () => {
+          state.screen = "olpn";
+          render();
+        };
+        document.querySelectorAll("[data-type-idx]").forEach((card) => {
+          card.onclick = () => {
+            state.screen = "steps";
+            state.stepsIdx = Number(card.dataset.typeIdx);
+            render();
+          };
+        });
+      } else if (state.screen === "steps") {
+        document.querySelector("[data-back]").onclick = () => {
+          state.screen = "results";
+          render();
+        };
+        document.querySelectorAll("[data-step-complete]").forEach((btn) => {
+          btn.onclick = () => {
+            const svc = svcByIdx(state.stepsIdx);
+            const step = svc.steps.find((s) => s.id === btn.dataset.stepComplete);
+            const staged = getStaged(step);
+            if (staged <= 0) return;
+            step.comp = Math.min(step.req, step.comp + staged);
+            stagedQty[step.id] = 0;
+            render();
+          };
+        });
+        document.querySelectorAll("[data-qty-inc], [data-qty-dec]").forEach((btn) => {
+          btn.onclick = () => {
+            const svc = svcByIdx(state.stepsIdx);
+            const id = btn.dataset.qtyInc || btn.dataset.qtyDec;
+            const step = svc.steps.find((s) => s.id === id);
+            const remaining = step.req - step.comp;
+            const delta = btn.dataset.qtyInc ? 1 : -1;
+            stagedQty[id] = Math.max(0, Math.min(remaining, getStaged(step) + delta));
+            render();
+          };
+        });
+        const completeAllBtn = document.getElementById("stepsCompleteAll");
+        if (completeAllBtn) {
+          completeAllBtn.onclick = async () => {
+            const svc = svcByIdx(state.stepsIdx);
+            const remaining = svc.steps.filter((s) => s.comp < s.req).length;
+            const ok = await confirmDialog(
+              `Complete all ${remaining} remaining step(s) for ${svc.ProvidedServiceId}?`,
+              { okLabel: "Complete All" }
+            );
+            if (!ok) return;
+            svc.steps.forEach((s) => {
+              s.comp = s.req;
+              stagedQty[s.id] = 0;
+            });
+            render();
+          };
+        }
+      }
+    }
+
+    /** Swipe left/right between Types while on the steps screen. Pointer
+     *  events (not touchstart/end) so this works for both a real touchscreen
+     *  and mouse-drag testing alike. Requires a real horizontal drag — a
+     *  plain tap has ~0px movement, so this never fights a button/stepper
+     *  tap; the distance + direction-ratio checks keep it from firing
+     *  during normal vertical scrolling through the step list. */
+    function setupSwipeNav() {
+      const el = document.getElementById("screen");
+      const THRESHOLD = 70;
+      let startX = null;
+      let startY = null;
+
+      el.addEventListener("pointerdown", (e) => {
+        if (state.screen !== "steps") return;
+        startX = e.clientX;
+        startY = e.clientY;
+      });
+
+      el.addEventListener("pointerup", (e) => {
+        if (state.screen !== "steps" || startX === null) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        startX = null;
+        startY = null;
+        if (Math.abs(dx) < THRESHOLD || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+        const nav = typeNavInfo(state.stepsIdx);
+        const target = dx < 0 ? nav.next : nav.prev;
+        if (!target) return;
+        state.stepsIdx = target.idx;
+        render();
+        el.classList.remove("mcard-swipe-anim");
+        void el.offsetWidth; // restart the CSS animation even if it just ran
+        el.classList.add("mcard-swipe-anim");
+      });
+    }
+
+    setupSwipeNav();
+    render();
+  </script>
+</body>
+</html>

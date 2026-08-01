@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design A — Card-first mobile execution</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link href="../../css/app.css" rel="stylesheet" />
+  <link href="layout-shared.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="main-card">
+    <h2 class="text-center mb-2 app-title">Design A — Card-first (no outside reference)</h2>
+    <div id="chrome"></div>
+    <p class="text-muted small mb-3">
+      Auth &rarr; oLPN entry &rarr; Type cards &rarr; Step accordion. Instructions always render
+      inline on the step &mdash; there is no third tap-through per instruction. Tap a Type card,
+      then tap a step to expand it.
+    </p>
+    <div class="mock-phone-frame">
+      <div class="mock-brand-header">
+        <img id="mockThemeLogo" class="theme-logo" alt="" />
+        <h2 class="text-center app-title mb-0">VAS Execution</h2>
+      </div>
+      <div class="mock-phone-screen" id="screen"></div>
+    </div>
+  </div>
+  <script src="../../js/inspection-themes.js"></script>
+  <script src="../../js/vas-config.js"></script>
+  <script src="mock-data.js"></script>
+  <script src="mock-utils.js"></script>
+  <script>
+    document.getElementById("chrome").innerHTML = MockUI.chrome("layout-own.html");
+    MockUI.initMockTheme(document.getElementById("mockThemeLogo"));
+
+    const state = {
+      view: "auth", // "auth" | "olpn" | "types" | "type"
+      typeIdx: null,
+      expandedStepId: null
+    };
+
+    function svcByIdx(idx) {
+      return MOCK.services.find((s) => s.idx === idx);
+    }
+
+    function typeCardHtml(svc) {
+      const cfg = MockUI.typeCfg(svc);
+      const { total, done } = MockUI.serviceProgress(svc);
+      const statusCls = MockUI.statusBadgeClass(MockUI.serviceStatusLabel(svc));
+      return `<div class="mcard-type" data-type-idx="${svc.idx}">
+        <img class="mcard-type-icon" src="${MockUI.esc(cfg.icon)}" alt="" onerror="this.style.visibility='hidden'" />
+        <div class="mcard-type-text">
+          <div class="mcard-type-title">${MockUI.esc(svc.ProvidedServiceId)}</div>
+          <div class="mcard-type-progress">${done} of ${total} steps complete</div>
+        </div>
+        <div class="mcard-type-end">
+          <span class="badge status-chip ${statusCls}">${MockUI.esc(MockUI.serviceStatusLabel(svc))}</span>
+          <span class="mcard-chevron">&rsaquo;</span>
+        </div>
+      </div>`;
+    }
+
+    function stepCardHtml(svc, step) {
+      const isExpanded = state.expandedStepId === step.id;
+      const isComplete = step.comp >= step.req;
+      const statusCls = MockUI.statusBadgeClass(MockUI.stepStatusLabel(step));
+      return `<div class="mcard-step${isExpanded ? " expanded" : ""}${isComplete ? " complete" : ""}" data-step-id="${MockUI.esc(step.id)}">
+        <div class="mcard-step-header" data-step-toggle="${MockUI.esc(step.id)}">
+          <div>
+            <div class="mcard-step-title">${MockUI.esc(step.desc)}</div>
+            <div class="mcard-step-sub">${MockUI.stepQtySummary(step)}</div>
+          </div>
+          <div class="mcard-step-end">
+            <span class="badge status-chip ${statusCls}">${MockUI.esc(MockUI.stepStatusLabel(step))}</span>
+            <span class="mcard-step-chevron">&rsaquo;</span>
+          </div>
+        </div>
+        <div class="mcard-step-body">
+          ${MockUI.stepContentHtml(svc, step.id)}
+          <div class="mcard-qty-row">
+            <div class="mcard-stepper">
+              <button type="button" data-qty-dec="${MockUI.esc(step.id)}">&minus;</button>
+              <input type="text" readonly value="${step.comp}" data-qty-value="${MockUI.esc(step.id)}" />
+              <button type="button" data-qty-inc="${MockUI.esc(step.id)}">+</button>
+            </div>
+            <button type="button" class="mcard-complete-btn" data-step-complete="${MockUI.esc(step.id)}">
+              ${isComplete ? "Completed" : "Mark complete"}
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function captureCardsHtml(svc) {
+      const cfg = MockUI.typeCfg(svc);
+      const sections = cfg.sections || {};
+      const note = cfg.illustrativeSections
+        ? ` <span class="text-muted">(illustrative &mdash; disabled in the live config for this type)</span>`
+        : "";
+      const cards = [];
+      if (sections.signature && sections.signature.enabled) {
+        cards.push(`<div class="mcard-capture-card">
+          <div class="mcard-capture-title">Signature${note}</div>
+          <div class="mcard-sig-pad">Tap to sign</div>
+        </div>`);
+      }
+      if (sections.photos && sections.photos.enabled) {
+        cards.push(`<div class="mcard-capture-card">
+          <div class="mcard-capture-title">Miscellaneous photos</div>
+          <div class="text-muted small">Use the camera icon to add photos.</div>
+        </div>`);
+      }
+      if (sections.markupPad && sections.markupPad.enabled) {
+        cards.push(`<div class="mcard-capture-card">
+          <div class="mcard-capture-title">Markup pad</div>
+          <div class="mcard-sig-pad">Tap to annotate</div>
+        </div>`);
+      }
+      if (!cards.length) return "";
+      return `<div class="mcard-capture-list">${cards.join("")}</div>`;
+    }
+
+    function renderAuthScreen() {
+      return `<div class="mcard-body">
+          <label class="form-label" for="mockOrgInput">ORG:</label>
+          <div class="criteria-row">
+            <input type="text" class="form-control" id="mockOrgInput" placeholder="Enter ORG" value="SS-DEMO" />
+            <button type="button" class="btn btn-primary" id="mockSignInBtn">Sign in</button>
+          </div>
+          <div class="status-bar info mt-2">Enter ORG and press Sign in to authenticate.</div>
+        </div>`;
+    }
+
+    function renderOlpnScreen() {
+      return `<div class="mcard-body">
+          <label class="form-label" for="mockOlpnInput">oLPN:</label>
+          <div class="criteria-row mb-2">
+            <input type="text" class="form-control" id="mockOlpnInput" placeholder="Enter oLPN" value="${MockUI.esc(MOCK.olpnId)}" />
+            <button type="button" class="mock-camera-btn" title="Scan barcode with camera"><i class="fas fa-camera"></i></button>
+            <button type="button" class="btn btn-primary px-4" id="mockLoadOlpnBtn">Load oLPN</button>
+          </div>
+          <div class="status-bar success">Ready &mdash; oLPN preloaded.</div>
+        </div>`;
+    }
+
+    function olpnHeaderHtml() {
+      const total = MOCK.services.length;
+      return `<div class="mock-olpn-header">
+        <div class="mock-olpn-header-id">oLPN ${MockUI.esc(MOCK.olpnId)}</div>
+        <div class="mock-olpn-header-sub">Order ${MockUI.esc(MOCK.orderId)} &middot; ${total} service${total === 1 ? "" : "s"}</div>
+      </div>`;
+    }
+
+    function renderTypesScreen() {
+      return `<div class="mcard-body">
+          ${olpnHeaderHtml()}
+          <div class="mcard-type-list">${MOCK.services.map(typeCardHtml).join("")}</div>
+        </div>`;
+    }
+
+    function renderTypeScreen(idx) {
+      const svc = svcByIdx(idx);
+      const { total, done } = MockUI.serviceProgress(svc);
+      return `<div class="mcard-topbar">
+          <button type="button" class="mcard-back visible" data-back>&lsaquo;</button>
+          <div>
+            <div class="mcard-topbar-title">${MockUI.esc(svc.ProvidedServiceId)}</div>
+            <div class="mcard-topbar-sub">${done} of ${total} steps complete</div>
+          </div>
+        </div>
+        <div class="mcard-body">
+          ${olpnHeaderHtml()}
+          <div class="mcard-step-list">${svc.steps.map((st) => stepCardHtml(svc, st)).join("")}</div>
+          ${captureCardsHtml(svc)}
+        </div>`;
+    }
+
+    function render() {
+      const el = document.getElementById("screen");
+      const renderers = {
+        auth: renderAuthScreen,
+        olpn: renderOlpnScreen,
+        types: renderTypesScreen,
+        type: () => renderTypeScreen(state.typeIdx)
+      };
+      el.innerHTML = renderers[state.view]();
+      bind();
+    }
+
+    function bind() {
+      const signInBtn = document.getElementById("mockSignInBtn");
+      if (signInBtn) {
+        signInBtn.onclick = () => {
+          state.view = "olpn";
+          render();
+        };
+      }
+      const loadOlpnBtn = document.getElementById("mockLoadOlpnBtn");
+      if (loadOlpnBtn) {
+        loadOlpnBtn.onclick = () => {
+          state.view = "types";
+          render();
+        };
+      }
+      document.querySelectorAll("[data-type-idx]").forEach((card) => {
+        card.onclick = () => {
+          state.view = "type";
+          state.typeIdx = Number(card.dataset.typeIdx);
+          state.expandedStepId = null;
+          render();
+        };
+      });
+      const back = document.querySelector("[data-back]");
+      if (back) {
+        back.onclick = () => {
+          state.view = "types";
+          state.typeIdx = null;
+          render();
+        };
+      }
+      document.querySelectorAll("[data-step-toggle]").forEach((header) => {
+        header.onclick = () => {
+          const id = header.dataset.stepToggle;
+          state.expandedStepId = state.expandedStepId === id ? null : id;
+          render();
+        };
+      });
+      document.querySelectorAll("[data-step-complete]").forEach((btn) => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const svc = svcByIdx(state.typeIdx);
+          const step = svc.steps.find((s) => s.id === btn.dataset.stepComplete);
+          step.comp = step.req;
+          render();
+        };
+      });
+      document.querySelectorAll("[data-qty-inc], [data-qty-dec]").forEach((btn) => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const svc = svcByIdx(state.typeIdx);
+          const id = btn.dataset.qtyInc || btn.dataset.qtyDec;
+          const step = svc.steps.find((s) => s.id === id);
+          const delta = btn.dataset.qtyInc ? 1 : -1;
+          step.comp = Math.max(0, Math.min(step.req, step.comp + delta));
+          render();
+        };
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>

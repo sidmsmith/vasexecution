@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design B — Supplier Enablement–aligned mobile execution</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link href="../../css/app.css" rel="stylesheet" />
+  <link href="layout-shared.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="main-card">
+    <h2 class="text-center mb-2 app-title">Design B — Supplier Enablement–aligned</h2>
+    <div id="chrome"></div>
+    <p class="text-muted small mb-3">
+      Mirrors the supplierenablement app: a criteria/search screen gates the results, Types render
+      as a single-column card stack (same shape as its <code>po-card-item</code>), and tapping a
+      card opens its steps as the same nested cards on a normal screen &mdash; no slide-up sheet.
+    </p>
+    <div class="mock-phone-frame">
+      <div class="mock-brand-header">
+        <img id="mockThemeLogo" class="theme-logo" alt="" />
+        <h2 class="text-center app-title mb-0">VAS Execution</h2>
+      </div>
+      <div class="mock-phone-screen" id="screen"></div>
+    </div>
+  </div>
+  <script src="../../js/inspection-themes.js"></script>
+  <script src="../../js/vas-config.js"></script>
+  <script src="mock-data.js"></script>
+  <script src="mock-utils.js"></script>
+  <script>
+    document.getElementById("chrome").innerHTML = MockUI.chrome("layout-supplier-aligned.html");
+    MockUI.initMockTheme(document.getElementById("mockThemeLogo"));
+
+    const state = {
+      screen: "auth", // "auth" | "olpn" | "results" | "steps"
+      stepsIdx: null
+    };
+
+    function svcByIdx(idx) {
+      return MOCK.services.find((s) => s.idx === idx);
+    }
+
+    function authScreenHtml() {
+      return `<div class="se-search-screen">
+        <div class="se-card-panel">
+          <label class="se-field-label">ORG</label>
+          <input class="se-criteria-input" id="mockOrgInput" value="SS-DEMO" />
+          <button type="button" class="se-load-btn" id="mockSignInBtn">Sign in</button>
+        </div>
+      </div>`;
+    }
+
+    function olpnScreenHtml() {
+      return `<div class="se-search-screen">
+        <div class="se-card-panel">
+          <label class="se-field-label">Find oLPN</label>
+          <div class="se-input-camera-row">
+            <input class="se-criteria-input" id="criteriaInput" value="${MockUI.esc(MOCK.olpnId)}" />
+            <button type="button" class="mock-camera-btn" title="Scan barcode with camera"><i class="fas fa-camera"></i></button>
+          </div>
+          <div class="se-hint">Ready &mdash; oLPN preloaded, ${MOCK.services.length} assigned service(s).</div>
+          <button type="button" class="se-load-btn" id="loadBtn">Load oLPN</button>
+        </div>
+      </div>`;
+    }
+
+    function olpnHeaderHtml() {
+      const total = MOCK.services.length;
+      return `<div class="mock-olpn-header">
+        <div class="mock-olpn-header-id">oLPN ${MockUI.esc(MOCK.olpnId)}</div>
+        <div class="mock-olpn-header-sub">Order ${MockUI.esc(MOCK.orderId)} &middot; ${total} service${total === 1 ? "" : "s"}</div>
+      </div>`;
+    }
+
+    function cardHtml(svc) {
+      const cfg = MockUI.typeCfg(svc);
+      const { total, done } = MockUI.serviceProgress(svc);
+      const complete = done >= total;
+      return `<div class="se-card" data-type-idx="${svc.idx}">
+        <div class="se-card-top">
+          <span class="se-card-id">
+            <img src="${MockUI.esc(cfg.icon)}" alt="" onerror="this.style.display='none'" />
+            ${MockUI.esc(svc.ProvidedServiceId)}
+          </span>
+          <span class="se-card-status${complete ? " complete" : ""}">${MockUI.esc(MockUI.serviceStatusLabel(svc))}</span>
+        </div>
+        <div class="se-card-meta">
+          <div class="se-card-meta-row">
+            <span><strong>Steps</strong> ${total}</span>
+            <span><strong>Complete</strong> ${done}</span>
+            <span><strong>Remaining</strong> ${total - done}</span>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function resultsScreenHtml() {
+      return `<div class="se-results-toolbar">
+          <button type="button" class="se-back-btn" id="backToSearch">&lsaquo; Filters</button>
+          <span class="se-results-status">${MOCK.services.length} services</span>
+        </div>
+        <div class="se-card-list">
+          ${olpnHeaderHtml()}
+          ${MOCK.services.map(cardHtml).join("")}
+        </div>`;
+    }
+
+    function lineCardHtml(svc, step) {
+      const isComplete = step.comp >= step.req;
+      return `<div class="se-line-card" data-step-id="${MockUI.esc(step.id)}">
+        <div class="se-line-top">
+          <span class="se-line-title">${MockUI.esc(step.desc)}</span>
+          <span class="se-card-status${isComplete ? " complete" : ""}">${MockUI.esc(MockUI.stepStatusLabel(step))}</span>
+        </div>
+        <div class="se-line-qty-grid">
+          <div><strong>${step.req}</strong>Requested</div>
+          <div><strong>${step.req - step.comp}</strong>Remaining</div>
+          <div><strong>${step.comp}</strong>Completed</div>
+        </div>
+        ${MockUI.stepContentHtml(svc, step.id)}
+        <div class="se-line-actions">
+          <input type="text" class="se-line-qty-input" readonly value="${step.comp}" />
+          <button type="button" class="se-line-complete-btn" data-step-complete="${MockUI.esc(step.id)}">
+            ${isComplete ? "Completed" : "Complete step"}
+          </button>
+        </div>
+      </div>`;
+    }
+
+    function stepsScreenHtml(idx) {
+      const svc = svcByIdx(idx);
+      const { total, done } = MockUI.serviceProgress(svc);
+      return `<div class="se-results-toolbar">
+          <button type="button" class="se-back-btn" id="backToResults">&lsaquo; ${MockUI.esc(svc.ProvidedServiceId)}</button>
+          <span class="se-results-status">${done} of ${total} steps complete</span>
+        </div>
+        <div class="se-steps-body">
+          ${olpnHeaderHtml()}
+          ${svc.steps.map((st) => lineCardHtml(svc, st)).join("")}
+        </div>
+        <div class="se-steps-footer">
+          <span class="se-steps-footer-status">${done} of ${total} steps complete</span>
+          <button type="button" class="se-steps-cta" id="stepsCompleteAll">Complete All</button>
+        </div>`;
+    }
+
+    function render() {
+      const el = document.getElementById("screen");
+      const renderers = {
+        auth: authScreenHtml,
+        olpn: olpnScreenHtml,
+        results: resultsScreenHtml,
+        steps: () => stepsScreenHtml(state.stepsIdx)
+      };
+      el.innerHTML = renderers[state.screen]();
+
+      if (state.screen === "auth") {
+        document.getElementById("mockSignInBtn").onclick = () => {
+          state.screen = "olpn";
+          render();
+        };
+      } else if (state.screen === "olpn") {
+        document.getElementById("loadBtn").onclick = () => {
+          state.screen = "results";
+          render();
+        };
+      } else if (state.screen === "results") {
+        document.getElementById("backToSearch").onclick = () => {
+          state.screen = "olpn";
+          render();
+        };
+        document.querySelectorAll("[data-type-idx]").forEach((card) => {
+          card.onclick = () => {
+            state.screen = "steps";
+            state.stepsIdx = Number(card.dataset.typeIdx);
+            render();
+          };
+        });
+      } else if (state.screen === "steps") {
+        document.getElementById("backToResults").onclick = () => {
+          state.screen = "results";
+          render();
+        };
+        document.querySelectorAll("[data-step-complete]").forEach((btn) => {
+          btn.onclick = () => {
+            const svc = svcByIdx(state.stepsIdx);
+            const step = svc.steps.find((s) => s.id === btn.dataset.stepComplete);
+            step.comp = step.req;
+            render();
+          };
+        });
+        document.getElementById("stepsCompleteAll").onclick = () => {
+          const svc = svcByIdx(state.stepsIdx);
+          svc.steps.forEach((s) => (s.comp = s.req));
+          render();
+        };
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
