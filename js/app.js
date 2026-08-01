@@ -51,7 +51,8 @@
     themeList: document.getElementById("themeList"),
     cameraBtn: document.getElementById("cameraBtn"),
     cameraFileInput: document.getElementById("cameraFileInput"),
-    cameraPhotoCount: document.getElementById("cameraPhotoCount")
+    cameraPhotoCount: document.getElementById("cameraPhotoCount"),
+    mobileFilterBtn: document.getElementById("mobileFilterBtn")
   };
 
   const themeModal = els.themeList
@@ -1079,7 +1080,8 @@
     const steps = orderedAssignedSteps(svc);
     const { total, done } = mobileServiceProgress(svc);
     const allDone = total > 0 && done >= total;
-    return `${mobileTypeHeaderHtml(svc, idx)}
+    return `${mobileOlpnHeaderHtml()}
+      ${mobileTypeHeaderHtml(svc, idx)}
       <div class="mx-steps-body">${steps
         .map((st) => mobileStepCardHtml(svc, st))
         .join("")}</div>
@@ -1197,6 +1199,14 @@
   }
 
   function renderMobileServices(services) {
+    // Marks that the mobile card UI owns #serviceList right now, so CSS can
+    // hide the desktop oLPN-entry chrome (#mainUI/#olpnMeta) and tighten
+    // .main-card's desktop-oriented padding without touching other pages
+    // that share app.css (Admin/Sync).
+    document.body.classList.add("mx-card-mode");
+    // A fresh render always means a search just resolved — close the
+    // "‹Filter" search form (if open) back to results.
+    document.body.classList.remove("mx-filter-open");
     if (!services.length) {
       els.serviceList.innerHTML =
         '<p class="text-muted mb-0">No assigned service records returned.</p>';
@@ -1227,6 +1237,7 @@
       renderMobileServices(currentServices);
       return;
     }
+    document.body.classList.remove("mx-card-mode");
     activeServiceIndex = 0;
     if (!currentServices.length) {
       els.serviceList.innerHTML =
@@ -1543,6 +1554,16 @@
     els.viewSelect.addEventListener("change", () => {
       setPreferredView(els.viewSelect.value);
       applyViewMode();
+    });
+  }
+
+  if (els.mobileFilterBtn) {
+    els.mobileFilterBtn.addEventListener("click", () => {
+      const open = document.body.classList.toggle("mx-filter-open");
+      if (open) {
+        els.olpnInput.focus();
+        els.olpnInput.select();
+      }
     });
   }
 

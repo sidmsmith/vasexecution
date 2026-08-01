@@ -79,6 +79,28 @@ body {
 }
 .theme-selector-btn:hover { opacity: 0.7; }
 
+/* Mobile-only "change oLPN" trigger; sits in the same top-left corner
+   .camera-btn would use — safe today since mobile execution never renders
+   capture sections (so .camera-btn stays hidden there); revisit if that
+   changes. Actual reveal rule is in the max-width:991px block below,
+   scoped to body.mx-card-mode. */
+.mx-filter-btn {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  padding: 0;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  z-index: 1000;
+  transition: opacity 0.2s;
+}
+.mx-filter-btn:hover { opacity: 0.7; }
+
 .form-control, .form-select {
   background: var(--input-bg);
   border: 1px solid var(--input-border);
@@ -1114,6 +1136,39 @@ body {
     display: none !important;
   }
 
+  /* .mx-card-mode is toggled by renderMobileServices()/renderServices() in
+     js/app.js — only while the mobile card view actually owns #serviceList,
+     so this never touches other pages that share app.css (Admin/Sync). */
+  /* .mx-filter-open (toggled by #mobileFilterBtn) swaps which of
+     #mainUI/#results is showing — the oLPN search form or the loaded
+     results — so both rules below are qualified by it, not just
+     .mx-card-mode alone. */
+  body.mx-card-mode:not(.mx-filter-open) #mainUI,
+  body.mx-card-mode:not(.mx-filter-open) #olpnMeta {
+    display: none !important;
+  }
+  body.mx-card-mode.mx-filter-open #results {
+    display: none !important;
+  }
+  /* Info/success status text (e.g. "Found N assigned service(s)") duplicates
+     the oLPN header below it once cards are showing — but keep errors
+     visible, there's no other surface for those on mobile. */
+  body.mx-card-mode #status:not(.error) {
+    display: none !important;
+  }
+  body.mx-card-mode .main-card {
+    margin: 0.35rem;
+    padding: 0.65rem 0.65rem 0.5rem;
+  }
+
+  /* Base .mx-filter-btn { display:none } lives outside this media query
+     (near .camera-btn/.theme-selector-btn) so it stays hidden at desktop
+     widths even if .mx-card-mode were ever present; this rule is what
+     actually reveals it, scoped to mobile widths + card mode together. */
+  body.mx-card-mode .mx-filter-btn {
+    display: block;
+  }
+
   .mx-olpn-header {
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -1241,15 +1296,26 @@ body {
     bottom: 0;
     display: flex;
     align-items: center;
+    flex-wrap: nowrap;
     gap: 0.6rem;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 1rem;
     margin: 0.85rem 0 0;
     background: var(--card-bg);
     border-top: 1px solid var(--border);
     box-shadow: 0 -8px 12px -8px rgba(0, 0, 0, 0.45);
   }
-  .mx-steps-footer-status { flex: 1 1 auto; font-size: 0.82rem; color: var(--text-muted); }
+  .mx-steps-footer-status {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .mx-steps-cta {
+    flex-shrink: 0;
+    white-space: nowrap;
     border: none;
     border-radius: 8px;
     background: var(--success);
