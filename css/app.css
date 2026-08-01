@@ -79,16 +79,23 @@ body {
 }
 .theme-selector-btn:hover { opacity: 0.7; }
 
-/* Mobile-only "change oLPN" trigger; sits in the same top-left corner
-   .camera-btn would use — safe today since mobile execution never renders
-   capture sections (so .camera-btn stays hidden there); revisit if that
-   changes. Actual reveal rule is in the max-width:991px block below,
-   scoped to body.mx-card-mode. */
+/* Wraps just the title so .mx-filter-btn can vertically center against it
+   regardless of font-size/line-height, rather than guessing a fixed "top"
+   offset — harmless on desktop, it's a plain block with no other styling. */
+.mx-title-row {
+  position: relative;
+}
+
+/* Mobile-only "change oLPN" trigger; deliberately NOT .camera-btn's corner
+   spot (top:1rem;left:1rem) — that's reserved for the camera icon once it
+   ships on mobile. Actual reveal rule is in the max-width:991px block
+   below, scoped to body.mx-card-mode. */
 .mx-filter-btn {
   display: none;
   position: absolute;
-  top: 1rem;
+  top: 50%;
   left: 1rem;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--text);
@@ -1164,8 +1171,9 @@ body {
   /* Base .mx-filter-btn { display:none } lives outside this media query
      (near .camera-btn/.theme-selector-btn) so it stays hidden at desktop
      widths even if .mx-card-mode were ever present; this rule is what
-     actually reveals it, scoped to mobile widths + card mode together. */
-  body.mx-card-mode .mx-filter-btn {
+     actually reveals it — only once results are showing (not while the
+     oLPN search prompt itself, #mainUI, is visible). */
+  body.mx-card-mode:not(.mx-filter-open) .mx-filter-btn {
     display: block;
   }
 
@@ -1291,17 +1299,28 @@ body {
   .mx-complete-btn:active { background: var(--success-hover); }
   .mx-complete-btn:disabled { background: #888; opacity: 0.7; cursor: not-allowed; }
 
+  /* position:fixed, not sticky — on real mobile browsers the address bar
+     collapsing/expanding resizes the visual viewport late in the scroll,
+     and a sticky element's "stuck" position (computed against the layout
+     viewport) desyncs from it, leaving a gap between the footer and the
+     true bottom edge once you scroll all the way down. Fixed recalculates
+     against the live visual viewport instead. left/right match
+     .main-card's mx-card-mode margin so the footer stays flush with the
+     card's own edges rather than spanning past them. */
   .mx-steps-footer {
-    position: sticky;
+    position: fixed;
+    left: 0.35rem;
+    right: 0.35rem;
     bottom: 0;
+    z-index: 10;
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
     gap: 0.6rem;
-    padding: 0.6rem 1rem;
-    margin: 0.85rem 0 0;
+    padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
     background: var(--card-bg);
     border-top: 1px solid var(--border);
+    border-radius: 0 0 10px 10px;
     box-shadow: 0 -8px 12px -8px rgba(0, 0, 0, 0.45);
   }
   .mx-steps-footer-status {
