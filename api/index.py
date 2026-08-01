@@ -2415,7 +2415,7 @@ def vas_sync_push_instructions():
 
 @app.route("/api/vas_sync_pull", methods=["POST"])
 def vas_sync_pull():
-    """Merge WMS-only types/steps into the draft config (does not save to GitHub)."""
+    """Merge WMS-only types/steps/instructions into the draft config (does not save to GitHub)."""
     data = request.json or {}
     org = (data.get("org") or "").strip()
     token = data.get("token")
@@ -2485,11 +2485,17 @@ def vas_sync_pull():
         if existing_key is None:
             entry = _wms_service_to_config_entry(wms_svc)
             vas_types[type_id] = entry
+            entry_steps = entry.get("steps") or {}
             pulled.append(
                 {
                     "id": type_id,
                     "action": "added_type",
-                    "steps": list((entry.get("steps") or {}).keys()),
+                    "steps": list(entry_steps.keys()),
+                    "instructionCount": sum(
+                        len(s.get("content") or [])
+                        for s in entry_steps.values()
+                        if isinstance(s, dict)
+                    ),
                 }
             )
             continue
@@ -2511,6 +2517,7 @@ def vas_sync_pull():
             entry["steps"] = {}
         added_steps: List[str] = []
         merged_steps: List[str] = []
+        merged_detail: List[Dict[str, Any]] = []
         draft_steps = set(_ordered_config_step_ids(entry))
         for step in as_list(wms_svc.get("ProvidedServiceStep")):
             if not isinstance(step, dict):
@@ -2566,6 +2573,7 @@ def vas_sync_pull():
                 added_texts.append(text)
             if added_texts:
                 merged_steps.append(sid)
+                merged_detail.append({"step": sid, "texts": added_texts})
         if added_steps:
             order = _ordered_config_step_ids(entry)
             for sid in added_steps:
@@ -2577,7 +2585,13 @@ def vas_sync_pull():
             )
         if merged_steps:
             pulled.append(
-                {"id": type_id, "action": "merged_instructions", "steps": merged_steps}
+                {
+                    "id": type_id,
+                    "action": "merged_instructions",
+                    "steps": merged_steps,
+                    "instructionCount": sum(len(d["texts"]) for d in merged_detail),
+                    "stepDetails": merged_detail,
+                }
             )
 
     return jsonify(

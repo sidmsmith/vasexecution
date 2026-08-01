@@ -223,6 +223,13 @@ table.table.sync-table {
   color: #f3f4f6;
 }
 
+.confirm-plan-sublist {
+  margin: 0.25rem 0 0.4rem;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted, #adb5bd);
+}
+
 /* --- Attention strip (replaces the old filter-button row) --- */
 .attention-strip {
   display: grid;

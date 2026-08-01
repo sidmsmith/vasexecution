@@ -1008,36 +1008,66 @@
     );
   }
 
+  function formatPullPlanLine(p) {
+    if (p.action === "added_type") {
+      const steps = (p.steps || []).join(", ") || "none";
+      return `<li><strong>${esc(p.id)}</strong> — add whole type (${(p.steps || []).length} step${
+        (p.steps || []).length === 1 ? "" : "s"
+      }${p.instructionCount ? `, ${p.instructionCount} instructions` : ""}). Steps: ${esc(steps)}</li>`;
+    }
+    if (p.action === "added_steps") {
+      return `<li><strong>${esc(p.id)}</strong> — add step(s): ${esc((p.steps || []).join(", ") || "none")}</li>`;
+    }
+    if (p.action === "merged_instructions") {
+      const stepLines = (p.stepDetails || [])
+        .map(
+          (d) =>
+            `<li>${esc(d.step)}: ${(d.texts || []).map((t) => `"${esc(t)}"`).join(", ")}</li>`
+        )
+        .join("");
+      return `<li><strong>${esc(p.id)}</strong> — merge ${p.instructionCount || 0} instruction(s) onto step(s): ${esc(
+        (p.steps || []).join(", ") || "none"
+      )}${stepLines ? `<ul class="confirm-plan-sublist">${stepLines}</ul>` : ""}</li>`;
+    }
+    if (p.action === "replaced_invalid_entry") {
+      return `<li><strong>${esc(p.id)}</strong> — replace invalid local entry with WMS data (${
+        (p.steps || []).length
+      } steps)</li>`;
+    }
+    return `<li><strong>${esc(p.id)}</strong> — ${esc(p.action || "update")}</li>`;
+  }
+
   async function runPull() {
     const ids = Array.from(selected);
+    if (!ids.length) return;
     const body = {
       org,
       token,
       config: draftPayload(),
       typeIds: ids
     };
+    status("Checking WMS for what would be pulled...");
+    const res = await api("vas_sync_pull", body);
+    if (!res.success) {
+      return status(res.error || "Pull failed", "error");
+    }
+    const pulled = res.pulled || [];
+    if (!pulled.length) {
+      status("Nothing new to pull", "success");
+      return;
+    }
+    const lines = pulled.map(formatPullPlanLine).join("");
+    status("");
     openConfirm(
       "Pull missing into draft",
-      `<p>Pull selected <strong>${ids.length}</strong> type(s) from WMS into the local draft.</p>
-       <p class="small text-muted mb-0">Saved locally right away (same draft Admin uses) — use Save &amp; Deploy when ready to commit to GitHub.</p>`,
+      `<p>Pull will merge <strong>${pulled.length}</strong> change(s) from WMS into the local draft.</p>
+       <p class="small text-muted mb-2">Applied locally right away (same draft Admin uses) — use Save &amp; Deploy when ready to commit to GitHub.</p>
+       <ul class="confirm-plan-list">${lines}</ul>`,
       async () => {
-        status("Pulling from WMS into draft...");
-        const res = await api("vas_sync_pull", body);
-        if (!res.success) {
-          return status(res.error || "Pull failed", "error");
-        }
         draft = VasConfig.normalizeConfig(res.config);
-        const n = (res.pulled || []).length;
-        if (n) {
-          usingLocalDraft = true;
-          persistDraftLocal();
-        }
-        status(
-          n
-            ? `Pulled ${n} change(s) into local draft — Save & Deploy when ready`
-            : "Nothing new to pull",
-          "success"
-        );
+        usingLocalDraft = true;
+        persistDraftLocal();
+        status(`Pulled ${pulled.length} change(s) into local draft — Save & Deploy when ready`, "success");
         await refreshDiff();
       }
     );
