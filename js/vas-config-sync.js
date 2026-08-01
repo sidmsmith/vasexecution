@@ -520,9 +520,8 @@
             </button>
           </td>
           <td>
-            <span class="sync-type-id">${esc(id)}</span>
+            <span class="sync-type-id">${esc(id)}</span>${warnIconHtml(t)}
             <span class="sync-type-title">${esc(t.title || "")}</span>
-            ${warnIconHtml(t)}
           </td>
           <td><div class="sync-row-status">${typeStatusHtml(t)}${gapNote(t)}</div></td>
           <td>${steps.length}</td>
