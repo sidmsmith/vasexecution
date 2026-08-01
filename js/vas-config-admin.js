@@ -688,7 +688,7 @@
     syncEditorToDraft();
     const entry = currentEntry();
     if (!entry || tab !== "types" || !entry.steps || !entry.steps[oldId]) return;
-    const raw = prompt(
+    const raw = await promptDialog(
       "Rename AssignedServiceStepId (must match MAWM ProvidedServiceStepId):",
       oldId
     );
@@ -816,7 +816,7 @@
         syncEditorToDraft();
         const curEntry = currentEntry();
         if (!curEntry || tab !== "types") return;
-        const raw = prompt(
+        const raw = await promptDialog(
           "AssignedServiceStepId for this step (must match MAWM):"
         );
         const stepId = String(raw || "").trim();
@@ -1450,7 +1450,7 @@
   if (els.addEntryBtn) {
     els.addEntryBtn.onclick = async () => {
       if (tab === "types") {
-        const raw = prompt("ProvidedServiceId / VAS Type name:");
+        const raw = await promptDialog("ProvidedServiceId / VAS Type name:");
         const key = String(raw || "").trim();
         if (!key) return;
         selectedKey = key;
@@ -1464,7 +1464,7 @@
         await refreshWmsStepMatch();
         return;
       }
-      const itemId = prompt("ItemId to add:");
+      const itemId = await promptDialog("ItemId to add:");
       if (!itemId || !itemId.trim()) return;
       selectedKey = itemId.trim();
       ensureEntry(selectedKey);
