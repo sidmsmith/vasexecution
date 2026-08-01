@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-08-01T03:17:48.143Z",
+  "updatedAt": "2026-08-01T04:49:45.921Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1233,10 +1233,38 @@
               }
             ]
           }
+        },
+        "Test Step": {
+          "title": "Test Step",
+          "content": [
+            {
+              "id": "ins_q9orhleg",
+              "type": "text",
+              "text": "Test instruction",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_q9orhleg"
+                ]
+              }
+            ]
+          }
         }
       },
       "stepOrder": [
-        "Engrave with S"
+        "Engrave with S",
+        "Test Step"
       ],
       "sections": {
         "signature": {
