@@ -543,6 +543,7 @@
     renderThemeList,
     renderPreviewThemeList,
     wireThemePicker,
-    getActiveThemeKey: () => activeThemeKey
+    getActiveThemeKey: () => activeThemeKey,
+    isMobileLayout
   };
 })(typeof window !== 'undefined' ? window : globalThis);

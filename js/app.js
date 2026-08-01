@@ -1,5 +1,8 @@
 (function () {
   const Themes = window.InspectionThemes;
+  const isMobileLayout =
+    (Themes && Themes.isMobileLayout) ||
+    (() => window.matchMedia("(max-width: 991px)").matches);
   const ASSIGNED_SERVICE_STATUS = {
     "1000": "Created",
     "2000": "In Progress",
@@ -417,8 +420,7 @@
   function applyAppTitle() {
     const titleEl = document.querySelector(".app-title");
     if (!titleEl) return;
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    titleEl.textContent = isMobile ? "VAS Execution" : "VAS Workbench";
+    titleEl.textContent = isMobileLayout() ? "VAS Execution" : "VAS Workbench";
   }
 
   function applyViewMode() {
@@ -506,12 +508,18 @@
   function collectCompletions(mode) {
     const completions = [];
     const errors = [];
-    const cards = els.serviceList.querySelectorAll(".service-card");
+    // ".service-card" for the desktop table; ".mx-step-card" for the mobile
+    // card view's per-step cards — same lookup, same contract. Not reusing
+    // the "service-card" class itself on mobile markup since it also carries
+    // unrelated desktop main/detail-view CSS (e.g. hiding non-active cards).
+    const cards = els.serviceList.querySelectorAll(".service-card, .mx-step-card");
     cards.forEach((card) => {
       card.querySelectorAll(".qty-input").forEach((input) => {
         const remaining = Number(input.dataset.remaining || 0);
         if (remaining <= 0) return;
-        const row = input.closest("tr");
+        // "tr" for the desktop table; "[data-step-row-group]" for the mobile
+        // card view's non-table step markup — same lookup, same contract.
+        const row = input.closest("tr, [data-step-row-group]");
         const stepChecked = row?.querySelector(".step-select")?.checked;
         if (mode === "selected" && !stepChecked) return;
         const check = validateQtyInput(input);
@@ -903,10 +911,322 @@
     );
   }
 
+  // ===== Mobile card view (viewport <= 991px) =====
+  // A genuinely different render path for narrow screens, not a CSS shrink of the
+  // desktop table. Reuses real .qty-input/.step-select elements (same data-*
+  // contract desktop uses) so collectCompletions/runCompletions/validateQtyInput
+  // drive the exact same perform_vas call, validation, and error handling as
+  // desktop — no parallel completion logic. Only renders one Type's card into
+  // #serviceList at a time, so "Complete All" (mode "all", which reads every open
+  // step under #serviceList regardless of checkbox state) is already correctly
+  // scoped to just that Type with no new mode needed.
+  let mobileScreen = "results"; // "results" | "steps"
+  let mobileActiveIndex = 0;
+  let mobileStagedQty = {};
+
+  /** No server-side "oLPN VAS status" field exists — computed across every step
+   *  of every service. Created only if every step is untouched, Complete only if
+   *  every step is fully done, else In Progress. */
+  function mobileOlpnStatusLabel() {
+    const allSteps = currentServices.flatMap((s) =>
+      Array.isArray(s.AssignedServiceStep) ? s.AssignedServiceStep : []
+    );
+    if (!allSteps.length) return "Created";
+    if (allSteps.every((s) => stepRemaining(s) <= 0)) return "Complete";
+    if (allSteps.every((s) => !Number(s.CompletedQuantity))) return "Created";
+    return "In Progress";
+  }
+
+  function mobileServiceProgress(svc) {
+    const steps = Array.isArray(svc.AssignedServiceStep) ? svc.AssignedServiceStep : [];
+    return {
+      total: steps.length,
+      done: steps.filter((s) => stepRemaining(s) <= 0).length
+    };
+  }
+
+  function mobileTypeIconHtml(svc, cls) {
+    const typeCfg = window.VasConfig
+      ? window.VasConfig.getTypeConfig(vasConfig, svc.ProvidedServiceId)
+      : null;
+    const iconUrl = window.VasConfig ? window.VasConfig.typeIconUrl(typeCfg) : "";
+    return iconUrl
+      ? `<img class="${cls}" src="${esc(iconUrl)}" alt="" onerror="this.remove()" />`
+      : "";
+  }
+
+  function mobileTypeCardHtml(svc, idx) {
+    const { total, done } = mobileServiceProgress(svc);
+    return `<div class="mx-type-card" data-mobile-service-index="${idx}">
+      <div class="mx-type-card-top">
+        <span class="mx-type-card-id">${mobileTypeIconHtml(
+          svc,
+          "mx-type-card-icon"
+        )}${esc(svc.ProvidedServiceId || "Service")}</span>
+        ${statusBadgeHtml(svc.StatusId, svc.AssignedServiceStatusDesc)}
+      </div>
+      <div class="mx-type-card-meta">
+        <span><strong>Steps</strong> ${total}</span>
+        <span><strong>Complete</strong> ${done}</span>
+        <span><strong>Remaining</strong> ${total - done}</span>
+      </div>
+    </div>`;
+  }
+
+  function mobileOlpnHeaderHtml() {
+    const label = mobileOlpnStatusLabel();
+    const olpn = currentOlpnRecord || {};
+    const total = currentServices.length;
+    return `<div class="mx-olpn-header">
+      <div class="mx-olpn-header-top">
+        <div class="mx-olpn-header-id">oLPN ${esc(olpn.OlpnId || currentOlpnId || "")}</div>
+        <span class="badge ${statusBadgeClass(null, label)}">${esc(label)}</span>
+      </div>
+      <div class="mx-olpn-header-sub">${
+        olpn.OrderId ? "Order " + esc(olpn.OrderId) + " · " : ""
+      }${total} service${total === 1 ? "" : "s"}</div>
+    </div>`;
+  }
+
+  function mobileResultsScreenHtml() {
+    return `${mobileOlpnHeaderHtml()}
+      <div class="mx-type-list">${currentServices
+        .map((svc, i) => mobileTypeCardHtml(svc, i))
+        .join("")}</div>`;
+  }
+
+  function mobileTypeNavInfo(idx) {
+    return {
+      position: idx + 1,
+      total: currentServices.length,
+      prevIdx: idx > 0 ? idx - 1 : null,
+      nextIdx: idx < currentServices.length - 1 ? idx + 1 : null
+    };
+  }
+
+  function mobileTypeHeaderHtml(svc, idx) {
+    const { total, done } = mobileServiceProgress(svc);
+    const nav = mobileTypeNavInfo(idx);
+    return `<div class="mx-type-topbar">
+      <button type="button" class="mx-back-btn" data-mobile-back aria-label="Back to services">&lsaquo;</button>
+      ${mobileTypeIconHtml(svc, "mx-type-topbar-icon")}
+      <div class="mx-type-topbar-text">
+        <div class="mx-type-topbar-title">${esc(svc.ProvidedServiceId || "Service")}</div>
+        <div class="mx-type-topbar-sub">${done} of ${total} steps complete · Type ${
+          nav.position
+        } of ${nav.total}</div>
+      </div>
+      ${statusBadgeHtml(svc.StatusId, svc.AssignedServiceStatusDesc)}
+    </div>`;
+  }
+
+  /** Only while the step still has remaining qty: a real (visually hidden)
+   *  .qty-input + .step-select, wrapped in [data-step-row-group] so
+   *  collectCompletions' row lookup finds them (see the "tr, [data-step-row-group]"
+   *  change above) — driven entirely by mobileStagedQty, not free text entry. */
+  function mobileQtyRowHtml(svc, step) {
+    const remaining = stepRemaining(step);
+    if (remaining <= 0) return "";
+    const stepId = step.AssignedServiceStepId || "";
+    const staged = mobileStagedQty[stepId] || 0;
+    return `<div class="mx-step-qty-row" data-step-row-group>
+      <input type="checkbox" class="step-select" hidden aria-hidden="true" tabindex="-1" />
+      <input type="number" class="qty-input" hidden tabindex="-1"
+        value="${esc(staged)}"
+        data-remaining="${esc(remaining)}"
+        data-requestor-id="${esc(svc.ServiceRequestorId)}"
+        data-provided-service-id="${esc(svc.ProvidedServiceId)}"
+        data-step-id="${esc(stepId)}" />
+      <div class="mx-stepper">
+        <button type="button" data-mobile-qty-dec="${esc(stepId)}"${
+          staged <= 0 ? " disabled" : ""
+        }>&minus;</button>
+        <span class="mx-qty-value">${staged}</span>
+        <button type="button" data-mobile-qty-inc="${esc(stepId)}"${
+          staged >= remaining ? " disabled" : ""
+        }>+</button>
+      </div>
+      <button type="button" class="mx-complete-btn" data-mobile-step-complete="${esc(
+        stepId
+      )}"${staged <= 0 ? " disabled" : ""}>Complete</button>
+    </div>`;
+  }
+
+  function mobileStepCardHtml(svc, step) {
+    const stepId = step.AssignedServiceStepId || "";
+    const isComplete = stepRemaining(step) <= 0;
+    return `<div class="mx-step-card${
+      isComplete ? " is-complete" : ""
+    }" data-mobile-step-id="${esc(stepId)}">
+      <div class="mx-step-card-top">
+        <span class="mx-step-card-title">${esc(step.StepDescription || stepId)}</span>
+        ${statusBadgeHtml(
+          step.StatusId || svc.StatusId,
+          step.AssignedServiceStepStatusDesc
+        )}
+      </div>
+      <div class="mx-step-qty-grid">
+        <div><strong>${esc(step.RequestedQuantity)}</strong>Requested</div>
+        <div><strong>${esc(stepRemaining(step))}</strong>Remaining</div>
+        <div><strong>${esc(step.CompletedQuantity)}</strong>Completed</div>
+      </div>
+      ${stepInstructionsPanelHtml(svc, step)}
+      ${mobileQtyRowHtml(svc, step)}
+    </div>`;
+  }
+
+  function mobileStepsScreenHtml(svc, idx) {
+    const steps = orderedAssignedSteps(svc);
+    const { total, done } = mobileServiceProgress(svc);
+    const allDone = total > 0 && done >= total;
+    return `${mobileTypeHeaderHtml(svc, idx)}
+      <div class="mx-steps-body">${steps
+        .map((st) => mobileStepCardHtml(svc, st))
+        .join("")}</div>
+      <div class="mx-steps-footer">
+        <span class="mx-steps-footer-status">${done} of ${total} steps complete</span>
+        ${
+          allDone
+            ? ""
+            : `<button type="button" class="mx-steps-cta" data-mobile-complete-all>Complete All</button>`
+        }
+      </div>`;
+  }
+
+  function bindMobileScreen() {
+    els.serviceList.querySelectorAll("[data-mobile-service-index]").forEach((card) => {
+      card.addEventListener("click", () => {
+        mobileActiveIndex = Number(card.dataset.mobileServiceIndex) || 0;
+        mobileScreen = "steps";
+        renderMobileServices(currentServices);
+      });
+    });
+    const back = els.serviceList.querySelector("[data-mobile-back]");
+    if (back) {
+      back.addEventListener("click", () => {
+        mobileScreen = "results";
+        renderMobileServices(currentServices);
+      });
+    }
+    els.serviceList
+      .querySelectorAll("[data-mobile-qty-inc], [data-mobile-qty-dec]")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const stepId = btn.dataset.mobileQtyInc || btn.dataset.mobileQtyDec;
+          const svc = currentServices[mobileActiveIndex];
+          const step = (svc?.AssignedServiceStep || []).find(
+            (s) => s.AssignedServiceStepId === stepId
+          );
+          if (!step) return;
+          const remaining = stepRemaining(step);
+          const current = mobileStagedQty[stepId] || 0;
+          const delta = btn.dataset.mobileQtyInc ? 1 : -1;
+          mobileStagedQty[stepId] = Math.max(0, Math.min(remaining, current + delta));
+          renderMobileServices(currentServices);
+        });
+      });
+    els.serviceList.querySelectorAll("[data-mobile-step-complete]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const stepId = btn.dataset.mobileStepComplete;
+        if ((mobileStagedQty[stepId] || 0) <= 0) return;
+        // Check only this step's row, uncheck every other step in this Type,
+        // then reuse the real "selected" completion path unchanged.
+        els.serviceList.querySelectorAll(".step-select").forEach((cb) => {
+          cb.checked =
+            cb.closest("[data-mobile-step-id]")?.dataset.mobileStepId === stepId;
+        });
+        runCompletions("selected");
+      });
+    });
+    const completeAllBtn = els.serviceList.querySelector("[data-mobile-complete-all]");
+    if (completeAllBtn) {
+      completeAllBtn.addEventListener("click", async () => {
+        const svc = currentServices[mobileActiveIndex];
+        if (!svc) return;
+        const openCount = (svc.AssignedServiceStep || []).filter(
+          (s) => stepRemaining(s) > 0
+        ).length;
+        const ok = await confirmDialog(
+          `Complete all ${openCount} remaining step(s) for ${svc.ProvidedServiceId}?`,
+          { okLabel: "Complete All" }
+        );
+        if (!ok) return;
+        // "all" mode ignores checkbox state but still validates each qty-input's
+        // current value — set every open step to its full remaining quantity
+        // first (same default desktop's own qty-input starts at), discarding any
+        // partial per-step staging, since Complete All always means "finish
+        // everything in this Type."
+        els.serviceList.querySelectorAll(".qty-input").forEach((input) => {
+          input.value = input.dataset.remaining;
+        });
+        runCompletions("all");
+      });
+    }
+  }
+
+  /** Swipe left/right between Types while on the steps screen. Pointer events
+   *  (not touch-only) so mouse-drag testing works too. Wired once, not per-render
+   *  — #serviceList itself is a stable node across renderMobileServices calls. */
+  function setupMobileSwipeNav() {
+    const el = els.serviceList;
+    if (!el) return;
+    const THRESHOLD = 70;
+    let startX = null;
+    let startY = null;
+    el.addEventListener("pointerdown", (e) => {
+      if (mobileScreen !== "steps") return;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+    el.addEventListener("pointerup", (e) => {
+      if (mobileScreen !== "steps" || startX === null) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      startX = null;
+      startY = null;
+      if (Math.abs(dx) < THRESHOLD || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+      const nav = mobileTypeNavInfo(mobileActiveIndex);
+      const targetIdx = dx < 0 ? nav.nextIdx : nav.prevIdx;
+      if (targetIdx == null) return;
+      mobileActiveIndex = targetIdx;
+      renderMobileServices(currentServices);
+      el.classList.remove("mx-swipe-anim");
+      void el.offsetWidth; // restart the CSS animation even if it just ran
+      el.classList.add("mx-swipe-anim");
+    });
+  }
+
+  function renderMobileServices(services) {
+    if (!services.length) {
+      els.serviceList.innerHTML =
+        '<p class="text-muted mb-0">No assigned service records returned.</p>';
+      if (els.serviceNav) els.serviceNav.innerHTML = "";
+      syncCameraBtn();
+      return;
+    }
+    mobileActiveIndex = Math.max(0, Math.min(mobileActiveIndex, services.length - 1));
+    if (mobileScreen === "steps") {
+      els.serviceList.innerHTML = mobileStepsScreenHtml(
+        services[mobileActiveIndex],
+        mobileActiveIndex
+      );
+    } else {
+      mobileScreen = "results";
+      els.serviceList.innerHTML = mobileResultsScreenHtml();
+    }
+    bindMobileScreen();
+    if (window.VasImageModal) window.VasImageModal.bindTriggers(els.serviceList);
+    syncCameraBtn();
+  }
+
   function renderServices(services) {
     const list = Array.isArray(services) ? services.slice() : [];
     list.sort(compareAssignedServices);
     currentServices = list;
+    if (isMobileLayout()) {
+      renderMobileServices(currentServices);
+      return;
+    }
     activeServiceIndex = 0;
     if (!currentServices.length) {
       els.serviceList.innerHTML =
@@ -1063,6 +1383,9 @@
     currentOlpnRecord = null;
     currentItemMap = {};
     currentServices = [];
+    mobileScreen = "results";
+    mobileActiveIndex = 0;
+    mobileStagedQty = {};
     status("Looking up oLPN and ServiceRequestorIds...");
     setBusy(true, "Searching oLPN...");
 
@@ -1156,7 +1479,22 @@
         olpn_id: currentOlpnId,
         error: res.error
       });
-      return status(res.error || "performVas failed", "error");
+      status(res.error || "performVas failed", "error");
+      // perform_vas aborts on the first bad entry in a batch, but doesn't roll
+      // back earlier entries that already succeeded against real WMS — re-fetch
+      // so the UI can't keep showing stale/incorrect state after a partial
+      // failure (the qty inputs/checkboxes on screen are left as-is otherwise).
+      const refresh = await api("assigned_services", {
+        org,
+        token,
+        requestor_ids: currentRequestorIds,
+        olpn_record: currentOlpnRecord
+      });
+      if (refresh.success) {
+        currentItemMap = refresh.requestor_item_map || currentItemMap;
+        renderServices(refresh.services || []);
+      }
+      return;
     }
 
     currentItemMap = res.requestor_item_map || currentItemMap;
@@ -1209,9 +1547,14 @@
   }
 
   applyAppTitle();
-  window
-    .matchMedia("(max-width: 768px)")
-    .addEventListener("change", applyAppTitle);
+  setupMobileSwipeNav();
+  window.matchMedia("(max-width: 991px)").addEventListener("change", () => {
+    applyAppTitle();
+    // Crossing the breakpoint (resize / rotate / DevTools device toolbar) swaps
+    // which of renderMobileServices/desktop rendering runs — re-render in place
+    // rather than requiring a reload, same list either way.
+    if (currentServices.length) renderServices(currentServices);
+  });
 
   function syncExecutionBarStickyOffset() {
     if (!els.executionBar) return;
