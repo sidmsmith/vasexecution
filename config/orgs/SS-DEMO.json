@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-07-17T15:24:34.942Z",
+  "updatedAt": "2026-08-01T03:17:48.143Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1468,39 +1468,11 @@
               }
             ]
           }
-        },
-        "RKs Step": {
-          "title": "RKs Step",
-          "content": [
-            {
-              "id": "ins_haqdfohx",
-              "type": "text",
-              "text": "RKs instruction 1",
-              "bold": true,
-              "italic": false,
-              "underline": true,
-              "color": "#1983e6",
-              "fontSize": 134,
-              "listMarker": "check"
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_haqdfohx"
-                ]
-              }
-            ]
-          }
         }
       },
       "stepOrder": [
         "Asset Tag",
-        "Flash BIOS",
-        "RKs Step"
+        "Flash BIOS"
       ],
       "sections": {
         "signature": {
