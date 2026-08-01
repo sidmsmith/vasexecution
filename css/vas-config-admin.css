@@ -10,15 +10,15 @@
   text-transform: uppercase;
   padding: 0.25rem 0.55rem;
   border-radius: 999px;
-  background: rgba(234, 179, 8, 0.18);
-  border: 1px solid rgba(250, 204, 21, 0.45);
+  background: rgba(220, 38, 38, 0.28);
+  border: 1px solid rgba(248, 113, 113, 0.55);
   color: var(--text, #e8eaed);
   white-space: nowrap;
 }
 
 .draft-dirty-badge i {
   font-size: 0.5rem;
-  color: #facc15;
+  color: #f87171;
 }
 
 .entry-select-row {
