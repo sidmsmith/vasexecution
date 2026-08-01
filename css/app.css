@@ -1133,220 +1133,234 @@ body {
 
 /* =====================================================================
    Mobile card view (js/app.js renderMobileServices and friends) — a genuinely
-   different render path below 991px, not a CSS shrink of the desktop table.
-   Everything here is new/additive; no existing selector above this block is
-   touched, so desktop (>=992px) is unaffected.
+   different render path, not a CSS shrink of the desktop table. Everything
+   here is new/additive; no existing selector above this block is touched.
+
+   Only ".execution-bar, #serviceNavPanel" below is gated by real viewport
+   width — that pair is desktop-always-present markup with no class guard,
+   so it must stay screen-size-driven. Every other rule here is scoped by
+   ".mx-*" classes or the "body.mx-card-mode"/"mx-filter-open" classes,
+   which are ONLY ever added by js/app.js's isMobileLayout()-gated mobile
+   render path — so leaving them unconditional (not wrapped in the same
+   @media block) doesn't change real desktop execution at all, and lets
+   admin.html's Live Preview reuse this exact CSS inside its fixed-size
+   phone-bezel mockup (which runs at real desktop viewport width) for
+   visual parity with production mobile.
    ===================================================================== */
 @media (max-width: 991px) {
   .execution-bar,
   #serviceNavPanel {
     display: none !important;
   }
-
-  /* .mx-card-mode is toggled by renderMobileServices()/renderServices() in
-     js/app.js — only while the mobile card view actually owns #serviceList,
-     so this never touches other pages that share app.css (Admin/Sync). */
-  /* .mx-filter-open (toggled by #mobileFilterBtn) swaps which of
-     #mainUI/#results is showing — the oLPN search form or the loaded
-     results — so both rules below are qualified by it, not just
-     .mx-card-mode alone. */
-  body.mx-card-mode:not(.mx-filter-open) #mainUI,
-  body.mx-card-mode:not(.mx-filter-open) #olpnMeta {
-    display: none !important;
-  }
-  body.mx-card-mode.mx-filter-open #results {
-    display: none !important;
-  }
-  /* Info/success status text (e.g. "Found N assigned service(s)") duplicates
-     the oLPN header below it once cards are showing — but keep errors
-     visible, there's no other surface for those on mobile. */
-  body.mx-card-mode #status:not(.error) {
-    display: none !important;
-  }
-  body.mx-card-mode .main-card {
-    margin: 0.35rem;
-    padding: 0.65rem 0.65rem 0.5rem;
-  }
-
-  /* Base .mx-filter-btn { display:none } lives outside this media query
-     (near .camera-btn/.theme-selector-btn) so it stays hidden at desktop
-     widths even if .mx-card-mode were ever present; this rule is what
-     actually reveals it — only once results are showing (not while the
-     oLPN search prompt itself, #mainUI, is visible). */
-  body.mx-card-mode:not(.mx-filter-open) .mx-filter-btn {
-    display: block;
-  }
-
-  .mx-olpn-header {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.75rem 0.9rem;
-    margin-bottom: 0.85rem;
-    background: rgba(255, 255, 255, 0.03);
-  }
-  .mx-olpn-header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-  }
-  .mx-olpn-header-id { font-weight: 700; font-size: 1rem; }
-  .mx-olpn-header-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem; }
-
-  .mx-type-list { display: flex; flex-direction: column; gap: 0.7rem; }
-  .mx-type-card {
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 0.85rem 0.9rem;
-    background: rgba(255, 255, 255, 0.02);
-    cursor: pointer;
-  }
-  .mx-type-card:active { border-color: var(--primary); background: rgba(13, 110, 253, 0.1); }
-  .mx-type-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
-  .mx-type-card-id { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
-  .mx-type-card-icon { width: 1.75rem; height: 1.75rem; object-fit: contain; border-radius: 6px; }
-  .mx-type-card-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; }
-  .mx-type-card-meta strong { color: var(--text-secondary); font-weight: 600; }
-
-  .mx-type-topbar {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.85rem 1rem;
-    margin: 0 0 0.85rem;
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border);
-  }
-  .mx-back-btn {
-    background: none;
-    border: none;
-    color: var(--text);
-    font-size: 1.1rem;
-    padding: 0.15rem 0.35rem;
-    line-height: 1;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .mx-type-topbar-icon { width: 2.25rem; height: 2.25rem; object-fit: contain; border-radius: 6px; flex-shrink: 0; }
-  .mx-type-topbar-text { flex: 1 1 auto; min-width: 0; }
-  .mx-type-topbar-title { font-weight: 700; font-size: 1.05rem; }
-  .mx-type-topbar-sub { font-size: 0.75rem; color: var(--text-muted); }
-
-  .mx-steps-body { display: flex; flex-direction: column; gap: 0.6rem; padding-bottom: 4.5rem; }
-  .mx-step-card {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.85rem 0.9rem;
-    background: rgba(255, 255, 255, 0.02);
-  }
-  .mx-step-card.is-complete { border-color: rgba(74, 222, 128, 0.45); }
-  .mx-step-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
-  .mx-step-card-title { font-weight: 700; font-size: 0.95rem; }
-  .mx-step-qty-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.4rem;
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    text-align: center;
-    margin-bottom: 0.6rem;
-    padding-bottom: 0.6rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .mx-step-qty-grid strong { display: block; color: var(--text); font-size: 0.95rem; font-weight: 700; }
-
-  .mx-step-qty-row { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.85rem; }
-  .mx-stepper {
-    display: flex;
-    align-items: center;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  .mx-stepper button {
-    background: var(--input-bg);
-    color: var(--text);
-    border: none;
-    width: 2.25rem;
-    height: 2.25rem;
-    font-size: 1.1rem;
-    cursor: pointer;
-  }
-  .mx-stepper button:disabled { opacity: 0.35; cursor: not-allowed; }
-  .mx-qty-value {
-    width: 3rem;
-    text-align: center;
-    display: inline-block;
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-    line-height: 2.25rem;
-    height: 2.25rem;
-  }
-  .mx-complete-btn {
-    flex: 1 1 auto;
-    height: 2.5rem;
-    border-radius: 8px;
-    border: none;
-    background: var(--success);
-    color: #fff;
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-  .mx-complete-btn:active { background: var(--success-hover); }
-  .mx-complete-btn:disabled { background: #888; opacity: 0.7; cursor: not-allowed; }
-
-  /* position:fixed, not sticky — on real mobile browsers the address bar
-     collapsing/expanding resizes the visual viewport late in the scroll,
-     and a sticky element's "stuck" position (computed against the layout
-     viewport) desyncs from it, leaving a gap between the footer and the
-     true bottom edge once you scroll all the way down. Fixed recalculates
-     against the live visual viewport instead. left/right match
-     .main-card's mx-card-mode margin so the footer stays flush with the
-     card's own edges rather than spanning past them. */
-  .mx-steps-footer {
-    position: fixed;
-    left: 0.35rem;
-    right: 0.35rem;
-    bottom: 0;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 0.6rem;
-    padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
-    background: var(--card-bg);
-    border-top: 1px solid var(--border);
-    border-radius: 0 0 10px 10px;
-    box-shadow: 0 -8px 12px -8px rgba(0, 0, 0, 0.45);
-  }
-  .mx-steps-footer-status {
-    flex: 1 1 auto;
-    min-width: 0;
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .mx-steps-cta {
-    flex-shrink: 0;
-    white-space: nowrap;
-    border: none;
-    border-radius: 8px;
-    background: var(--success);
-    color: #fff;
-    font-weight: 600;
-    padding: 0.6rem 1rem;
-    font-size: 0.88rem;
-  }
-
-  @keyframes mxSwipeIn {
-    from { opacity: 0; transform: translateX(14px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  .mx-swipe-anim { animation: mxSwipeIn 0.18s ease; }
 }
+
+/* .mx-card-mode is toggled by renderMobileServices()/renderServices() in
+   js/app.js — only while the mobile card view actually owns #serviceList,
+   so this never touches other pages that share app.css (Admin/Sync). */
+/* .mx-filter-open (toggled by #mobileFilterBtn) swaps which of
+   #mainUI/#results is showing — the oLPN search form or the loaded
+   results — so both rules below are qualified by it, not just
+   .mx-card-mode alone. */
+body.mx-card-mode:not(.mx-filter-open) #mainUI,
+body.mx-card-mode:not(.mx-filter-open) #olpnMeta {
+  display: none !important;
+}
+body.mx-card-mode.mx-filter-open #results {
+  display: none !important;
+}
+/* Info/success status text (e.g. "Found N assigned service(s)") duplicates
+   the oLPN header below it once cards are showing — but keep errors
+   visible, there's no other surface for those on mobile. */
+body.mx-card-mode #status:not(.error) {
+  display: none !important;
+}
+body.mx-card-mode .main-card {
+  margin: 0.35rem;
+  padding: 0.65rem 0.65rem 0.5rem;
+}
+
+/* Base .mx-filter-btn { display:none } lives near .camera-btn/
+   .theme-selector-btn so it stays hidden by default even if .mx-card-mode
+   were ever present without real mobile execution; this rule is what
+   actually reveals it — only once results are showing (not while the
+   oLPN search prompt itself, #mainUI, is visible). */
+body.mx-card-mode:not(.mx-filter-open) .mx-filter-btn {
+  display: block;
+}
+
+.mx-olpn-header {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+.mx-olpn-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.mx-olpn-header-id { font-weight: 700; font-size: 1rem; }
+.mx-olpn-header-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+.mx-type-list { display: flex; flex-direction: column; gap: 0.7rem; }
+.mx-type-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.85rem 0.9rem;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+}
+.mx-type-card:active { border-color: var(--primary); background: rgba(13, 110, 253, 0.1); }
+.mx-type-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.mx-type-card-id { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+.mx-type-card-icon { width: 1.75rem; height: 1.75rem; object-fit: contain; border-radius: 6px; }
+.mx-type-card-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; }
+.mx-type-card-meta strong { color: var(--text-secondary); font-weight: 600; }
+
+.mx-type-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  margin: 0 0 0.85rem;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+}
+.mx-back-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.1rem;
+  padding: 0.15rem 0.35rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mx-type-topbar-icon { width: 2.25rem; height: 2.25rem; object-fit: contain; border-radius: 6px; flex-shrink: 0; }
+.mx-type-topbar-text { flex: 1 1 auto; min-width: 0; }
+.mx-type-topbar-title { font-weight: 700; font-size: 1.05rem; }
+.mx-type-topbar-sub { font-size: 0.75rem; color: var(--text-muted); }
+
+.mx-steps-body { display: flex; flex-direction: column; gap: 0.6rem; padding-bottom: 4.5rem; }
+.mx-step-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 0.9rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+.mx-step-card.is-complete { border-color: rgba(74, 222, 128, 0.45); }
+.mx-step-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.mx-step-card-title { font-weight: 700; font-size: 0.95rem; }
+.mx-step-qty-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.mx-step-qty-grid strong { display: block; color: var(--text); font-size: 0.95rem; font-weight: 700; }
+
+.mx-step-qty-row { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.85rem; }
+.mx-stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.mx-stepper button {
+  background: var(--input-bg);
+  color: var(--text);
+  border: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.mx-stepper button:disabled { opacity: 0.35; cursor: not-allowed; }
+.mx-qty-value {
+  width: 3rem;
+  text-align: center;
+  display: inline-block;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  line-height: 2.25rem;
+  height: 2.25rem;
+}
+.mx-complete-btn {
+  flex: 1 1 auto;
+  height: 2.5rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--success);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.mx-complete-btn:active { background: var(--success-hover); }
+.mx-complete-btn:disabled { background: #888; opacity: 0.7; cursor: not-allowed; }
+
+/* position:fixed, not sticky — on real mobile browsers the address bar
+   collapsing/expanding resizes the visual viewport late in the scroll,
+   and a sticky element's "stuck" position (computed against the layout
+   viewport) desyncs from it, leaving a gap between the footer and the
+   true bottom edge once you scroll all the way down. Fixed recalculates
+   against the live visual viewport instead. left/right match
+   .main-card's mx-card-mode margin so the footer stays flush with the
+   card's own edges rather than spanning past them.
+   In Admin's Live Preview, this same "fixed" positioning is confined to
+   the phone-bezel box (not the real browser viewport) by a transform on
+   .device-screen (css/checklist-admin.css) — a transformed ancestor
+   becomes the containing block for position:fixed descendants. */
+.mx-steps-footer {
+  position: fixed;
+  left: 0.35rem;
+  right: 0.35rem;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
+  background: var(--card-bg);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 -8px 12px -8px rgba(0, 0, 0, 0.45);
+}
+.mx-steps-footer-status {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mx-steps-cta {
+  flex-shrink: 0;
+  white-space: nowrap;
+  border: none;
+  border-radius: 8px;
+  background: var(--success);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  font-size: 0.88rem;
+}
+
+@keyframes mxSwipeIn {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.mx-swipe-anim { animation: mxSwipeIn 0.18s ease; }

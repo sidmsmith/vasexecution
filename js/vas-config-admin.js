@@ -21,6 +21,17 @@
   let previewDeviceLogo = null;
   let previewMode = localStorage.getItem("vas_previewMode") === "desktop" ? "desktop" : "mobile";
 
+  // ===== Mobile execution preview (Types tab only — see buildCardHtml/
+  // renderPreview for Desktop mode and the Items tab, both unchanged) =====
+  let mobilePreviewScreen = "types"; // "types" | "steps"
+  let mobilePreviewActiveKey = null;
+  /** @type {Object<string, Set<string>>} typeKey -> completed stepId set (preview-only, never saved) */
+  const mobilePreviewCompleted = {};
+  /** @type {Object<string, Object<string, number>>} typeKey -> stepId -> staged qty (preview-only) */
+  const mobilePreviewStaged = {};
+  /** `${tab}|${selectedKey}|${selectedStepId}` as of the last mobile-preview render; undefined = never rendered yet */
+  let mobilePreviewLastSelection;
+
   const themeModalEl = document.getElementById("themeModal");
   const themeModal =
     themeModalEl && window.bootstrap
@@ -1116,6 +1127,239 @@
       </article>`;
   }
 
+  function mobilePreviewCompletedSet(typeKey) {
+    if (!mobilePreviewCompleted[typeKey]) mobilePreviewCompleted[typeKey] = new Set();
+    return mobilePreviewCompleted[typeKey];
+  }
+
+  function mobilePreviewStagedFor(typeKey, stepId) {
+    if (!mobilePreviewStaged[typeKey]) mobilePreviewStaged[typeKey] = {};
+    if (!(stepId in mobilePreviewStaged[typeKey])) mobilePreviewStaged[typeKey][stepId] = 1;
+    return mobilePreviewStaged[typeKey][stepId];
+  }
+
+  /** Tapping a card from the Type list is always a fresh "enter" — resets
+   *  that Type's preview-only completed/staged state even if it's the same
+   *  Type as last time (force:true). Following the editor's own selection
+   *  (mobilePreviewSyncSelection) only resets when it actually switches to
+   *  a *different* Type — so clicking a different step tab within the
+   *  SAME already-active Type doesn't wipe out what's showing. */
+  function mobilePreviewEnterType(key, { force = false } = {}) {
+    if (force || mobilePreviewActiveKey !== key) {
+      delete mobilePreviewCompleted[key];
+      delete mobilePreviewStaged[key];
+    }
+    mobilePreviewActiveKey = key;
+    mobilePreviewScreen = "steps";
+  }
+
+  /** Mirrors the single-card preview's "always shows what's being edited"
+   *  behavior for every SUBSEQUENT selection change — but the very first
+   *  mobile-preview render starts on the Type list (not whatever happened
+   *  to be selected already), per the user's explicit request. */
+  function mobilePreviewSyncSelection() {
+    const selection = `${tab}|${selectedKey || ""}|${selectedStepId || ""}`;
+    if (mobilePreviewLastSelection === undefined) {
+      mobilePreviewLastSelection = selection;
+      return;
+    }
+    if (selection === mobilePreviewLastSelection) return;
+    mobilePreviewLastSelection = selection;
+    if (tab === "types" && selectedKey) {
+      mobilePreviewEnterType(selectedKey);
+    }
+  }
+
+  function mobilePreviewTypeCardHtml(key, entry) {
+    const stepCount = VasConfig.orderedStepIds(entry).length;
+    const isEditing = tab === "types" && key === selectedKey;
+    const iconHtml = `<img class="mx-type-card-icon" src="${esc(
+      VasConfig.typeIconUrl(entry)
+    )}" alt="" onerror="this.remove()" />`;
+    return `<div class="mx-type-card" data-mobile-preview-type="${esc(key)}">
+      <div class="mx-type-card-top">
+        <span class="mx-type-card-id">${iconHtml}${esc(entry.title || key)}</span>
+        ${isEditing ? '<span class="badge bg-primary">Editing</span>' : ""}
+      </div>
+      ${
+        entry.description
+          ? `<div class="text-muted small mb-1">${esc(entry.description)}</div>`
+          : ""
+      }
+      <div class="mx-type-card-meta">
+        <span><strong>Steps</strong> ${stepCount}</span>
+      </div>
+    </div>`;
+  }
+
+  function mobilePreviewTypesScreenHtml() {
+    const keys = Object.keys(draft.vasTypes || {}).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" })
+    );
+    if (!keys.length) {
+      return '<p class="text-muted mb-0">No VAS Types configured.</p>';
+    }
+    return `<div class="mx-type-list">${keys
+      .map((key) => mobilePreviewTypeCardHtml(key, draft.vasTypes[key]))
+      .join("")}</div>`;
+  }
+
+  function mobilePreviewQtyRowHtml(typeKey, stepId) {
+    const remaining = 1;
+    const staged = mobilePreviewStagedFor(typeKey, stepId);
+    return `<div class="mx-step-qty-row">
+      <div class="mx-stepper">
+        <button type="button" data-mobile-preview-qty-dec="${esc(stepId)}"${
+          staged <= 0 ? " disabled" : ""
+        }>&minus;</button>
+        <span class="mx-qty-value">${staged}</span>
+        <button type="button" data-mobile-preview-qty-inc="${esc(stepId)}"${
+          staged >= remaining ? " disabled" : ""
+        }>+</button>
+      </div>
+      <button type="button" class="mx-complete-btn" data-mobile-preview-complete="${esc(
+        stepId
+      )}"${staged <= 0 ? " disabled" : ""}>Complete</button>
+    </div>`;
+  }
+
+  function mobilePreviewStepCardHtml(typeKey, stepId, step) {
+    const isComplete = mobilePreviewCompletedSet(typeKey).has(stepId);
+    const instructionsHtml = VasConfig.renderStepContentHtml(step, esc);
+    return `<div class="mx-step-card${isComplete ? " is-complete" : ""}">
+      <div class="mx-step-card-top">
+        <span class="mx-step-card-title">${esc(step.title || stepId)}</span>
+        <span class="badge status-chip ${
+          isComplete ? "status-complete" : "status-created"
+        }">${isComplete ? "Complete" : "Created"}</span>
+      </div>
+      <div class="mx-step-qty-grid">
+        <div><strong>1</strong>Requested</div>
+        <div><strong>${isComplete ? 0 : 1}</strong>Remaining</div>
+        <div><strong>${isComplete ? 1 : 0}</strong>Completed</div>
+      </div>
+      <div class="vas-config-block">${
+        instructionsHtml || "<p class='text-muted mb-0'>No content</p>"
+      }</div>
+      ${isComplete ? "" : mobilePreviewQtyRowHtml(typeKey, stepId)}
+    </div>`;
+  }
+
+  function mobilePreviewStepsScreenHtml(typeKey) {
+    const entry = draft.vasTypes[typeKey];
+    if (!entry) return mobilePreviewTypesScreenHtml();
+    const stepIds = VasConfig.orderedStepIds(entry);
+    const completedSet = mobilePreviewCompletedSet(typeKey);
+    const total = stepIds.length;
+    const done = stepIds.filter((id) => completedSet.has(id)).length;
+    // total === 0 (a Type with no steps configured yet) also hides Complete
+    // All — there's nothing to complete, not "everything" complete.
+    const allDone = total === 0 || done >= total;
+    const iconHtml = `<img class="mx-type-topbar-icon" src="${esc(
+      VasConfig.typeIconUrl(entry)
+    )}" alt="" onerror="this.remove()" />`;
+    return `<div class="mx-type-topbar">
+        <button type="button" class="mx-back-btn" data-mobile-preview-back aria-label="Back to VAS Types">&lsaquo;</button>
+        ${iconHtml}
+        <div class="mx-type-topbar-text">
+          <div class="mx-type-topbar-title">${esc(entry.title || typeKey)}</div>
+          <div class="mx-type-topbar-sub">${done} of ${total} steps complete</div>
+        </div>
+      </div>
+      <div class="mx-steps-body">${stepIds
+        .map((id) => mobilePreviewStepCardHtml(typeKey, id, entry.steps[id]))
+        .join("")}</div>
+      <div class="mx-steps-footer">
+        <span class="mx-steps-footer-status">${done} of ${total} steps complete</span>
+        ${
+          allDone
+            ? ""
+            : `<button type="button" class="mx-steps-cta" data-mobile-preview-complete-all>Complete All</button>`
+        }
+      </div>`;
+  }
+
+  function mobilePreviewScreenHtml() {
+    mobilePreviewSyncSelection();
+    if (
+      mobilePreviewScreen === "steps" &&
+      mobilePreviewActiveKey &&
+      draft.vasTypes[mobilePreviewActiveKey]
+    ) {
+      return mobilePreviewStepsScreenHtml(mobilePreviewActiveKey);
+    }
+    mobilePreviewScreen = "types";
+    return mobilePreviewTypesScreenHtml();
+  }
+
+  function bindMobilePreviewScreen(scrollEl) {
+    if (!scrollEl) return;
+    scrollEl.querySelectorAll("[data-mobile-preview-type]").forEach((card) => {
+      card.addEventListener("click", () => {
+        mobilePreviewEnterType(card.dataset.mobilePreviewType, { force: true });
+        renderPreview();
+      });
+    });
+    const back = scrollEl.querySelector("[data-mobile-preview-back]");
+    if (back) {
+      back.addEventListener("click", () => {
+        mobilePreviewScreen = "types";
+        renderPreview();
+      });
+    }
+    scrollEl
+      .querySelectorAll("[data-mobile-preview-qty-inc], [data-mobile-preview-qty-dec]")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const typeKey = mobilePreviewActiveKey;
+          const stepId =
+            btn.dataset.mobilePreviewQtyInc || btn.dataset.mobilePreviewQtyDec;
+          if (!typeKey || !stepId) return;
+          const remaining = 1;
+          const current = mobilePreviewStagedFor(typeKey, stepId);
+          const delta = btn.dataset.mobilePreviewQtyInc ? 1 : -1;
+          mobilePreviewStaged[typeKey][stepId] = Math.max(
+            0,
+            Math.min(remaining, current + delta)
+          );
+          renderPreview();
+        });
+      });
+    scrollEl.querySelectorAll("[data-mobile-preview-complete]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const typeKey = mobilePreviewActiveKey;
+        const stepId = btn.dataset.mobilePreviewComplete;
+        if (!typeKey || !stepId) return;
+        if (mobilePreviewStagedFor(typeKey, stepId) <= 0) return;
+        mobilePreviewCompletedSet(typeKey).add(stepId);
+        renderPreview();
+      });
+    });
+    const completeAllBtn = scrollEl.querySelector(
+      "[data-mobile-preview-complete-all]"
+    );
+    if (completeAllBtn) {
+      completeAllBtn.addEventListener("click", async () => {
+        const typeKey = mobilePreviewActiveKey;
+        const entry = typeKey && draft.vasTypes[typeKey];
+        if (!entry) return;
+        const stepIds = VasConfig.orderedStepIds(entry);
+        const completedSet = mobilePreviewCompletedSet(typeKey);
+        const openCount = stepIds.filter((id) => !completedSet.has(id)).length;
+        if (!openCount) return;
+        const ok = await confirmDialog(
+          `Complete all ${openCount} remaining step(s) for ${esc(
+            entry.title || typeKey
+          )}?`,
+          { okLabel: "Complete All" }
+        );
+        if (!ok) return;
+        stepIds.forEach((id) => completedSet.add(id));
+        renderPreview();
+      });
+    }
+  }
+
   function setPreviewMode(mode) {
     previewMode = mode === "desktop" ? "desktop" : "mobile";
     localStorage.setItem("vas_previewMode", previewMode);
@@ -1137,7 +1381,13 @@
     const typeCfg = tab === "types" ? entry : null;
     const itemCfg = tab === "items" ? entry : null;
     const sections = VasConfig.mergedSections(typeCfg, itemCfg);
-    const cardHtml = buildCardHtml(entry, sections);
+    // Mobile mode on the Types tab gets the real mobile-execution-style
+    // Type list -> steps preview instead of the single-card content Desktop
+    // mode (and the Items tab, in either mode) still uses unchanged below.
+    const useMobilePreview = previewMode === "mobile" && tab === "types";
+    const cardHtml = useMobilePreview
+      ? mobilePreviewScreenHtml()
+      : buildCardHtml(entry, sections);
     const chromeTitle =
       previewMode === "desktop" ? "VAS Workbench" : "VAS Execution";
     const chrome = `
@@ -1183,6 +1433,7 @@
     previewDeviceLogo = els.previewHost.querySelector("#previewDeviceLogo");
     applyPreviewTheme();
 
+    if (useMobilePreview) bindMobilePreviewScreen(scrollEl);
     if (window.VasPads && scrollEl) window.VasPads.bindAllPads(scrollEl);
     if (typeof window.bindItemImagePreview === "function" && scrollEl) {
       delete scrollEl.dataset.itemImagePreviewBound;

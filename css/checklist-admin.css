@@ -37,6 +37,12 @@
   background: var(--bg-dark, #ffffff);
   color: var(--text, #212529);
   border: 1px solid rgba(0, 0, 0, 0.15);
+  /* A transformed ancestor becomes the containing block for position:fixed
+     descendants (CSS spec) — confines vasexecution's .mx-steps-footer
+     (position:fixed) to this phone-bezel box instead of the real browser
+     viewport when reused inside the mobile execution preview. Visually
+     inert (translateZ(0) with no offset moves nothing). */
+  transform: translateZ(0);
 }
 
 .device-app-chrome {
