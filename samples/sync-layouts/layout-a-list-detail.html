@@ -20,10 +20,6 @@
 
     <div class="sync-toolbar">
       <div class="sync-filters" id="filterButtons"></div>
-      <label class="d-flex align-items-center gap-2" style="font-size:0.85rem; color:var(--text-muted)">
-        <input type="checkbox" class="form-check-input" id="includeInstr" />
-        Include instruction wording differences in Missing filters
-      </label>
     </div>
 
     <div class="sync-main-detail">
@@ -37,7 +33,6 @@
   <script>
     const U = window.SyncUI;
     let filterMode = "all"; // all | missing_in_wms | missing_in_config | aligned
-    let includeInstr = false;
     let selectedId = window.SYNC_MOCK.types[0].id;
     let selectedStepId = null;
 
@@ -54,24 +49,16 @@
         return list.filter(U.isAligned);
       }
       if (filterMode === "missing_in_wms") {
-        return list.filter((t) =>
-          includeInstr ? U.typeNeedsPushToWms(t) : t.status === "missing_in_wms" || U.stepsMissingInWms(t).length
-        );
+        return list.filter((t) => U.typeNeedsPushToWms(t));
       }
-      return list.filter((t) =>
-        includeInstr ? U.typeNeedsPullToConfig(t) : t.status === "missing_in_config" || U.stepsMissingInConfig(t).length
-      );
+      return list.filter((t) => U.typeNeedsPullToConfig(t));
     }
 
     function renderFilterButtons() {
       const counts = {
         all: window.SYNC_MOCK.types.length,
-        missing_in_wms: window.SYNC_MOCK.types.filter((t) =>
-          includeInstr ? U.typeNeedsPushToWms(t) : t.status === "missing_in_wms" || U.stepsMissingInWms(t).length
-        ).length,
-        missing_in_config: window.SYNC_MOCK.types.filter((t) =>
-          includeInstr ? U.typeNeedsPullToConfig(t) : t.status === "missing_in_config" || U.stepsMissingInConfig(t).length
-        ).length,
+        missing_in_wms: window.SYNC_MOCK.types.filter((t) => U.typeNeedsPushToWms(t)).length,
+        missing_in_config: window.SYNC_MOCK.types.filter((t) => U.typeNeedsPullToConfig(t)).length,
         aligned: window.SYNC_MOCK.types.filter(U.isAligned).length
       };
       const defs = [
@@ -181,11 +168,6 @@
       renderTypeList();
       renderDetail();
     }
-
-    document.getElementById("includeInstr").onchange = (e) => {
-      includeInstr = e.target.checked;
-      renderAll();
-    };
 
     renderAll();
   </script>

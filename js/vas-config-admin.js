@@ -1281,11 +1281,11 @@
   };
 
   if (els.removeStepBtn) {
-    els.removeStepBtn.onclick = () => {
+    els.removeStepBtn.onclick = async () => {
       syncEditorToDraft();
       const entry = currentEntry();
       if (!entry || !selectedStepId || tab !== "types") return;
-      if (!confirm(`Remove step “${selectedStepId}”?`)) return;
+      if (!(await confirmDialog(`Remove step "${selectedStepId}"?`))) return;
       delete entry.steps[selectedStepId];
       ensureStepOrder(entry);
       selectedStepId = stepKeys(entry)[0] || null;
@@ -1361,9 +1361,9 @@
     }
   );
 
-  els.deleteKeyBtn.onclick = () => {
+  els.deleteKeyBtn.onclick = async () => {
     if (!selectedKey) return;
-    if (!confirm(`Remove ${selectedKey} from draft?`)) return;
+    if (!(await confirmDialog(`Remove ${selectedKey} from draft?`))) return;
     delete draft[bucket()][selectedKey];
     selectedKey = Object.keys(draft[bucket()])[0] || null;
     selectedStepId = null;
@@ -1427,7 +1427,7 @@
     e.target.value = "";
   };
   document.getElementById("resetBtn").onclick = async () => {
-    if (!confirm("Reset draft to shared defaults?")) return;
+    if (!(await confirmDialog("Reset draft to shared defaults?"))) return;
     if (!defaultsDoc) return status("Defaults not loaded", "error");
     draft = VasConfig.normalizeConfig(JSON.parse(JSON.stringify(defaultsDoc)));
     selectedKey = Object.keys(draft.vasTypes)[0] || null;
@@ -1437,7 +1437,7 @@
   };
   if (els.discardLocalBtn) {
     els.discardLocalBtn.onclick = async () => {
-      if (!confirm("Discard unsaved local changes and reload from the last deployed config?")) return;
+      if (!(await confirmDialog("Discard unsaved local changes and reload from the last deployed config?"))) return;
       clearLocalDraft();
       await loadDraft();
     };

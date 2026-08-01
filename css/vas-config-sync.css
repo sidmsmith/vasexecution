@@ -17,8 +17,7 @@
 
 /* Bootstrap outline buttons default to dark gray text — lighten for dark theme */
 .sync-filters .sync-filter.btn-outline-secondary,
-.sync-actions .btn-outline-secondary,
-.sync-actions .btn-outline-primary {
+.sync-actions .btn-outline-secondary {
   color: var(--text, #e8eaed);
   border-color: var(--border, #5a6070);
 }
@@ -28,10 +27,6 @@
   color: #fff;
   background: rgba(255, 255, 255, 0.08);
   border-color: var(--text-muted, #adb5bd);
-}
-
-.sync-actions .btn-outline-primary:hover {
-  color: #fff;
 }
 
 .sync-filters .sync-filter.active {
@@ -47,42 +42,8 @@
   align-items: center;
 }
 
-.sync-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.25rem;
-  align-items: flex-start;
-  margin-bottom: 0.65rem;
-  padding: 0.5rem 0.65rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--input-bg);
-  color: var(--text, #e8eaed);
-}
-
-.sync-options .form-check-label,
 .sync-select-row .form-check-label {
   color: var(--text, #e8eaed);
-}
-
-.sync-option-note {
-  flex-basis: 100%;
-  margin-top: -0.35rem;
-  max-width: 40rem;
-  color: var(--text-muted, #adb5bd) !important;
-}
-
-.sync-filter-hint {
-  flex-basis: 100%;
-  margin-top: -0.25rem;
-  max-width: 40rem;
-  color: #fbbf24 !important;
-}
-
-.sync-summary {
-  font-size: 0.85rem;
-  color: var(--text-muted, #adb5bd);
-  margin-left: auto;
 }
 
 .sync-select-row {
@@ -118,6 +79,16 @@ table.table.sync-table {
   --bs-table-hover-bg: rgba(255, 255, 255, 0.03);
   font-size: 0.9rem;
   color: var(--text, #e8eaed);
+  /* Fixed layout (paired with a <colgroup>) so switching attention-strip
+     filters — which changes the visible rows' content length — doesn't
+     reflow the table horizontally between renders. */
+  table-layout: fixed;
+}
+
+.sync-table td,
+.sync-table th {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sync-table thead th,
@@ -164,17 +135,6 @@ table.table.sync-table {
   color: var(--text, #e8eaed);
   padding: 0.15rem 0.35rem;
   cursor: pointer;
-}
-
-.sync-step-row td {
-  background: rgba(0, 0, 0, 0.12);
-  font-size: 0.85rem;
-  color: var(--text, #e8eaed);
-}
-
-.sync-step-indent {
-  padding-left: 1.75rem !important;
-  color: var(--text-muted, #adb5bd);
 }
 
 .sync-badge {
@@ -227,106 +187,15 @@ table.table.sync-table {
   color: var(--status-chip-fg, #f5f5f5);
 }
 
-.sync-instr-counts {
-  margin-left: 0.4rem;
-  font-size: 0.72rem;
-  color: var(--text-muted, #adb5bd);
-}
-
-.sync-instr-detail {
-  padding: 0.35rem 0.75rem 0.75rem 2.25rem !important;
-  background: rgba(0, 0, 0, 0.18);
-  color: var(--text, #e8eaed);
-}
-
-.sync-instr-panels {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-@media (max-width: 720px) {
-  .sync-instr-panels {
-    grid-template-columns: 1fr;
-  }
-}
-
-.sync-instr-panel-title {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--text-muted, #adb5bd);
-  margin-bottom: 0.35rem;
-}
-
-.sync-instr-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 0.78rem;
-  color: var(--text, #e8eaed);
-}
-
-.sync-instr-list li {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.5rem;
-  align-items: flex-start;
-  padding: 0.3rem 0.45rem;
-  border: 1px solid var(--border);
-  border-bottom: none;
-  word-break: break-word;
-  white-space: pre-wrap;
-  color: var(--text, #e8eaed);
-}
-
-.sync-instr-list li:last-child {
-  border-bottom: 1px solid var(--border);
-}
-
-.sync-instr-list li.sync-instr-missing {
-  background: rgba(234, 179, 8, 0.12);
-  border-color: rgba(250, 204, 21, 0.35);
-}
-
-.sync-instr-seq {
-  flex: 0 0 auto;
-  color: var(--text-muted, #adb5bd);
-  min-width: 1.4rem;
-}
-
-.sync-instr-text {
-  flex: 1 1 8rem;
-  color: var(--text, #e8eaed);
-}
-
-.sync-instr-gap {
-  flex: 0 0 auto;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  padding: 0.1rem 0.35rem;
-  border-radius: 3px;
-  background: rgba(234, 179, 8, 0.28);
-  border: 1px solid rgba(250, 204, 21, 0.5);
-  color: var(--status-chip-fg, #f5f5f5);
-  white-space: nowrap;
-}
-
-.sync-instr-empty {
-  color: var(--text-muted, #adb5bd);
-  font-style: italic;
-}
-
 .sync-instr-row td {
   background: rgba(0, 0, 0, 0.12);
 }
 
-.sync-warn {
-  font-size: 0.78rem;
+.sync-warn-icon {
   color: #fbbf24;
+  margin-left: 0.35rem;
+  font-size: 0.78rem;
+  cursor: help;
 }
 
 .sync-empty {
@@ -346,4 +215,143 @@ table.table.sync-table {
 
 .confirm-plan-list strong {
   color: #f3f4f6;
+}
+
+/* --- Attention strip (replaces the old filter-button row) --- */
+.attention-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.attention-card {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  cursor: pointer;
+  text-align: left;
+}
+.attention-card:hover {
+  border-color: var(--primary, #0d6efd);
+}
+.attention-card.active {
+  border-color: var(--primary, #0d6efd);
+  background: rgba(13, 110, 253, 0.14);
+}
+.attention-card .count {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.attention-card .label {
+  font-size: 0.78rem;
+  color: var(--text-muted, #adb5bd);
+  margin-top: 0.25rem;
+}
+.attention-card.card-wms .count { color: #facc15; }
+.attention-card.card-config .count { color: #60a5fa; }
+.attention-card.card-deploy .count { color: #c084fc; }
+.attention-card.card-aligned .count { color: #4ade80; }
+.attention-card.card-all .count { color: var(--text, #e8eaed); }
+
+.expand-all-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-muted, #adb5bd);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.expand-all-btn:hover {
+  color: var(--text, #e8eaed);
+  text-decoration: underline;
+}
+
+/* One status pill + a plain-language gap note, in the same row as the type. */
+.sync-row-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.sync-gap-count {
+  font-size: 0.72rem;
+  color: var(--text-muted, #adb5bd);
+}
+.sync-status-secondary {
+  font-size: 0.72rem;
+  color: var(--text-muted, #adb5bd);
+}
+
+/* --- Unified instruction diff (replaces the old two-column panel) --- */
+.diff-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.diff-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.4rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text, #e8eaed);
+}
+.diff-line:last-child { border-bottom: none; }
+.diff-gutter {
+  flex: 0 0 auto;
+  width: 1rem;
+  text-align: center;
+  font-weight: 700;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  color: var(--text-muted, #adb5bd);
+}
+.diff-text { flex: 1 1 auto; }
+.diff-tags {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: center;
+}
+.diff-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted, #adb5bd);
+  white-space: nowrap;
+}
+/* Same violet used for the Not Deployed badge — an independent axis from
+   the amber/blue WMS-gap tag it can sit next to, never replaces it. */
+.diff-tag-not-deployed {
+  color: #c084fc;
+}
+.diff-line-config-only {
+  background: rgba(234, 179, 8, 0.12);
+}
+.diff-line-config-only .diff-gutter { color: #facc15; }
+.diff-line-wms-only {
+  background: rgba(59, 130, 246, 0.12);
+}
+.diff-line-wms-only .diff-gutter { color: #60a5fa; }
+.diff-empty {
+  padding: 0.65rem;
+  color: var(--text-muted, #adb5bd);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+.sync-step-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 0 0 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }

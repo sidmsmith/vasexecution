@@ -170,18 +170,6 @@
     };
   }
 
-  /** True instruction-wording mismatch — excludes pure reordering (see unifiedDiffLines). */
-  function hasWordingDiff(type) {
-    return (type && type.steps ? type.steps : []).some((s) => {
-      const lines = unifiedDiffLines(s.configInstructions, s.wmsInstructions);
-      return (
-        lines.some((l) => l.kind !== "both") &&
-        (s.configInstructions || []).length &&
-        (s.wmsInstructions || []).length
-      );
-    });
-  }
-
   /** No gaps in either direction and already deployed — the "nothing to do" state. */
   function isAligned(type) {
     return !!(
@@ -281,19 +269,6 @@
     return (type.steps || []).map(stepDiffBlockHtml).join("");
   }
 
-  /** Gap chips for a type (one per gap kind) — C's card-header chip row. */
-  function gapChipsHtml(type) {
-    const gaps = typeGapCounts(type);
-    const chips = [];
-    if (type.status === "missing_in_wms") chips.push(badge("missing_in_wms", "whole type → WMS"));
-    if (type.status === "missing_in_config") chips.push(badge("missing_in_config", "whole type → config"));
-    if (gaps.stepsMissingInWms) chips.push(badge("missing_in_wms", `${gaps.stepsMissingInWms} step → WMS`));
-    if (gaps.stepsMissingInConfig) chips.push(badge("missing_in_config", `${gaps.stepsMissingInConfig} step → config`));
-    if (hasWordingDiff(type)) chips.push(badge("instructions_differ", "wording differs"));
-    if (type.notYetDeployed) chips.push(badge("not_deployed", "not deployed"));
-    return chips.join("") || badge("aligned");
-  }
-
   /** Grey (secondary, muted) when disabled — solid blue with white text/icon when enabled. */
   function actionButtonClass(enabled) {
     return `btn btn-sm ${enabled ? "btn-primary" : "btn-secondary"}`;
@@ -377,12 +352,10 @@
     typeStatusKey,
     typeStatusHtml,
     stepGapBadge,
-    hasWordingDiff,
     isAligned,
     gapNote,
     stepDiffBlockHtml,
     stepDiffListHtml,
-    gapChipsHtml,
     actionButtonClass,
     actionButtonsHtml,
     updateActionButtons,

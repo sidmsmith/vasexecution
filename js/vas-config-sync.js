@@ -11,59 +11,45 @@
   let usingLocalDraft = false;
   /** @type {Array|null} */
   let diffTypes = null;
-  /** @type {object|null} */
-  let diffSummary = null;
-  /** @type {"all"|"aligned"|"missing"} */
-  let filterMode = "all";
-  /** Active Missing toggles when filterMode === "missing". */
-  /** @type {Set<string>} */
-  const missingFilters = new Set();
+  /** @type {"all"|"wms"|"config"|"deploy"|"aligned"} */
+  let activeCategory = "all";
   /** @type {Set<string>} */
   const selected = new Set();
   /** @type {Set<string>} */
   const expanded = new Set();
-  /** Tracks last auto-expand mode so we don't fight manual collapse. */
-  let lastAutoExpandKey = "";
   let confirmAction = null;
+
+  /**
+   * Instruction-diff statuses that unambiguously mean a gap in one specific
+   * direction. Deliberately excludes "instructions_differ" — the backend
+   * uses that as a catch-all whenever both sides have text but the lists
+   * don't match exactly (config has extra, WMS has extra, reordered,
+   * reworded, ...), so it doesn't imply a gap in either specific direction.
+   * Directionality is determined precisely by the per-text helpers below.
+   */
+  const PUSH_INSTR_STATUSES = new Set(["instructions_missing_in_wms"]);
+  const PULL_INSTR_STATUSES = new Set(["instructions_missing_in_config"]);
+  /** Any instruction-level diff at all (direction-agnostic) — used only to decide push-merge eligibility, never for display. */
   const INSTR_DIFF_STATUSES = new Set([
     "instructions_differ",
     "instructions_missing_in_wms",
     "instructions_missing_in_config"
   ]);
-  /**
-   * Push/pull-direction instruction gaps. Deliberately exclude
-   * "instructions_differ" — the backend uses that as a catch-all whenever
-   * both sides have text but the lists don't match exactly (config has
-   * extra, WMS has extra, reordered, reworded, ...), so it doesn't imply a
-   * gap in either specific direction. Directionality for "differ" cases is
-   * determined precisely by the per-text helpers below instead.
-   */
-  const PUSH_INSTR_STATUSES = new Set(["instructions_missing_in_wms"]);
-  const PULL_INSTR_STATUSES = new Set(["instructions_missing_in_config"]);
-  const confirmModalEl = document.getElementById("confirmModal");
-  const confirmModal =
-    confirmModalEl && window.bootstrap
-      ? new bootstrap.Modal(confirmModalEl)
-      : null;
+
+  const confirmModal = new bootstrap.Modal(document.getElementById("confirmModal"));
   const els = {
     orgSection: document.getElementById("orgSection"),
     orgInput: document.getElementById("org"),
     orgBtn: document.getElementById("orgBtn"),
     mainUI: document.getElementById("mainUI"),
     status: document.getElementById("status"),
-    summaryLine: document.getElementById("summaryLine"),
+    attentionStrip: document.getElementById("attentionStrip"),
     diffBody: document.getElementById("diffBody"),
     emptyState: document.getElementById("emptyState"),
     selectAllVisible: document.getElementById("selectAllVisible"),
     selectionHint: document.getElementById("selectionHint"),
     includeInstructions: document.getElementById("includeInstructions"),
-    filterHint: document.getElementById("filterHint"),
-    missingInWmsFilterBtn: document.querySelector(
-      '.sync-filter[data-filter="missing_in_wms"]'
-    ),
-    missingInConfigFilterBtn: document.querySelector(
-      '.sync-filter[data-filter="missing_in_config"]'
-    ),
+    expandAllBtn: document.getElementById("expandAllBtn"),
     refreshBtn: document.getElementById("refreshBtn"),
     pushBtn: document.getElementById("pushBtn"),
     pullBtn: document.getElementById("pullBtn"),
@@ -142,19 +128,9 @@
     );
   }
 
-  function badge(statusKey) {
-    const label = String(statusKey || "").replace(/_/g, " ");
-    return `<span class="sync-badge sync-badge-${esc(statusKey)}">${esc(
-      label
-    )}</span>`;
-  }
-
-  function typeHasInstructionDiff(t) {
-    if (!t) return false;
-    if (INSTR_DIFF_STATUSES.has(t.instructionStatus)) return true;
-    return (Array.isArray(t.steps) ? t.steps : []).some((s) =>
-      INSTR_DIFF_STATUSES.has(s && s.instructionStatus)
-    );
+  function badge(statusKey, label) {
+    const text = label || String(statusKey || "").replace(/_/g, " ");
+    return `<span class="sync-badge sync-badge-${esc(statusKey)}">${esc(text)}</span>`;
   }
 
   function normalizeInstrText(text) {
@@ -165,72 +141,76 @@
       .join(" ");
   }
 
+  /**
+   * Merge two instruction-text lists into one ordered view: config lines
+   * first (marked "both" or "config-only"), then any WMS-only lines
+   * appended (matched by normalized-text membership — not a positional/LCS
+   * diff, just set membership, same semantics as the backend's
+   * _compare_instruction_lists).
+   */
+  function unifiedDiffLines(configTexts, wmsTexts) {
+    const cfg = Array.isArray(configTexts) ? configTexts : [];
+    const wms = Array.isArray(wmsTexts) ? wmsTexts : [];
+    const wmsNorm = new Set(wms.map(normalizeInstrText).filter(Boolean));
+    const cfgNorm = new Set(cfg.map(normalizeInstrText).filter(Boolean));
+    const lines = cfg.map((text) => ({
+      text,
+      kind: wmsNorm.has(normalizeInstrText(text)) ? "both" : "config-only"
+    }));
+    wms.forEach((text) => {
+      if (!cfgNorm.has(normalizeInstrText(text))) {
+        lines.push({ text, kind: "wms-only" });
+      }
+    });
+    return lines;
+  }
+
   /** Config instruction texts absent from WMS (push-direction text gap). */
   function stepHasConfigTextsMissingInWms(step) {
     if (!step) return false;
-    const cfg = Array.isArray(step.configInstructions)
-      ? step.configInstructions
-      : [];
-    const wms = Array.isArray(step.wmsInstructions) ? step.wmsInstructions : [];
-    const wmsNorm = new Set(wms.map(normalizeInstrText).filter(Boolean));
-    return cfg.some((text) => {
-      const n = normalizeInstrText(text);
-      return n && !wmsNorm.has(n);
-    });
+    if (PUSH_INSTR_STATUSES.has(step.instructionStatus)) return true;
+    return unifiedDiffLines(step.configInstructions, step.wmsInstructions).some(
+      (l) => l.kind === "config-only"
+    );
   }
 
   /** WMS instruction texts absent from config (pull-direction text gap). */
   function stepHasWmsTextsMissingInConfig(step) {
     if (!step) return false;
-    const cfg = Array.isArray(step.configInstructions)
-      ? step.configInstructions
-      : [];
-    const wms = Array.isArray(step.wmsInstructions) ? step.wmsInstructions : [];
-    const cfgNorm = new Set(cfg.map(normalizeInstrText).filter(Boolean));
-    return wms.some((text) => {
-      const n = normalizeInstrText(text);
-      return n && !cfgNorm.has(n);
-    });
-  }
-
-  /**
-   * Instruction gaps in the push direction: status markers and/or config
-   * texts not present in WMS.
-   */
-  function typeHasPushInstructionGap(t) {
-    if (!t) return false;
-    if (PUSH_INSTR_STATUSES.has(t.instructionStatus)) return true;
-    const steps = Array.isArray(t.steps) ? t.steps : [];
-    return steps.some(
-      (s) =>
-        (s && PUSH_INSTR_STATUSES.has(s.instructionStatus)) ||
-        stepHasConfigTextsMissingInWms(s)
+    if (PULL_INSTR_STATUSES.has(step.instructionStatus)) return true;
+    return unifiedDiffLines(step.configInstructions, step.wmsInstructions).some(
+      (l) => l.kind === "wms-only"
     );
   }
 
-  /**
-   * Instruction gaps in the pull direction: status markers and/or WMS
-   * texts not present in config.
-   */
-  function typeHasPullInstructionGap(t) {
-    if (!t) return false;
-    if (PULL_INSTR_STATUSES.has(t.instructionStatus)) return true;
-    const steps = Array.isArray(t.steps) ? t.steps : [];
-    return steps.some(
-      (s) =>
-        (s && PULL_INSTR_STATUSES.has(s.instructionStatus)) ||
-        stepHasWmsTextsMissingInConfig(s)
-    );
-  }
-
-  /** Type or any step absent from WMS (presence gap — ignores instruction text). */
-  function typeHasPresenceGapInWms(t) {
+  /** Type or any step absent from WMS, or has a push-direction text gap. Always includes instruction-level gaps. */
+  function typeNeedsPushToWms(t) {
     if (!t) return false;
     if (t.status === "missing_in_wms") return true;
-    return typeHasStepsMissingInWms(t);
+    return (Array.isArray(t.steps) ? t.steps : []).some(
+      (s) => s && (s.status === "missing_in_wms" || stepHasConfigTextsMissingInWms(s))
+    );
   }
 
-  /** Any step absent from WMS on a type that itself exists in WMS. */
+  /** Type or any step absent from config, or has a pull-direction text gap. Always includes instruction-level gaps. */
+  function typeNeedsPullToConfig(t) {
+    if (!t) return false;
+    if (t.status === "missing_in_config") return true;
+    return (Array.isArray(t.steps) ? t.steps : []).some(
+      (s) => s && (s.status === "missing_in_config" || stepHasWmsTextsMissingInConfig(s))
+    );
+  }
+
+  /** Any instruction-level diff at all (direction-agnostic) — push-merge eligibility only, not display. */
+  function typeHasInstructionDiff(t) {
+    if (!t) return false;
+    if (INSTR_DIFF_STATUSES.has(t.instructionStatus)) return true;
+    return (Array.isArray(t.steps) ? t.steps : []).some((s) =>
+      INSTR_DIFF_STATUSES.has(s && s.instructionStatus)
+    );
+  }
+
+  /** Any step absent from WMS on a type that itself exists in WMS — push-merge eligibility only. */
   function typeHasStepsMissingInWms(t) {
     if (!t) return false;
     return (Array.isArray(t.steps) ? t.steps : []).some(
@@ -238,122 +218,209 @@
     );
   }
 
-  /** Type or any step absent from config (presence gap — ignores instruction text). */
-  function typeHasPresenceGapInConfig(t) {
-    if (!t) return false;
-    if (t.status === "missing_in_config") return true;
-    return (Array.isArray(t.steps) ? t.steps : []).some(
-      (s) => s && s.status === "missing_in_config"
+  /**
+   * "Aligned" means exactly one thing, everywhere: no gap in either
+   * direction, and deployed. `t.status` only tells you the type/step itself
+   * exists on both sides — that's necessary but not sufficient, so display
+   * code should never render it directly; use this (or typeStatusHtml)
+   * instead, so a row can never say "Aligned" while something is missing.
+   */
+  function isAligned(t) {
+    return !!(
+      t &&
+      t.status === "aligned" &&
+      !typeNeedsPushToWms(t) &&
+      !typeNeedsPullToConfig(t) &&
+      !t.notYetDeployed
     );
   }
 
-  /**
-   * Missing in WMS membership:
-   * - always: type/step not in WMS
-   * - plus instruction push-gaps only when Include WMS instructions is checked
-   *   (otherwise seeded EXTRA texts make almost every type match)
-   */
-  function typeNeedsPushToWms(t) {
-    if (!t) return false;
-    if (typeHasPresenceGapInWms(t)) return true;
-    if (!includeInstructionsChecked()) return false;
-    return typeHasPushInstructionGap(t);
+  /** "missing in WMS", "missing in config, missing in WMS", or "aligned". */
+  function describeGapState(t) {
+    const parts = [];
+    if (typeNeedsPushToWms(t)) parts.push("missing in WMS");
+    if (typeNeedsPullToConfig(t)) parts.push("missing in config");
+    return parts.length ? parts.join(", ") : "aligned";
   }
 
   /**
-   * Missing in config membership:
-   * - always: type/step not in config
-   * - plus instruction pull-gaps only when Include WMS instructions is checked
+   * Full status markup. Not-deployed takes visual priority (with the
+   * underlying gap state as a secondary note). Otherwise: Aligned only when
+   * isAligned() is true; any gap shows the same Missing in WMS/config
+   * badge(s) used for whole-type gaps — one badge per direction, since a
+   * type can genuinely have gaps in both at once.
    */
-  function typeNeedsPullToConfig(t) {
-    if (!t) return false;
-    if (typeHasPresenceGapInConfig(t)) return true;
-    if (!includeInstructionsChecked()) return false;
-    return typeHasPullInstructionGap(t);
-  }
-
-  function includeInstructionsChecked() {
-    return !!(els.includeInstructions && els.includeInstructions.checked);
-  }
-
-  function anyMissingFilterActive() {
-    return (
-      filterMode === "missing" &&
-      (missingFilters.has("missing_in_wms") ||
-        missingFilters.has("missing_in_config"))
-    );
-  }
-
-  function visibleTypes() {
-    const list = Array.isArray(diffTypes) ? diffTypes : [];
-    if (filterMode === "all") return list;
-    if (filterMode === "aligned") {
-      return list.filter((t) => t && t.status === "aligned");
+  function typeStatusHtml(t) {
+    if (t && t.notYetDeployed) {
+      return `${badge("not_deployed", "not deployed")} <span class="sync-status-secondary">(WMS: ${esc(
+        describeGapState(t)
+      )})</span>`;
     }
-    const wantWms = missingFilters.has("missing_in_wms");
-    const wantConfig = missingFilters.has("missing_in_config");
-    if (!wantWms && !wantConfig) return list;
-
-    return list.filter((t) => {
-      if (wantWms && wantConfig) {
-        return typeNeedsPushToWms(t) || typeNeedsPullToConfig(t);
-      }
-      if (wantWms) return typeNeedsPushToWms(t);
-      return typeNeedsPullToConfig(t);
-    });
+    if (isAligned(t)) return badge("aligned");
+    const badges = [];
+    if (typeNeedsPushToWms(t)) badges.push(badge("missing_in_wms"));
+    if (typeNeedsPullToConfig(t)) badges.push(badge("missing_in_config"));
+    return badges.join(" ");
   }
 
-  /**
-   * Which direction-gap badges to show on instruction lines.
-   * Only Missing in WMS → config-only markers; only Missing in config → WMS-only;
-   * both or All → both; Aligned → neither.
-   */
-  function instrBadgeVisibility() {
-    if (filterMode === "aligned") {
-      return { missingInWms: false, missingInConfig: false };
+  /** Per-step equivalent of typeStatusHtml — never a generic label when a step is actually missing something. */
+  function stepGapBadge(step) {
+    if (!step) return "";
+    const badges = [];
+    if (step.status === "missing_in_wms") badges.push(badge("missing_in_wms"));
+    else if (step.status === "missing_in_config") badges.push(badge("missing_in_config"));
+    else {
+      if (stepHasConfigTextsMissingInWms(step)) badges.push(badge("missing_in_wms"));
+      if (stepHasWmsTextsMissingInConfig(step)) badges.push(badge("missing_in_config"));
     }
-    if (filterMode === "all") {
-      return { missingInWms: true, missingInConfig: true };
-    }
+    return badges.join(" ");
+  }
+
+  function typeGapCounts(t) {
+    const steps = Array.isArray(t.steps) ? t.steps : [];
     return {
-      missingInWms: missingFilters.has("missing_in_wms"),
-      missingInConfig: missingFilters.has("missing_in_config")
+      stepsMissingInWms: steps.filter((s) => s && s.status === "missing_in_wms").length,
+      stepsMissingInConfig: steps.filter((s) => s && s.status === "missing_in_config").length
     };
   }
 
-  function syncFilterButtonActive() {
-    document.querySelectorAll(".sync-filter").forEach((btn) => {
-      const key = btn.dataset.filter || "all";
-      let active = false;
-      if (key === "all") active = filterMode === "all";
-      else if (key === "aligned") active = filterMode === "aligned";
-      else if (key === "missing_in_wms" || key === "missing_in_config") {
-        active = filterMode === "missing" && missingFilters.has(key);
-      }
-      btn.classList.toggle("active", active);
-      if (key === "missing_in_wms" || key === "missing_in_config") {
-        btn.setAttribute("aria-pressed", active ? "true" : "false");
-      }
-    });
+  /**
+   * One plain-language note ("2 steps → WMS · instruction → config") instead
+   * of stacking badges. Never says "wording differs" — under this diff
+   * model a mismatched line is never a fuzzy rewording, it's always "this
+   * exact text exists on one side and not the other", so the note says the
+   * specific, directional fact instead — kept in sync with
+   * typeNeedsPushToWms/typeNeedsPullToConfig so it never disagrees with
+   * what the attention strip counts.
+   */
+  function gapNote(t) {
+    if (t.status === "missing_in_wms") return `<span class="sync-gap-count">whole type not in WMS yet</span>`;
+    if (t.status === "missing_in_config") return `<span class="sync-gap-count">whole type not in config yet</span>`;
+    const gaps = typeGapCounts(t);
+    const parts = [];
+    if (gaps.stepsMissingInWms) {
+      parts.push(`${gaps.stepsMissingInWms} step${gaps.stepsMissingInWms > 1 ? "s" : ""} → WMS`);
+    } else if (typeNeedsPushToWms(t)) {
+      parts.push("instruction → WMS");
+    }
+    if (gaps.stepsMissingInConfig) {
+      parts.push(`${gaps.stepsMissingInConfig} step${gaps.stepsMissingInConfig > 1 ? "s" : ""} → config`);
+    } else if (typeNeedsPullToConfig(t)) {
+      parts.push("instruction → config");
+    }
+    return parts.length ? `<span class="sync-gap-count">${esc(parts.join(" · "))}</span>` : "";
   }
 
-  function updateFilterHint() {
-    if (els.filterHint) {
-      els.filterHint.hidden = false;
-      els.filterHint.textContent = includeInstructionsChecked()
-        ? "Missing filters include types, steps, and instruction gaps. Select both Missing buttons to see all gaps."
-        : "Missing filters include types and steps not present on that side. Check Include WMS instructions to also include instruction gaps.";
+  function warnIconHtml(t) {
+    const warnings = Array.isArray(t.warnings) ? t.warnings : [];
+    const msgs = warnings
+      .map((w) => {
+        if (!w) return "";
+        if (w.code === "id_whitespace") {
+          return `whitespace on ${w.field || "id"}: "${w.raw}"`;
+        }
+        return w.message || w.code || "";
+      })
+      .filter(Boolean);
+    if (!msgs.length) return "";
+    return ` <i class="fa-solid fa-triangle-exclamation sync-warn-icon" title="${esc(
+      msgs.join("; ")
+    )}"></i>`;
+  }
+
+  // --- Step/line-level "not deployed" (draft vs. deployed, same mechanism
+  // used for draft vs. WMS, just pointed at a different second source).
+  // Both docs are already fully loaded normalized config objects. ---
+
+  function stepConfigTexts(configDoc, typeId, stepId) {
+    if (!configDoc) return [];
+    const typeCfg = VasConfig.getTypeConfig(configDoc, typeId);
+    const stepCfg = VasConfig.getStepConfig(typeCfg, stepId);
+    if (!stepCfg || !Array.isArray(stepCfg.content)) return [];
+    return stepCfg.content
+      .filter((b) => b && b.type !== "image" && b.text)
+      .map((b) => b.text);
+  }
+
+  function stepConfigExists(configDoc, typeId, stepId) {
+    if (!configDoc) return false;
+    const typeCfg = VasConfig.getTypeConfig(configDoc, typeId);
+    return !!VasConfig.getStepConfig(typeCfg, stepId);
+  }
+
+  function stepDeployDiffLines(typeId, stepId) {
+    if (!usingLocalDraft) return [];
+    return unifiedDiffLines(
+      stepConfigTexts(draft, typeId, stepId),
+      stepConfigTexts(deployedDraft, typeId, stepId)
+    );
+  }
+
+  /** Whole step added/removed locally, or has any instruction line not yet deployed. */
+  function stepHasUndeployedChange(typeId, stepId) {
+    if (!usingLocalDraft) return false;
+    const inDraft = stepConfigExists(draft, typeId, stepId);
+    const inDeployed = stepConfigExists(deployedDraft, typeId, stepId);
+    if (inDraft !== inDeployed) return true;
+    if (!inDraft) return false;
+    return stepDeployDiffLines(typeId, stepId).some((l) => l.kind !== "both");
+  }
+
+  /** Normalized texts present in the draft but not yet deployed, for one step. */
+  function stepUndeployedTextSet(typeId, stepId) {
+    const set = new Set();
+    if (!usingLocalDraft) return set;
+    stepDeployDiffLines(typeId, stepId)
+      .filter((l) => l.kind === "config-only")
+      .forEach((l) => set.add(normalizeInstrText(l.text)));
+    return set;
+  }
+
+  function diffLinesHtml(step, typeId) {
+    const configTexts = (step && step.configInstructions) || [];
+    const wmsTexts = (step && step.wmsInstructions) || [];
+    const lines = unifiedDiffLines(configTexts, wmsTexts);
+    if (!lines.length) {
+      return `<div class="diff-empty">No instructions on either side.</div>`;
     }
-    if (els.missingInWmsFilterBtn) {
-      els.missingInWmsFilterBtn.textContent = includeInstructionsChecked()
-        ? "Missing in WMS (+ instr)"
-        : "Missing in WMS";
-    }
-    if (els.missingInConfigFilterBtn) {
-      els.missingInConfigFilterBtn.textContent = includeInstructionsChecked()
-        ? "Missing in config (+ instr)"
-        : "Missing in config";
-    }
+    const undeployedNorm = stepUndeployedTextSet(typeId, step && step.id);
+    return `<ul class="diff-lines">${lines
+      .map((l) => {
+        const mark = l.kind === "config-only" ? "+" : l.kind === "wms-only" ? "−" : "";
+        const wmsTag =
+          l.kind === "config-only"
+            ? "missing in WMS"
+            : l.kind === "wms-only"
+              ? "missing in config"
+              : "";
+        // A wms-only line exists only in WMS, so it can't also be a
+        // locally-added draft line — no undeployed check needed for it.
+        const isUndeployed = l.kind !== "wms-only" && undeployedNorm.has(normalizeInstrText(l.text));
+        return `<li class="diff-line diff-line-${l.kind}">
+          <span class="diff-gutter">${mark}</span>
+          <span class="diff-text">${esc(l.text)}</span>
+          <span class="diff-tags">
+            ${wmsTag ? `<span class="diff-tag">${wmsTag}</span>` : ""}
+            ${isUndeployed ? '<span class="diff-tag diff-tag-not-deployed">not deployed</span>' : ""}
+          </span>
+        </li>`;
+      })
+      .join("")}</ul>`;
+  }
+
+  function stepDiffBlockHtml(step, typeId) {
+    const notDeployedBadge = stepHasUndeployedChange(typeId, step.id)
+      ? ` ${badge("not_deployed", "not deployed")}`
+      : "";
+    const gapBadge = stepGapBadge(step);
+    return `<div class="mb-2">
+      <div class="sync-step-title">${esc(step.id)}${gapBadge ? " " + gapBadge : ""}${notDeployedBadge}</div>
+      ${diffLinesHtml(step, typeId)}
+    </div>`;
+  }
+
+  function stepDiffListHtml(t) {
+    return (Array.isArray(t.steps) ? t.steps : []).map((s) => stepDiffBlockHtml(s, t.id)).join("");
   }
 
   function draftPayload() {
@@ -364,214 +431,110 @@
     };
   }
 
-  function updateSelectionHint() {
-    const n = selected.size;
-    const includeInstr = includeInstructionsChecked();
-    els.selectionHint.textContent = n
-      ? `${n} type${n === 1 ? "" : "s"} selected`
-      : includeInstr
-        ? "No selection — push creates Missing in WMS types and merges/creates steps on types with diffs"
-        : "No selection — push creates types Missing in WMS only";
+  // --- Attention strip (single-select) ---
+
+  function categoryCounts() {
+    const list = Array.isArray(diffTypes) ? diffTypes : [];
+    return {
+      all: list.length,
+      wms: list.filter((t) => typeNeedsPushToWms(t)).length,
+      config: list.filter((t) => typeNeedsPullToConfig(t)).length,
+      deploy: list.filter((t) => t.notYetDeployed).length,
+      aligned: list.filter(isAligned).length
+    };
+  }
+
+  function visibleTypes() {
+    const list = Array.isArray(diffTypes) ? diffTypes : [];
+    if (activeCategory === "wms") return list.filter((t) => typeNeedsPushToWms(t));
+    if (activeCategory === "config") return list.filter((t) => typeNeedsPullToConfig(t));
+    if (activeCategory === "deploy") return list.filter((t) => t.notYetDeployed);
+    if (activeCategory === "aligned") return list.filter(isAligned);
+    return list; // "all"
+  }
+
+  function renderStrip() {
+    if (!els.attentionStrip) return;
+    const c = categoryCounts();
+    const cards = [
+      ["all", "card-all", c.all, "All"],
+      ["wms", "card-wms", c.wms, "Missing in WMS"],
+      ["config", "card-config", c.config, "Missing in config"],
+      ["deploy", "card-deploy", c.deploy, "Not deployed"],
+      ["aligned", "card-aligned", c.aligned, "Aligned"]
+    ];
+    els.attentionStrip.innerHTML = cards
+      .map(
+        ([key, cls, count, label]) => `
+      <button type="button" class="attention-card ${cls}${activeCategory === key ? " active" : ""}" data-cat="${key}">
+        <div class="count">${count}</div>
+        <div class="label">${esc(label)}</div>
+      </button>`
+      )
+      .join("");
+    els.attentionStrip.querySelectorAll("[data-cat]").forEach((btn) => {
+      btn.onclick = () => {
+        activeCategory = btn.dataset.cat;
+        renderAll();
+      };
+    });
+  }
+
+  function allVisibleExpanded() {
     const vis = visibleTypes();
-    const allSelected =
-      vis.length > 0 && vis.every((t) => selected.has(String(t.id)));
-    els.selectAllVisible.checked = allSelected;
+    return vis.length > 0 && vis.every((t) => expanded.has(String(t.id)));
   }
 
-  function renderSummary() {
-    const s = diffSummary || {};
-    els.summaryLine.textContent = [
-      `Types: ${s.types ?? 0}`,
-      `aligned ${s.aligned ?? 0}`,
-      `missing in WMS ${s.missing_in_wms ?? 0}`,
-      `missing in config ${s.missing_in_config ?? 0}`,
-      `instr differ ${s.types_instructions_differ ?? 0}`,
-      `whitespace warns ${s.id_whitespace ?? 0}`,
-      `steps −WMS ${s.steps_missing_in_wms ?? 0} / −config ${s.steps_missing_in_config ?? 0}`
-    ].join(" · ");
-  }
-
-  function renderInstrCompare(configTexts, wmsTexts) {
-    const cfg = Array.isArray(configTexts) ? configTexts : [];
-    const wms = Array.isArray(wmsTexts) ? wmsTexts : [];
-    const wmsNorm = new Set(wms.map(normalizeInstrText).filter(Boolean));
-    const cfgNorm = new Set(cfg.map(normalizeInstrText).filter(Boolean));
-    const badges = instrBadgeVisibility();
-
-    let cfgItems = "";
-    if (!cfg.length) {
-      cfgItems = `<li class="sync-instr-empty">none</li>`;
-    } else {
-      cfg.forEach((text, i) => {
-        const missing = !wmsNorm.has(normalizeInstrText(text));
-        const mark = missing && badges.missingInWms;
-        cfgItems += `<li class="${mark ? "sync-instr-missing" : ""}">
-          <span class="sync-instr-seq">${i + 1}.</span>
-          <span class="sync-instr-text">${esc(text)}</span>
-          ${
-            mark
-              ? `<span class="sync-instr-gap">missing in WMS</span>`
-              : ""
-          }
-        </li>`;
-      });
-    }
-
-    let wmsItems = "";
-    if (!wms.length) {
-      wmsItems = `<li class="sync-instr-empty">none</li>`;
-    } else {
-      wms.forEach((text, i) => {
-        const missing = !cfgNorm.has(normalizeInstrText(text));
-        const mark = missing && badges.missingInConfig;
-        wmsItems += `<li class="${mark ? "sync-instr-missing" : ""}">
-          <span class="sync-instr-seq">${i + 1}.</span>
-          <span class="sync-instr-text">${esc(text)}</span>
-          ${
-            mark
-              ? `<span class="sync-instr-gap">missing in config</span>`
-              : ""
-          }
-        </li>`;
-      });
-    }
-
-    return `<div class="sync-instr-panels">
-      <div class="sync-instr-panel">
-        <div class="sync-instr-panel-title">Config (to push)</div>
-        <ol class="sync-instr-list">${cfgItems}</ol>
-      </div>
-      <div class="sync-instr-panel">
-        <div class="sync-instr-panel-title">WMS</div>
-        <ol class="sync-instr-list">${wmsItems}</ol>
-      </div>
-    </div>`;
+  function renderExpandAllBtn() {
+    if (!els.expandAllBtn) return;
+    els.expandAllBtn.textContent = allVisibleExpanded() ? "Collapse all" : "Expand all";
   }
 
   function renderTable() {
     const rows = visibleTypes();
-    const showInstr = includeInstructionsChecked();
-    const missingKey = [...missingFilters].sort().join(",");
-    // Auto-expand under Missing filters so step/instruction gaps are visible
-    // without a manual click (instruction detail rows still need the checkbox).
-    const autoExpandKey = anyMissingFilterActive()
-      ? `missing:${missingKey}`
-      : "";
-    if (autoExpandKey && autoExpandKey !== lastAutoExpandKey) {
-      rows.forEach((t) => {
-        const id = String(t.id || "");
-        if (id) expanded.add(id);
-      });
-    }
-    lastAutoExpandKey = autoExpandKey;
-    updateFilterHint();
-    syncFilterButtonActive();
-    els.diffBody.innerHTML = "";
+    renderExpandAllBtn();
     els.emptyState.hidden = rows.length > 0;
-    rows.forEach((t) => {
-      const id = String(t.id || "");
-      const isOpen = expanded.has(id);
-      const steps = Array.isArray(t.steps) ? t.steps : [];
-      const warnHtml = (t.warnings || [])
-        .map((w) => {
-          if (!w) return "";
-          if (w.code === "id_whitespace") {
-            return `<div class="sync-warn"><i class="fa-solid fa-triangle-exclamation"></i> whitespace on ${esc(
-              w.field || "id"
-            )}: “${esc(w.raw)}”</div>`;
-          }
-          return `<div class="sync-warn">${esc(w.message || w.code || "")}</div>`;
-        })
-        .join("");
-      const typeInstrBadge =
-        showInstr && t.instructionStatus
-          ? ` ${badge(t.instructionStatus)}`
-          : "";
-      const notDeployedBadge = t.notYetDeployed
-        ? ` <span class="sync-badge sync-badge-not_deployed" title="Local draft has unsaved changes for this type — Save &amp; Deploy in Admin before pushing to WMS">not deployed</span>`
-        : "";
-      // Step-level gap counts, shown even when the row is collapsed — the
-      // type-level status only reflects whether the TYPE itself exists on
-      // both sides, so e.g. "aligned" can still be hiding a missing step.
-      const stepsMissingInWmsCount = steps.filter(
-        (s) => s && s.status === "missing_in_wms"
-      ).length;
-      const stepsMissingInConfigCount = steps.filter(
-        (s) => s && s.status === "missing_in_config"
-      ).length;
-      const stepGapBadges =
-        (stepsMissingInWmsCount
-          ? ` <span class="sync-badge sync-badge-missing_in_wms" title="Step(s) present in config but not in WMS">${stepsMissingInWmsCount} step${
-              stepsMissingInWmsCount === 1 ? "" : "s"
-            } missing in WMS</span>`
-          : "") +
-        (stepsMissingInConfigCount
-          ? ` <span class="sync-badge sync-badge-missing_in_config" title="Step(s) present in WMS but not in config">${stepsMissingInConfigCount} step${
-              stepsMissingInConfigCount === 1 ? "" : "s"
-            } missing in config</span>`
-          : "");
-      const tr = document.createElement("tr");
-      tr.className = "sync-type-row";
-      tr.dataset.typeId = id;
-      tr.innerHTML = `
-        <td>
-          <input type="checkbox" class="form-check-input type-check" data-id="${esc(
-            id
-          )}" ${selected.has(id) ? "checked" : ""} />
-        </td>
-        <td>
-          <button type="button" class="sync-expand" data-expand="${esc(
-            id
-          )}" aria-label="Toggle steps">
-            <i class="fa-solid fa-chevron-${isOpen ? "down" : "right"}"></i>
-          </button>
-          <span class="sync-type-id">${esc(id)}</span>
-          <span class="sync-type-title">${esc(t.title || "")}</span>
-        </td>
-        <td>${badge(t.status)}${typeInstrBadge}${notDeployedBadge}${stepGapBadges}</td>
-        <td>${steps.length}</td>
-        <td>${warnHtml || "—"}</td>`;
-      els.diffBody.appendChild(tr);
-      if (isOpen) {
-        steps.forEach((step) => {
-          const cfgN = (step.configInstructions || []).length;
-          const wmsN = (step.wmsInstructions || []).length;
-          const instrCounts = showInstr
-            ? `<span class="sync-instr-counts">${cfgN} cfg / ${wmsN} wms</span>`
-            : "";
-          const instrStatusBadge = showInstr
-            ? ` ${badge(step.instructionStatus || "instructions_aligned")}`
-            : "";
-          const sr = document.createElement("tr");
-          sr.className = "sync-step-row";
-          sr.innerHTML = `
-            <td></td>
-            <td class="sync-step-indent">
-              ${esc(step.id)}
-              ${instrCounts}
-            </td>
-            <td>${badge(step.status)}${instrStatusBadge}</td>
-            <td></td>
-            <td></td>`;
-          els.diffBody.appendChild(sr);
-          if (showInstr) {
-            const ir = document.createElement("tr");
-            ir.className = "sync-instr-row";
-            ir.innerHTML = `
+    els.diffBody.innerHTML = rows
+      .map((t) => {
+        const id = String(t.id || "");
+        const isOpen = expanded.has(id);
+        const steps = Array.isArray(t.steps) ? t.steps : [];
+        const detailRow = isOpen
+          ? `<tr class="sync-instr-row">
               <td></td>
-              <td colspan="4" class="sync-instr-detail">
-                ${renderInstrCompare(
-                  step.configInstructions,
-                  step.wmsInstructions
-                )}
-              </td>`;
-            els.diffBody.appendChild(ir);
-          }
-        });
-      }
-    });
-    updateSelectionHint();
-    updatePushBtnState();
+              <td></td>
+              <td colspan="3">${stepDiffListHtml(t)}</td>
+            </tr>`
+          : "";
+        return `<tr class="sync-type-row" data-type-id="${esc(id)}">
+          <td>
+            <input type="checkbox" class="form-check-input type-check" data-id="${esc(
+              id
+            )}" ${selected.has(id) ? "checked" : ""} />
+          </td>
+          <td>
+            <button type="button" class="sync-expand" data-expand="${esc(
+              id
+            )}" aria-label="Toggle steps">
+              <i class="fa-solid fa-chevron-${isOpen ? "down" : "right"}"></i>
+            </button>
+          </td>
+          <td>
+            <span class="sync-type-id">${esc(id)}</span>
+            <span class="sync-type-title">${esc(t.title || "")}</span>
+            ${warnIconHtml(t)}
+          </td>
+          <td><div class="sync-row-status">${typeStatusHtml(t)}${gapNote(t)}</div></td>
+          <td>${steps.length}</td>
+        </tr>${detailRow}`;
+      })
+      .join("");
+    updateActionButtonState();
+  }
+
+  function renderAll() {
+    renderStrip();
+    renderTable();
   }
 
   async function loadDraft() {
@@ -619,7 +582,6 @@
       return;
     }
     diffTypes = res.types || [];
-    diffSummary = res.summary || {};
     diffTypes.forEach((t) => {
       if (t) t.notYetDeployed = typeNotYetDeployed(t);
     });
@@ -628,13 +590,11 @@
     for (const id of Array.from(selected)) {
       if (!known.has(id)) selected.delete(id);
     }
-    renderSummary();
-    renderTable();
-    updatePushBtnState();
+    renderAll();
     status(
       usingLocalDraft
-        ? `Diff ready (against unsaved local draft) — ${diffSummary.types || 0} types (WMS catalog ${res.wmsCount ?? "?"})`
-        : `Diff ready — ${diffSummary.types || 0} types (WMS catalog ${res.wmsCount ?? "?"})`,
+        ? `Diff ready (against unsaved local draft) — ${diffTypes.length} types (WMS catalog ${res.wmsCount ?? "?"})`
+        : `Diff ready — ${diffTypes.length} types (WMS catalog ${res.wmsCount ?? "?"})`,
       "success"
     );
   }
@@ -656,15 +616,6 @@
     await refreshDiff();
   }
 
-  function selectedOrMatching(statusKey) {
-    if (selected.size) {
-      return Array.from(selected);
-    }
-    return (diffTypes || [])
-      .filter((t) => t && t.status === statusKey)
-      .map((t) => String(t.id));
-  }
-
   function typeById(typeId) {
     return (diffTypes || []).find((t) => t && String(t.id) === String(typeId));
   }
@@ -673,38 +624,30 @@
     return !!(t && t.status !== "missing_in_wms");
   }
 
-  /** Create targets: selected missing_in_wms, or all missing_in_wms when none selected. */
+  function includeInstructionsChecked() {
+    return !!(els.includeInstructions && els.includeInstructions.checked);
+  }
+
+  /** Create targets: selected types that are missing_in_wms. */
   function pushCreateIds() {
-    if (selected.size) {
-      return Array.from(selected).filter((id) => {
-        const t = typeById(id);
-        return t && t.status === "missing_in_wms";
-      });
-    }
-    return (diffTypes || [])
-      .filter((t) => t && t.status === "missing_in_wms" && !t.notYetDeployed)
-      .map((t) => String(t.id));
+    return Array.from(selected).filter((id) => {
+      const t = typeById(id);
+      return t && t.status === "missing_in_wms";
+    });
   }
 
   /**
-   * Merge targets when Include WMS instructions is on:
-   * selected existing types with instruction diffs and/or steps missing from
-   * WMS, or all such types when none selected. Excludes missing_in_wms types
-   * at the top level (those are created with full instructions instead) —
-   * a type that exists in WMS but is missing one of its steps still
-   * qualifies, and the merge call creates that step.
+   * Merge targets when "Also merge instruction text when pushing" is
+   * checked: selected existing types with instruction diffs and/or steps
+   * missing from WMS. A type that exists in WMS but is missing one of its
+   * steps still qualifies — the merge call creates that step.
    */
   function pushMergeIds() {
-    const needsMerge = (t) =>
-      typeHasInstructionDiff(t) || typeHasStepsMissingInWms(t);
-    const candidates = selected.size
-      ? Array.from(selected).map((id) => typeById(id)).filter(Boolean)
-      : (diffTypes || []).filter((t) => needsMerge(t) && !t.notYetDeployed);
-    return candidates
-      .filter(
-        (t) =>
-          typeExistsInWms(t) && t.status !== "missing_in_config" && needsMerge(t)
-      )
+    const needsMerge = (t) => typeHasInstructionDiff(t) || typeHasStepsMissingInWms(t);
+    return Array.from(selected)
+      .map((id) => typeById(id))
+      .filter(Boolean)
+      .filter((t) => typeExistsInWms(t) && t.status !== "missing_in_config" && needsMerge(t))
       .map((t) => String(t.id));
   }
 
@@ -717,21 +660,52 @@
     });
   }
 
-  function updatePushBtnState() {
-    if (!els.pushBtn) return;
+  /** Grey (secondary) when disabled — solid blue with white text/icon when enabled. */
+  function actionButtonClass(enabled) {
+    return `btn btn-sm ${enabled ? "btn-primary" : "btn-secondary"}`;
+  }
+
+  /**
+   * Push/Pull require an explicit selection (checkbox or Select all
+   * visible) — no more "empty selection = act on everything eligible".
+   * Each button independently enables only if the current selection
+   * actually has something for it to do in that direction, and both stay
+   * disabled if the selection includes anything not yet deployed.
+   */
+  function updateActionButtonState() {
+    const n = selected.size;
+    els.selectionHint.textContent = n ? `${n} type${n === 1 ? "" : "s"} selected` : "";
+    const vis = visibleTypes();
+    els.selectAllVisible.checked =
+      vis.length > 0 && vis.every((t) => selected.has(String(t.id)));
+
+    const selectedTypes = Array.from(selected).map(typeById).filter(Boolean);
     const blocked = selectionHasUndeployed();
-    els.pushBtn.disabled = blocked;
-    els.pushBtn.title = blocked
+    const pushEnabled = n > 0 && !blocked && selectedTypes.some((t) => typeNeedsPushToWms(t));
+    const pullEnabled = n > 0 && !blocked && selectedTypes.some((t) => typeNeedsPullToConfig(t));
+    const title = blocked
       ? "Selected type(s) have unsaved local changes — Save & Deploy in Admin first, or deselect them"
-      : "";
+      : n === 0
+        ? "Select at least one type (or Select all visible)"
+        : "";
+
+    if (els.pushBtn) {
+      els.pushBtn.className = actionButtonClass(pushEnabled);
+      els.pushBtn.disabled = !pushEnabled;
+      els.pushBtn.title = title;
+    }
+    if (els.pullBtn) {
+      els.pullBtn.className = actionButtonClass(pullEnabled);
+      els.pullBtn.disabled = !pullEnabled;
+      els.pullBtn.title = title;
+    }
   }
 
   function openConfirm(title, html, action) {
     confirmAction = action;
     els.confirmTitle.textContent = title;
     els.confirmBody.innerHTML = html;
-    if (confirmModal) confirmModal.show();
-    else if (window.confirm(title + "\n\nContinue?")) action();
+    confirmModal.show();
   }
 
   function formatCreatePlanLine(p) {
@@ -775,8 +749,8 @@
     if (!createIds.length && !mergeIds.length) {
       return status(
         includeInstructions
-          ? "Nothing to push — no Missing in WMS types and no instruction/step diffs to merge"
-          : "Nothing to push — no Missing in WMS types (check Include WMS instructions to also merge instruction/step diffs)",
+          ? "Nothing to push — selected type(s) aren't Missing in WMS and have no instruction/step diffs to merge"
+          : "Nothing to push — selected type(s) aren't Missing in WMS (check \"Also merge instruction text\" to also sync instruction/step diffs)",
         "error"
       );
     }
@@ -828,7 +802,7 @@
 
     const note = includeInstructions
       ? "Creates missing types with full instructions, and on existing types merges StepInstruction lists and creates any steps missing from WMS."
-      : "Creates missing types only (no merge). Check Include WMS instructions to also sync instruction diffs and missing steps on existing types.";
+      : "Creates missing types only (no merge). Check \"Also merge instruction text\" to also sync instruction diffs and missing steps on existing types.";
 
     openConfirm(
       "Push to WMS",
@@ -887,25 +861,17 @@
   }
 
   async function runPull() {
-    const typeIds = selectedOrMatching("missing_in_config");
-    // Also allow selecting aligned types that only need step pull — if selected, pass them
-    const ids = selected.size ? Array.from(selected) : typeIds;
-    if (!ids.length && !selected.size) {
-      // Let API choose defaults (missing types + types with missing steps)
-    }
+    const ids = Array.from(selected);
     const body = {
       org,
       token,
-      config: draftPayload()
+      config: draftPayload(),
+      typeIds: ids
     };
-    if (selected.size) body.typeIds = Array.from(selected);
     openConfirm(
       "Pull missing into draft",
-      selected.size
-        ? `<p>Pull selected <strong>${selected.size}</strong> type(s) from WMS into the local draft.</p>
-           <p class="small text-muted mb-0">Then use Save &amp; Deploy to commit to GitHub.</p>`
-        : `<p>Pull all WMS-only types (and missing steps) into the local draft.</p>
-           <p class="small text-muted mb-0">Then use Save &amp; Deploy to commit to GitHub.</p>`,
+      `<p>Pull selected <strong>${ids.length}</strong> type(s) from WMS into the local draft.</p>
+       <p class="small text-muted mb-0">Then use Save &amp; Deploy to commit to GitHub.</p>`,
       async () => {
         status("Pulling from WMS into draft...");
         const res = await api("vas_sync_pull", body);
@@ -927,7 +893,7 @@
 
   async function runSave() {
     if (!draft || !org || !token) return;
-    if (!confirm("Save draft to the cloud and deploy?")) return;
+    if (!(await confirmDialog("Save draft to the cloud and deploy?"))) return;
     status("Saving to the cloud...");
     const payload = {
       version: draft.version || 1,
@@ -941,31 +907,6 @@
   }
 
   // Events
-
-  document.querySelectorAll(".sync-filter").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.filter || "all";
-      if (key === "all") {
-        filterMode = "all";
-        missingFilters.clear();
-      } else if (key === "aligned") {
-        filterMode = "aligned";
-        missingFilters.clear();
-      } else if (key === "missing_in_wms" || key === "missing_in_config") {
-        if (filterMode !== "missing") {
-          filterMode = "missing";
-          missingFilters.clear();
-          missingFilters.add(key);
-        } else if (missingFilters.has(key)) {
-          missingFilters.delete(key);
-          if (missingFilters.size === 0) filterMode = "all";
-        } else {
-          missingFilters.add(key);
-        }
-      }
-      renderTable();
-    });
-  });
 
   els.diffBody.addEventListener("click", (e) => {
     const expandBtn = e.target.closest("[data-expand]");
@@ -981,8 +922,7 @@
       const id = check.getAttribute("data-id");
       if (check.checked) selected.add(id);
       else selected.delete(id);
-      updateSelectionHint();
-      updatePushBtnState();
+      updateActionButtonState();
       return;
     }
     const row = e.target.closest(".sync-type-row");
@@ -1004,21 +944,22 @@
     renderTable();
   });
 
+  if (els.expandAllBtn) {
+    els.expandAllBtn.onclick = () => {
+      const vis = visibleTypes();
+      if (allVisibleExpanded()) vis.forEach((t) => expanded.delete(String(t.id)));
+      else vis.forEach((t) => expanded.add(String(t.id)));
+      renderTable();
+    };
+  }
+
   els.refreshBtn.onclick = async () => {
     await loadDraft();
     await refreshDiff();
   };
 
   els.pushBtn.onclick = () => runPush();
-  if (els.includeInstructions) {
-    els.includeInstructions.addEventListener("change", () => {
-      updateFilterHint();
-      renderTable();
-    });
-  }
-
   els.pullBtn.onclick = () => runPull();
-
   els.saveBtn.onclick = () => runSave();
 
   els.confirmOkBtn.onclick = async () => {
@@ -1048,9 +989,6 @@
   const last = localStorage.getItem("vas_lastOrg");
   if (urlParams.org) els.orgInput.value = urlParams.org.toUpperCase();
   else if (last) els.orgInput.value = last;
-
-  updateFilterHint();
-  syncFilterButtonActive();
 
   (async function bootstrap() {
     const session = await api("session", {});

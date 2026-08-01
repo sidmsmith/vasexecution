@@ -60,7 +60,7 @@
   <script src="mock-utils.js"></script>
   <script>
     const U = window.SyncUI;
-    /** @type {"all"|"wms"|"config"|"instr"|"deploy"|"aligned"} */
+    /** @type {"all"|"wms"|"config"|"deploy"|"aligned"} */
     let activeCategory = "all";
     const expanded = new Set();
     const selected = new Set();
@@ -83,7 +83,6 @@
         all: list.length,
         wms: list.filter((t) => U.typeNeedsPushToWms(t)).length,
         config: list.filter((t) => U.typeNeedsPullToConfig(t)).length,
-        instr: list.filter(U.hasWordingDiff).length,
         deploy: list.filter((t) => t.notYetDeployed).length,
         aligned: list.filter(U.isAligned).length
       };
@@ -93,7 +92,6 @@
       const list = window.SYNC_MOCK.types;
       if (activeCategory === "wms") return list.filter((t) => U.typeNeedsPushToWms(t));
       if (activeCategory === "config") return list.filter((t) => U.typeNeedsPullToConfig(t));
-      if (activeCategory === "instr") return list.filter(U.hasWordingDiff);
       if (activeCategory === "deploy") return list.filter((t) => t.notYetDeployed);
       if (activeCategory === "aligned") return list.filter(U.isAligned);
       return list; // "all"
@@ -105,7 +103,6 @@
         ["all", "card-all", c.all, "All"],
         ["wms", "card-wms", c.wms, "Missing in WMS"],
         ["config", "card-config", c.config, "Missing in config"],
-        ["instr", "card-instr", c.instr, "Wording differs"],
         ["deploy", "card-deploy", c.deploy, "Not deployed"],
         ["aligned", "card-aligned", c.aligned, "Aligned"]
       ];

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VAS WMS Sync v0.3.5</title>
+  <title>VAS WMS Sync v0.3.6</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <link href="/css/flowthrough-shared.css" rel="stylesheet" />
@@ -17,7 +17,7 @@
     <header class="app-header">
       <div class="header-body">
         <h1>VAS WMS Sync</h1>
-        <div class="subtitle">v0.3.5 — draft vs Provided Services (incl. instructions)</div>
+        <div class="subtitle">v0.3.6 — draft vs Provided Services (incl. instructions)</div>
       </div>
       <div class="header-actions">
         <a class="btn btn-outline-secondary btn-sm" href="/admin.html" id="adminNavLink" target="_blank" rel="noopener">Config Admin</a>
@@ -36,21 +36,26 @@
     <div class="app-status" id="status">Enter ORG and authenticate</div>
 
     <div id="mainUI" style="display: none;">
-      <div class="sync-toolbar">
-        <div class="sync-filters" role="group" aria-label="Status filter">
-          <button type="button" class="btn btn-sm btn-outline-secondary sync-filter active" data-filter="all">All</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary sync-filter" data-filter="missing_in_wms" aria-pressed="false">Missing in WMS</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary sync-filter" data-filter="missing_in_config" aria-pressed="false">Missing in config</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary sync-filter" data-filter="aligned">Aligned</button>
-        </div>
+      <div class="attention-strip" id="attentionStrip"></div>
+
+      <div class="sync-select-row">
+        <label class="form-check-label">
+          <input type="checkbox" class="form-check-input" id="selectAllVisible" />
+          Select all visible
+        </label>
+        <span class="text-muted small" id="selectionHint"></span>
+        <label class="form-check-label ms-auto" id="mergeInstructionsLabel">
+          <input type="checkbox" class="form-check-input" id="includeInstructions" />
+          Also merge instruction text when pushing
+        </label>
         <div class="sync-actions">
           <button type="button" class="btn btn-outline-secondary btn-sm mb-0" id="refreshBtn">
             <i class="fa-solid fa-rotate"></i> Refresh
           </button>
-          <button type="button" class="btn btn-outline-primary btn-sm mb-0" id="pushBtn">
+          <button type="button" class="btn btn-secondary btn-sm mb-0" id="pushBtn" disabled>
             <i class="fa-solid fa-cloud-arrow-up"></i> Push to WMS
           </button>
-          <button type="button" class="btn btn-outline-primary btn-sm mb-0" id="pullBtn">
+          <button type="button" class="btn btn-secondary btn-sm mb-0" id="pullBtn" disabled>
             <i class="fa-solid fa-cloud-arrow-down"></i> Pull missing into draft
           </button>
           <button type="button" class="btn btn-success btn-sm mb-0" id="saveBtn">
@@ -59,37 +64,24 @@
         </div>
       </div>
 
-      <div class="sync-options">
-        <label class="form-check-label">
-          <input type="checkbox" class="form-check-input" id="includeInstructions" />
-          Include WMS instructions (uploads all text content blocks as StepInstructions)
-        </label>
-        <p class="small text-muted mb-0 sync-option-note">
-          When checked, push also merges full instruction sets onto existing WMS types.
-        </p>
-        <p class="small text-muted mb-0 sync-filter-hint" id="filterHint">
-          Missing filters include types, steps, and instruction gaps. Select both Missing buttons together to see all gaps.
-        </p>
-        <div class="sync-summary" id="summaryLine"></div>
-      </div>
-
-      <div class="sync-select-row">
-        <label class="form-check-label">
-          <input type="checkbox" class="form-check-input" id="selectAllVisible" />
-          Select all visible
-        </label>
-        <span class="text-muted small" id="selectionHint"></span>
-      </div>
-
       <div class="sync-table-wrap">
         <table class="table sync-table mb-0" id="diffTable">
+          <colgroup>
+            <col style="width:2.5rem" />
+            <col style="width:2.75rem" />
+            <col />
+            <col style="width:24rem" />
+            <col style="width:5rem" />
+          </colgroup>
           <thead>
             <tr>
-              <th style="width:2.5rem"></th>
-              <th>VAS Type / Steps</th>
-              <th style="width:10rem">Status</th>
-              <th style="width:8rem">Steps</th>
-              <th>Warnings</th>
+              <th></th>
+              <th>
+                <button type="button" class="btn btn-link btn-sm p-0 expand-all-btn" id="expandAllBtn"></button>
+              </th>
+              <th>VAS Type</th>
+              <th>Status</th>
+              <th>Steps</th>
             </tr>
           </thead>
           <tbody id="diffBody"></tbody>
@@ -116,6 +108,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/confirm-dialog.js"></script>
   <script src="/js/vas-config.js"></script>
   <script src="/js/vas-config-sync.js"></script>
 </body>
