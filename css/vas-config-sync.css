@@ -187,6 +187,12 @@ table.table.sync-table {
   color: var(--status-chip-fg, #f5f5f5);
 }
 
+.sync-badge-deleted_in_config {
+  background: rgba(239, 68, 68, 0.28);
+  border: 1px solid rgba(248, 113, 113, 0.55);
+  color: var(--status-chip-fg, #f5f5f5);
+}
+
 .sync-instr-row td {
   background: rgba(0, 0, 0, 0.12);
 }
@@ -333,6 +339,11 @@ table.table.sync-table {
 .diff-tag-not-deployed {
   color: #c084fc;
 }
+/* Deleted-from-config is an independent, more specific axis than the
+   amber/blue WMS-gap tag — additive, sits alongside it, never replaces it. */
+.diff-tag-deleted {
+  color: #f87171;
+}
 .diff-line-config-only {
   background: rgba(234, 179, 8, 0.12);
 }
@@ -341,6 +352,10 @@ table.table.sync-table {
   background: rgba(59, 130, 246, 0.12);
 }
 .diff-line-wms-only .diff-gutter { color: #60a5fa; }
+.diff-line-deleted-only {
+  background: rgba(239, 68, 68, 0.12);
+}
+.diff-line-deleted-only .diff-gutter { color: #f87171; }
 .diff-empty {
   padding: 0.65rem;
   color: var(--text-muted, #adb5bd);

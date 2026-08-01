@@ -128,6 +128,18 @@
     );
   }
 
+  /** Type existed in the last-deployed config but has been removed from the local draft. */
+  function typeDeletedInConfig(t) {
+    if (!t || !usingLocalDraft) return false;
+    return !!VasConfig.getTypeConfig(deployedDraft, t.id) && !VasConfig.getTypeConfig(draft, t.id);
+  }
+
+  /** Step existed in the last-deployed config but has been removed from the local draft. */
+  function stepDeletedInConfig(typeId, stepId) {
+    if (!usingLocalDraft) return false;
+    return stepConfigExists(deployedDraft, typeId, stepId) && !stepConfigExists(draft, typeId, stepId);
+  }
+
   function badge(statusKey, label) {
     const text = label || String(statusKey || "").replace(/_/g, " ");
     return `<span class="sync-badge sync-badge-${esc(statusKey)}">${esc(text)}</span>`;
@@ -235,8 +247,9 @@
     );
   }
 
-  /** "missing in WMS", "missing in config, missing in WMS", or "aligned". */
+  /** "missing in WMS", "missing in config, missing in WMS", "not present", or "aligned". */
   function describeGapState(t) {
+    if (t && t.status === "deleted_only") return "not present";
     const parts = [];
     if (typeNeedsPushToWms(t)) parts.push("missing in WMS");
     if (typeNeedsPullToConfig(t)) parts.push("missing in config");
@@ -244,13 +257,20 @@
   }
 
   /**
-   * Full status markup. Not-deployed takes visual priority (with the
-   * underlying gap state as a secondary note). Otherwise: Aligned only when
-   * isAligned() is true; any gap shows the same Missing in WMS/config
-   * badge(s) used for whole-type gaps — one badge per direction, since a
-   * type can genuinely have gaps in both at once.
+   * Full status markup. Deleted-in-config takes visual priority over the
+   * generic not-deployed badge (a deleted type is always not-yet-deployed
+   * too — this is a strict specialization, not a suppression of separately
+   * true information). Otherwise: Aligned only when isAligned() is true; any
+   * gap shows the same Missing in WMS/config badge(s) used for whole-type
+   * gaps — one badge per direction, since a type can genuinely have gaps in
+   * both at once.
    */
   function typeStatusHtml(t) {
+    if (t && typeDeletedInConfig(t)) {
+      return `${badge("deleted_in_config", "deleted in config")} <span class="sync-status-secondary">(WMS: ${esc(
+        describeGapState(t)
+      )})</span>`;
+    }
     if (t && t.notYetDeployed) {
       return `${badge("not_deployed", "not deployed")} <span class="sync-status-secondary">(WMS: ${esc(
         describeGapState(t)
@@ -380,28 +400,53 @@
     const configTexts = (step && step.configInstructions) || [];
     const wmsTexts = (step && step.wmsInstructions) || [];
     const lines = unifiedDiffLines(configTexts, wmsTexts);
+
+    // Lines removed from the draft since the last deploy (draft-vs-deployed
+    // "wms-only" here means "present in deployedDraft, absent from draft" —
+    // i.e. deleted locally). Merge in any not already visible via the
+    // WMS-relative diff above (deleted-and-never-in-WMS lines are otherwise
+    // completely invisible, since they're absent from both input arrays).
+    const deployDiff = stepDeployDiffLines(typeId, step && step.id);
+    const deletedLines = deployDiff.filter((l) => l.kind === "wms-only");
+    const deletedNorm = new Set(deletedLines.map((l) => normalizeInstrText(l.text)));
+    const existingNorm = new Set(lines.map((l) => normalizeInstrText(l.text)));
+    deletedLines.forEach((l) => {
+      const norm = normalizeInstrText(l.text);
+      if (existingNorm.has(norm)) return; // already visible below; gets the deleted tag added instead
+      lines.push({ text: l.text, kind: "deleted-only" });
+      existingNorm.add(norm);
+    });
+
     if (!lines.length) {
       return `<div class="diff-empty">No instructions on either side.</div>`;
     }
     const undeployedNorm = stepUndeployedTextSet(typeId, step && step.id);
     return `<ul class="diff-lines">${lines
       .map((l) => {
-        const mark = l.kind === "config-only" ? "+" : l.kind === "wms-only" ? "−" : "";
+        const mark =
+          l.kind === "config-only" ? "+" : l.kind === "wms-only" || l.kind === "deleted-only" ? "−" : "";
         const wmsTag =
           l.kind === "config-only"
             ? "missing in WMS"
             : l.kind === "wms-only"
               ? "missing in config"
               : "";
-        // A wms-only line exists only in WMS, so it can't also be a
-        // locally-added draft line — no undeployed check needed for it.
-        const isUndeployed = l.kind !== "wms-only" && undeployedNorm.has(normalizeInstrText(l.text));
+        // A wms-only/deleted-only line can't also be a locally-added draft
+        // line, so no undeployed check is needed for it.
+        const isUndeployed =
+          l.kind !== "wms-only" && l.kind !== "deleted-only" && undeployedNorm.has(normalizeInstrText(l.text));
+        // Deleted takes priority when both would otherwise apply — it never
+        // actually can (deleted lines are, by definition, absent from the
+        // draft, so isUndeployed is always false for them), but the guard
+        // documents the intended precedence.
+        const isDeleted = deletedNorm.has(normalizeInstrText(l.text));
         return `<li class="diff-line diff-line-${l.kind}">
           <span class="diff-gutter">${mark}</span>
           <span class="diff-text">${esc(l.text)}</span>
           <span class="diff-tags">
             ${wmsTag ? `<span class="diff-tag">${wmsTag}</span>` : ""}
-            ${isUndeployed ? '<span class="diff-tag diff-tag-not-deployed">not deployed</span>' : ""}
+            ${isDeleted ? '<span class="diff-tag diff-tag-deleted">deleted in config</span>' : ""}
+            ${!isDeleted && isUndeployed ? '<span class="diff-tag diff-tag-not-deployed">not deployed</span>' : ""}
           </span>
         </li>`;
       })
@@ -409,12 +454,13 @@
   }
 
   function stepDiffBlockHtml(step, typeId) {
-    const notDeployedBadge = stepHasUndeployedChange(typeId, step.id)
-      ? ` ${badge("not_deployed", "not deployed")}`
-      : "";
+    const deleted = stepDeletedInConfig(typeId, step.id);
+    const notDeployedBadge =
+      !deleted && stepHasUndeployedChange(typeId, step.id) ? ` ${badge("not_deployed", "not deployed")}` : "";
+    const deletedBadge = deleted ? ` ${badge("deleted_in_config", "deleted in config")}` : "";
     const gapBadge = stepGapBadge(step);
     return `<div class="mb-2">
-      <div class="sync-step-title">${esc(step.id)}${gapBadge ? " " + gapBadge : ""}${notDeployedBadge}</div>
+      <div class="sync-step-title">${esc(step.id)}${gapBadge ? " " + gapBadge : ""}${deletedBadge}${notDeployedBadge}</div>
       ${diffLinesHtml(step, typeId)}
     </div>`;
   }
@@ -584,6 +630,48 @@
     diffTypes.forEach((t) => {
       if (t) t.notYetDeployed = typeNotYetDeployed(t);
     });
+
+    // Types/steps deleted from the local draft but never pushed to WMS are
+    // invisible to the backend diff above (it only reports the union of
+    // submitted-draft ids and live-WMS ids) — synthesize display rows for
+    // them from the already-loaded deployedDraft so they still show up,
+    // tagged "deleted in config" instead of silently vanishing.
+    if (usingLocalDraft && deployedDraft) {
+      const knownTypeIds = new Set(diffTypes.map((t) => String(t.id)));
+      Object.keys(deployedDraft.vasTypes || {}).forEach((id) => {
+        if (knownTypeIds.has(id) || VasConfig.getTypeConfig(draft, id)) return;
+        diffTypes.push({
+          id,
+          status: "deleted_only",
+          instructionStatus: null,
+          title: (VasConfig.getTypeConfig(deployedDraft, id) || {}).title || id,
+          steps: [],
+          warnings: [],
+          notYetDeployed: true
+        });
+        knownTypeIds.add(id);
+      });
+
+      diffTypes.forEach((t) => {
+        const typeCfg = VasConfig.getTypeConfig(deployedDraft, t.id);
+        const deployedStepIds = typeCfg ? VasConfig.orderedStepIds(typeCfg) : [];
+        if (!deployedStepIds.length) return;
+        if (!Array.isArray(t.steps)) t.steps = [];
+        const knownStepIds = new Set(t.steps.map((s) => String(s.id)));
+        deployedStepIds.forEach((stepId) => {
+          if (knownStepIds.has(stepId)) return;
+          t.steps.push({
+            id: stepId,
+            status: "deleted_only",
+            instructionStatus: null,
+            configInstructions: [],
+            wmsInstructions: []
+          });
+          knownStepIds.add(stepId);
+        });
+      });
+    }
+
     // Drop selections that no longer exist
     const known = new Set(diffTypes.map((t) => String(t.id)));
     for (const id of Array.from(selected)) {
