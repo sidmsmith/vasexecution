@@ -118,6 +118,30 @@
     }
   }
 
+  /**
+   * Write the current draft to the same localStorage key Admin autosaves to
+   * (same shape as Admin's persistDraftLocal), so a pull is immediately
+   * visible in Admin and reflected as "not yet deployed" here — without
+   * this, a pull only lived in this page's in-memory draft and vanished on
+   * navigation/reload unless Save & Deploy was clicked from this exact page.
+   */
+  function persistDraftLocal() {
+    if (!org || !draft) return;
+    try {
+      localStorage.setItem(
+        `vas_draft:${org}`,
+        JSON.stringify({
+          version: draft.version || 1,
+          vasTypes: draft.vasTypes,
+          items: draft.items,
+          savedAt: new Date().toISOString()
+        })
+      );
+    } catch {
+      // Private browsing / quota exceeded — degrade silently, pull still works this session.
+    }
+  }
+
   /** Type exists in WMS or config but the effective (local) draft hasn't been deployed yet. */
   function typeNotYetDeployed(t) {
     if (!t || !usingLocalDraft) return false;
@@ -363,6 +387,24 @@
     )}"></i>`;
   }
 
+  /** Same warning icon, but only for warnings attributable to this specific step (by trimmed id match). */
+  function stepWarnIconHtml(typeWarnings, step) {
+    const warnings = Array.isArray(typeWarnings) ? typeWarnings : [];
+    const stepId = String((step && step.id) || "").trim();
+    const msgs = warnings
+      .filter(
+        (w) =>
+          w &&
+          w.field === "ProvidedServiceStepId" &&
+          String(w.trimmed || "").trim() === stepId
+      )
+      .map((w) => `whitespace on ${w.field}: "${w.raw}"`);
+    if (!msgs.length) return "";
+    return ` <i class="fa-solid fa-triangle-exclamation sync-warn-icon" title="${esc(
+      msgs.join("; ")
+    )}"></i>`;
+  }
+
   // --- Step/line-level "not deployed" (draft vs. deployed, same mechanism
   // used for draft vs. WMS, just pointed at a different second source).
   // Both docs are already fully loaded normalized config objects. ---
@@ -468,21 +510,24 @@
       .join("")}</ul>`;
   }
 
-  function stepDiffBlockHtml(step, typeId) {
+  function stepDiffBlockHtml(step, typeId, typeWarnings) {
     const deleted = stepDeletedInConfig(typeId, step.id);
     const notDeployedBadge =
       !deleted && stepHasUndeployedChange(typeId, step.id) ? ` ${badge("not_deployed", "not deployed")}` : "";
     const deletedBadge = deleted ? ` ${badge("deleted_in_config", "deleted in config")}` : "";
     const gapBadge = stepGapBadge(step);
     const gapNoteHtml = stepGapNote(step);
+    const warnIcon = stepWarnIconHtml(typeWarnings, step);
     return `<div class="mb-2">
-      <div class="sync-step-title">${esc(step.id)}${gapBadge ? " " + gapBadge : ""}${deletedBadge}${notDeployedBadge}${gapNoteHtml ? " " + gapNoteHtml : ""}</div>
+      <div class="sync-step-title">${esc(step.id)}${warnIcon}${gapBadge ? " " + gapBadge : ""}${deletedBadge}${notDeployedBadge}${gapNoteHtml ? " " + gapNoteHtml : ""}</div>
       ${diffLinesHtml(step, typeId)}
     </div>`;
   }
 
   function stepDiffListHtml(t) {
-    return (Array.isArray(t.steps) ? t.steps : []).map((s) => stepDiffBlockHtml(s, t.id)).join("");
+    return (Array.isArray(t.steps) ? t.steps : [])
+      .map((s) => stepDiffBlockHtml(s, t.id, t.warnings))
+      .join("");
   }
 
   function draftPayload() {
@@ -974,7 +1019,7 @@
     openConfirm(
       "Pull missing into draft",
       `<p>Pull selected <strong>${ids.length}</strong> type(s) from WMS into the local draft.</p>
-       <p class="small text-muted mb-0">Then use Save &amp; Deploy to commit to GitHub.</p>`,
+       <p class="small text-muted mb-0">Saved locally right away (same draft Admin uses) — use Save &amp; Deploy when ready to commit to GitHub.</p>`,
       async () => {
         status("Pulling from WMS into draft...");
         const res = await api("vas_sync_pull", body);
@@ -983,6 +1028,10 @@
         }
         draft = VasConfig.normalizeConfig(res.config);
         const n = (res.pulled || []).length;
+        if (n) {
+          usingLocalDraft = true;
+          persistDraftLocal();
+        }
         status(
           n
             ? `Pulled ${n} change(s) into local draft — Save & Deploy when ready`
@@ -1006,7 +1055,10 @@
     };
     const res = await api("save_vas_config", { org, token, config: payload });
     if (!res.success) return status(res.error || "Save failed", "error");
+    deployedDraft = JSON.parse(JSON.stringify(VasConfig.normalizeConfig(draft)));
+    persistDraftLocal();
     status(res.message || "Saved", "success");
+    await refreshDiff();
   }
 
   // Events
