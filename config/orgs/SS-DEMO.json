@@ -1,8 +1,128 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-08-01T05:29:42.535Z",
+  "updatedAt": "2026-08-01T13:29:59.194Z",
   "version": 1,
   "vasTypes": {
+    "Accessories Bundle": {
+      "title": "Accessories Bundle",
+      "description": "Accessories Bundle",
+      "iconUrl": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254064/sidney/SHI_1.png",
+      "content": [],
+      "instructions": [],
+      "images": [],
+      "steps": {
+        "Gather all accessories": {
+          "title": "Gather all accessories",
+          "content": [
+            {
+              "id": "ins_khljcso9",
+              "type": "text",
+              "text": "Pick all accessories",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_ao9jzt33",
+              "type": "text",
+              "text": "Package all accessories into plastic bags",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "img_mu2x95p5",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_09.png",
+              "caption": "",
+              "scale": 48
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_khljcso9",
+                  "ins_ao9jzt33"
+                ]
+              },
+              {
+                "id": "col_eznxg1tb",
+                "width": 1,
+                "blockIds": [
+                  "img_mu2x95p5"
+                ]
+              }
+            ]
+          }
+        },
+        "Pack accessories": {
+          "title": "Pack accessories",
+          "content": [
+            {
+              "id": "ins_8cs1r00f",
+              "type": "text",
+              "text": "Pack accessories bags into laptop bag",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "img_k0exjvnk",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_2.png",
+              "caption": "",
+              "scale": 10
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_8cs1r00f",
+                  "img_k0exjvnk"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "stepOrder": [
+        "Gather all accessories",
+        "Pack accessories"
+      ],
+      "sections": {
+        "signature": {
+          "enabled": false,
+          "required": false,
+          "label": "Accessories Bundle Signature"
+        },
+        "photos": {
+          "enabled": false,
+          "required": false,
+          "label": "Accessories Bundle Photos"
+        },
+        "markupPad": {
+          "enabled": false,
+          "required": false,
+          "label": "Accessories Bundle Markup",
+          "mode": "photo"
+        }
+      }
+    },
     "Apply UPC Tags": {
       "title": "Apply UPC Tags",
       "description": "Apply UPC Tags",
@@ -57,6 +177,17 @@
               "color": "#000000",
               "fontSize": 100,
               "listMarker": "bullet"
+            },
+            {
+              "id": "Apply UPC Tags_Create UPC Tag_ins_omcnfhcj",
+              "type": "text",
+              "text": "Test instruction",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
             }
           ],
           "layout": {
@@ -68,7 +199,8 @@
                   "ins_1686e4cb",
                   "ins_91d8602c",
                   "ins_e4c06014",
-                  "ins_04feb4f2"
+                  "ins_04feb4f2",
+                  "Apply UPC Tags_Create UPC Tag_ins_omcnfhcj"
                 ]
               }
             ]
@@ -211,6 +343,33 @@
       "instructions": [],
       "images": [],
       "steps": {
+        "Apply Labels": {
+          "title": "Apply Labels",
+          "content": [
+            {
+              "id": "ins_395bac45",
+              "type": "text",
+              "text": "Print and attach label",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_395bac45"
+                ]
+              }
+            ]
+          }
+        },
         "Print Dicks Price Tickets": {
           "title": "Print Dicks Price Tickets",
           "content": [
@@ -257,33 +416,6 @@
                   "ins_ec379a6a",
                   "ins_8a166c5b",
                   "ins_9bd020d8"
-                ]
-              }
-            ]
-          }
-        },
-        "Apply Labels": {
-          "title": "Apply Labels",
-          "content": [
-            {
-              "id": "ins_395bac45",
-              "type": "text",
-              "text": "Print and attach label",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_395bac45"
                 ]
               }
             ]
@@ -497,6 +629,59 @@
       "instructions": [],
       "images": [],
       "steps": {
+        "Tie Bow": {
+          "title": "Tie Bow",
+          "content": [
+            {
+              "id": "ins_e9729ff2",
+              "type": "text",
+              "text": "Tie the bow neatly",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "star"
+            },
+            {
+              "id": "ins_170c564c",
+              "type": "text",
+              "text": "Use the holiday bows",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "img_7gmmkwim",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1783445906/sidney/bracket1.gif",
+              "caption": "",
+              "scale": 48
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_e9729ff2",
+                  "ins_170c564c"
+                ]
+              },
+              {
+                "id": "col_54nssnnd",
+                "width": 1,
+                "blockIds": [
+                  "img_7gmmkwim"
+                ]
+              }
+            ]
+          }
+        },
         "Wrap": {
           "title": "Wrap",
           "content": [
@@ -567,59 +752,6 @@
                   "ins_7f0fc6ed",
                   "ins_e153642c",
                   "ins_4393f709"
-                ]
-              }
-            ]
-          }
-        },
-        "Tie Bow": {
-          "title": "Tie Bow",
-          "content": [
-            {
-              "id": "ins_e9729ff2",
-              "type": "text",
-              "text": "Tie the bow neatly",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "star"
-            },
-            {
-              "id": "ins_170c564c",
-              "type": "text",
-              "text": "Use the holiday bows",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "img_7gmmkwim",
-              "type": "image",
-              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1783445906/sidney/bracket1.gif",
-              "caption": "",
-              "scale": 48
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_e9729ff2",
-                  "ins_170c564c"
-                ]
-              },
-              {
-                "id": "col_54nssnnd",
-                "width": 1,
-                "blockIds": [
-                  "img_7gmmkwim"
                 ]
               }
             ]
@@ -1285,6 +1417,148 @@
         }
       }
     },
+    "Verizon Laptop Prep": {
+      "title": "Verizon Laptop Prep",
+      "description": "Verizon Laptop Prep",
+      "iconUrl": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_Yoga_9i_2_in_1_Aura_Edition_v01.png",
+      "content": [],
+      "instructions": [],
+      "images": [],
+      "steps": {
+        "Asset Tag": {
+          "title": "Asset Tag",
+          "content": [
+            {
+              "id": "ins_glju9tft",
+              "type": "text",
+              "text": "Attach Asset Tag",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_izy5dbwy",
+              "type": "text",
+              "text": "Log Tag in tracking system",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_glju9tft",
+                  "ins_izy5dbwy"
+                ]
+              }
+            ]
+          }
+        },
+        "Flash BIOS": {
+          "title": "Flash BIOS",
+          "content": [
+            {
+              "id": "ins_dgm3v72k",
+              "type": "text",
+              "text": "Set default passwords",
+              "bold": true,
+              "italic": false,
+              "underline": false,
+              "color": "#f90b0b",
+              "fontSize": 129,
+              "listMarker": "star"
+            },
+            {
+              "id": "ins_w95idiam",
+              "type": "text",
+              "text": "Configure boot sequence",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "img_z0cnaddw",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.png",
+              "caption": "",
+              "scale": 63
+            },
+            {
+              "id": "ins_1ln2jdve",
+              "type": "text",
+              "text": "Update Power Management",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_dgm3v72k",
+                  "ins_w95idiam"
+                ]
+              },
+              {
+                "id": "col_ota6b4vw",
+                "width": 1,
+                "blockIds": [
+                  "img_z0cnaddw"
+                ]
+              },
+              {
+                "id": "col_ai8w7m0k",
+                "width": 1,
+                "blockIds": [
+                  "ins_1ln2jdve"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "stepOrder": [
+        "Asset Tag",
+        "Flash BIOS"
+      ],
+      "sections": {
+        "signature": {
+          "enabled": false,
+          "required": false,
+          "label": "Verizon Laptop Prep Signature"
+        },
+        "photos": {
+          "enabled": false,
+          "required": false,
+          "label": "Verizon Laptop Prep Photos"
+        },
+        "markupPad": {
+          "enabled": false,
+          "required": false,
+          "label": "Verizon Laptop Prep Markup",
+          "mode": "photo"
+        }
+      }
+    },
     "Walmart-Repack": {
       "title": "Walmart-Repack",
       "description": "Repack",
@@ -1375,268 +1649,6 @@
           "enabled": true,
           "required": false,
           "label": "Walmart-Repack Markup",
-          "mode": "photo"
-        }
-      }
-    },
-    "Verizon Laptop Prep": {
-      "title": "Verizon Laptop Prep",
-      "description": "Verizon Laptop Prep",
-      "iconUrl": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_Yoga_9i_2_in_1_Aura_Edition_v01.png",
-      "content": [],
-      "instructions": [],
-      "images": [],
-      "steps": {
-        "Flash BIOS": {
-          "title": "Flash BIOS",
-          "content": [
-            {
-              "id": "ins_dgm3v72k",
-              "type": "text",
-              "text": "Set default passwords",
-              "bold": true,
-              "italic": false,
-              "underline": false,
-              "color": "#f90b0b",
-              "fontSize": 129,
-              "listMarker": "star"
-            },
-            {
-              "id": "ins_w95idiam",
-              "type": "text",
-              "text": "Configure boot sequence",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "img_z0cnaddw",
-              "type": "image",
-              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.png",
-              "caption": "",
-              "scale": 63
-            },
-            {
-              "id": "ins_1ln2jdve",
-              "type": "text",
-              "text": "Update Power Management",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_dgm3v72k",
-                  "ins_w95idiam"
-                ]
-              },
-              {
-                "id": "col_ota6b4vw",
-                "width": 1,
-                "blockIds": [
-                  "img_z0cnaddw"
-                ]
-              },
-              {
-                "id": "col_ai8w7m0k",
-                "width": 1,
-                "blockIds": [
-                  "ins_1ln2jdve"
-                ]
-              }
-            ]
-          }
-        },
-        "Asset Tag": {
-          "title": "Asset Tag",
-          "content": [
-            {
-              "id": "ins_glju9tft",
-              "type": "text",
-              "text": "Attach Asset Tag",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "ins_izy5dbwy",
-              "type": "text",
-              "text": "Log Tag in tracking system",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_glju9tft",
-                  "ins_izy5dbwy"
-                ]
-              }
-            ]
-          }
-        }
-      },
-      "stepOrder": [
-        "Asset Tag",
-        "Flash BIOS"
-      ],
-      "sections": {
-        "signature": {
-          "enabled": false,
-          "required": false,
-          "label": "Verizon Laptop Prep Signature"
-        },
-        "photos": {
-          "enabled": false,
-          "required": false,
-          "label": "Verizon Laptop Prep Photos"
-        },
-        "markupPad": {
-          "enabled": false,
-          "required": false,
-          "label": "Verizon Laptop Prep Markup",
-          "mode": "photo"
-        }
-      }
-    },
-    "Accessories Bundle": {
-      "title": "Accessories Bundle",
-      "description": "Accessories Bundle",
-      "iconUrl": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254064/sidney/SHI_1.png",
-      "content": [],
-      "instructions": [],
-      "images": [],
-      "steps": {
-        "Gather all accessories": {
-          "title": "Gather all accessories",
-          "content": [
-            {
-              "id": "ins_khljcso9",
-              "type": "text",
-              "text": "Pick all accessories",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "ins_ao9jzt33",
-              "type": "text",
-              "text": "Package all accessories into plastic bags",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "img_mu2x95p5",
-              "type": "image",
-              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_09.png",
-              "caption": "",
-              "scale": 48
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_khljcso9",
-                  "ins_ao9jzt33"
-                ]
-              },
-              {
-                "id": "col_eznxg1tb",
-                "width": 1,
-                "blockIds": [
-                  "img_mu2x95p5"
-                ]
-              }
-            ]
-          }
-        },
-        "Pack accessories": {
-          "title": "Pack accessories",
-          "content": [
-            {
-              "id": "ins_8cs1r00f",
-              "type": "text",
-              "text": "Pack accessories bags into laptop bag",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "img_k0exjvnk",
-              "type": "image",
-              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_2.png",
-              "caption": "",
-              "scale": 10
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_8cs1r00f",
-                  "img_k0exjvnk"
-                ]
-              }
-            ]
-          }
-        }
-      },
-      "stepOrder": [
-        "Gather all accessories",
-        "Pack accessories"
-      ],
-      "sections": {
-        "signature": {
-          "enabled": false,
-          "required": false,
-          "label": "Accessories Bundle Signature"
-        },
-        "photos": {
-          "enabled": false,
-          "required": false,
-          "label": "Accessories Bundle Photos"
-        },
-        "markupPad": {
-          "enabled": false,
-          "required": false,
-          "label": "Accessories Bundle Markup",
           "mode": "photo"
         }
       }
