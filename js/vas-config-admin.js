@@ -12,6 +12,8 @@
   let selectedStepId = null;
   /** @type {Set<string>|null} ProvidedServiceStepId set for selected VAS Type from MAWM */
   let wmsStepIds = null;
+  /** @type {Map<string, Set<string>>|null} stepId -> normalized WMS instruction texts, for the selected VAS Type */
+  let wmsInstructionTextsByStep = null;
   /** selectedKey the current wmsStepIds set belongs to */
   let wmsStepsForKey = null;
   let wmsStepsFetchGen = 0;
@@ -140,6 +142,14 @@
       .replace(/"/g, "&quot;");
   }
 
+  function normalizeInstrText(text) {
+    return String(text ?? "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .join(" ");
+  }
+
   function deleteBtnHtml(extraClass) {
     return `<button type="button" class="btn btn-icon row-action-btn del-btn ${extraClass}" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>`;
   }
@@ -178,7 +188,10 @@
       VasConfig.sanitizeColor(block.color) || VasConfig.DEFAULT_TEXT_COLOR;
     const fontSize = VasConfig.normalizeFontSize(block.fontSize);
     const marker = VasConfig.normalizeListMarker(block.listMarker);
-    return `<div class="content-row instruction-row draggable-item" data-idx="${idx}" data-type="text" data-id="${esc(
+    const wmsClass = contentBlockWmsClass(block.text);
+    return `<div class="content-row instruction-row draggable-item${
+      wmsClass ? " " + wmsClass : ""
+    }" data-idx="${idx}" data-type="text" data-id="${esc(
       block.id
     )}">
             <span class="grip" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
@@ -552,21 +565,26 @@
   }
 
   /**
-   * Load ProvidedServiceStepIds from MAWM for the selected VAS Type and recolor tabs.
+   * Load ProvidedServiceStepIds + instruction texts from MAWM for the
+   * selected VAS Type and recolor tabs + content blocks.
    * Called when the type is selected and after step create/rename.
    */
   async function refreshWmsStepMatch() {
     if (tab !== "types" || !selectedKey || !org || !token) {
       wmsStepIds = null;
+      wmsInstructionTextsByStep = null;
       wmsStepsForKey = null;
       applyStepTabWmsClasses();
+      applyContentBlockWmsClasses();
       return;
     }
     const typeId = String(selectedKey || "").trim();
     const gen = ++wmsStepsFetchGen;
     wmsStepIds = null;
+    wmsInstructionTextsByStep = null;
     wmsStepsForKey = null;
     applyStepTabWmsClasses();
+    applyContentBlockWmsClasses();
     const res = await api("provided_services", { org, token });
     if (
       gen !== wmsStepsFetchGen ||
@@ -577,26 +595,40 @@
     }
     if (!res.success) {
       wmsStepIds = null;
+      wmsInstructionTextsByStep = null;
       wmsStepsForKey = null;
       applyStepTabWmsClasses();
+      applyContentBlockWmsClasses();
       status(res.error || "Could not load WMS steps for tab colors", "error");
       return;
     }
     const svc = (res.services || []).find(
       (s) => s && String(s.ProvidedServiceId || "").trim() === typeId
     );
+    const wmsSteps =
+      svc && Array.isArray(svc.ProvidedServiceStep) ? svc.ProvidedServiceStep : [];
     wmsStepIds = new Set(
-      (svc && Array.isArray(svc.ProvidedServiceStep)
-        ? svc.ProvidedServiceStep
-        : []
-      )
+      wmsSteps
         .map((s) => s && s.ProvidedServiceStepId)
         .filter(Boolean)
         .map((id) => String(id).trim())
         .filter(Boolean)
     );
+    wmsInstructionTextsByStep = new Map(
+      wmsSteps
+        .filter((s) => s && s.ProvidedServiceStepId)
+        .map((s) => [
+          String(s.ProvidedServiceStepId).trim(),
+          new Set(
+            (Array.isArray(s.Instructions) ? s.Instructions : [])
+              .map((i) => i && normalizeInstrText(i.InstructionText))
+              .filter(Boolean)
+          )
+        ])
+    );
     wmsStepsForKey = selectedKey;
     applyStepTabWmsClasses();
+    applyContentBlockWmsClasses();
   }
 
   function stepTabWmsClass(stepId) {
@@ -606,6 +638,36 @@
     return wmsStepIds.has(String(stepId || "").trim())
       ? "step-tab-wms-ok"
       : "step-tab-wms-missing";
+  }
+
+  /** Content block's text exists (verbatim, normalized) in WMS for the current step. */
+  function contentBlockWmsClass(text) {
+    if (
+      wmsInstructionTextsByStep == null ||
+      wmsStepsForKey !== selectedKey ||
+      tab !== "types" ||
+      !selectedStepId
+    ) {
+      return null;
+    }
+    const wmsTexts = wmsInstructionTextsByStep.get(String(selectedStepId).trim());
+    if (!wmsTexts) return "content-wms-missing";
+    const norm = normalizeInstrText(text);
+    if (!norm) return null;
+    return wmsTexts.has(norm) ? "content-wms-ok" : "content-wms-missing";
+  }
+
+  /** Recolor each text content block to reflect whether its exact text exists in WMS. */
+  function applyContentBlockWmsClasses() {
+    if (!els.contentList) return;
+    els.contentList
+      .querySelectorAll(".content-row.instruction-row")
+      .forEach((row) => {
+        row.classList.remove("content-wms-ok", "content-wms-missing");
+        const textarea = row.querySelector("textarea");
+        const cls = textarea ? contentBlockWmsClass(textarea.value) : null;
+        if (cls) row.classList.add(cls);
+      });
   }
 
   function applyStepTabWmsClasses() {
@@ -941,6 +1003,14 @@
               ?.querySelector(".pdf-url-badge");
             if (badge) {
               badge.classList.toggle("d-none", !VasConfig.isPdfUrl(el.value));
+            }
+          }
+          if (el.tagName === "TEXTAREA") {
+            const row = el.closest(".content-row");
+            if (row) {
+              row.classList.remove("content-wms-ok", "content-wms-missing");
+              const cls = contentBlockWmsClass(el.value);
+              if (cls) row.classList.add(cls);
             }
           }
           syncEditorToDraft();

@@ -130,6 +130,18 @@
   background: var(--input-bg);
 }
 
+/* WMS match colors for instruction text blocks — same soft tints as the
+   step tabs (.step-tab-wms-ok/-missing), so a block's own text shows
+   whether it exists in WMS while editing it, not just its step overall. */
+.content-row.content-wms-ok {
+  background: rgba(22, 163, 74, 0.28);
+  border-color: rgba(74, 222, 128, 0.55);
+}
+.content-row.content-wms-missing {
+  background: rgba(220, 38, 38, 0.28);
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
 .column-count-wrap {
   display: inline-flex;
   align-items: center;
