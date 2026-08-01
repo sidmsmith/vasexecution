@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-08-01T04:49:45.921Z",
+  "updatedAt": "2026-08-01T05:15:30.664Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -57,6 +57,17 @@
               "color": "#000000",
               "fontSize": 100,
               "listMarker": "bullet"
+            },
+            {
+              "id": "ins_omcnfhcj",
+              "type": "text",
+              "text": "Test instruction",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
             }
           ],
           "layout": {
@@ -68,7 +79,8 @@
                   "ins_1686e4cb",
                   "ins_91d8602c",
                   "ins_e4c06014",
-                  "ins_04feb4f2"
+                  "ins_04feb4f2",
+                  "ins_omcnfhcj"
                 ]
               }
             ]
