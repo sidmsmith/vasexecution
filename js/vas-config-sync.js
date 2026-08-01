@@ -260,10 +260,13 @@
    * Full status markup. Deleted-in-config takes visual priority over the
    * generic not-deployed badge (a deleted type is always not-yet-deployed
    * too — this is a strict specialization, not a suppression of separately
-   * true information). Otherwise: Aligned only when isAligned() is true; any
-   * gap shows the same Missing in WMS/config badge(s) used for whole-type
-   * gaps — one badge per direction, since a type can genuinely have gaps in
-   * both at once.
+   * true information). Otherwise: the Missing in WMS/config badge is
+   * reserved for a genuine presence gap (t.status) — same reasoning as
+   * stepGapBadge(). A type that exists on both sides but has only an
+   * instruction-level text gap still counts toward the Missing in WMS/config
+   * tiles (a push/pull is still needed) but doesn't get badged as if the
+   * type itself were absent; gapNote() already conveys that case in plain
+   * language ("instruction → WMS").
    */
   function typeStatusHtml(t) {
     if (t && typeDeletedInConfig(t)) {
@@ -276,24 +279,36 @@
         describeGapState(t)
       )})</span>`;
     }
+    if (t.status === "missing_in_wms") return badge("missing_in_wms");
+    if (t.status === "missing_in_config") return badge("missing_in_config");
     if (isAligned(t)) return badge("aligned");
-    const badges = [];
-    if (typeNeedsPushToWms(t)) badges.push(badge("missing_in_wms"));
-    if (typeNeedsPullToConfig(t)) badges.push(badge("missing_in_config"));
-    return badges.join(" ");
+    return "";
   }
 
   /** Per-step equivalent of typeStatusHtml — never a generic label when a step is actually missing something. */
+  /**
+   * Reserved for a genuine presence gap — the step itself missing from one
+   * side. An instruction-only text gap (step exists on both sides, just some
+   * lines don't match) is deliberately NOT badged here: showing the same
+   * Missing in WMS/config badge for both cases made an aligned step with one
+   * mismatched line look like it didn't exist in WMS at all. The diff lines
+   * below already carry per-line missing-in-X tags for that case; see
+   * stepGapNote() for the step-title-level summary of it.
+   */
   function stepGapBadge(step) {
     if (!step) return "";
-    const badges = [];
-    if (step.status === "missing_in_wms") badges.push(badge("missing_in_wms"));
-    else if (step.status === "missing_in_config") badges.push(badge("missing_in_config"));
-    else {
-      if (stepHasConfigTextsMissingInWms(step)) badges.push(badge("missing_in_wms"));
-      if (stepHasWmsTextsMissingInConfig(step)) badges.push(badge("missing_in_config"));
-    }
-    return badges.join(" ");
+    if (step.status === "missing_in_wms") return badge("missing_in_wms");
+    if (step.status === "missing_in_config") return badge("missing_in_config");
+    return "";
+  }
+
+  /** Plain-language instruction-gap summary for a step that exists on both sides. */
+  function stepGapNote(step) {
+    if (!step || step.status === "missing_in_wms" || step.status === "missing_in_config") return "";
+    const parts = [];
+    if (stepHasConfigTextsMissingInWms(step)) parts.push("instruction → WMS");
+    if (stepHasWmsTextsMissingInConfig(step)) parts.push("instruction → config");
+    return parts.length ? `<span class="sync-gap-count">${esc(parts.join(" · "))}</span>` : "";
   }
 
   function typeGapCounts(t) {
@@ -459,8 +474,9 @@
       !deleted && stepHasUndeployedChange(typeId, step.id) ? ` ${badge("not_deployed", "not deployed")}` : "";
     const deletedBadge = deleted ? ` ${badge("deleted_in_config", "deleted in config")}` : "";
     const gapBadge = stepGapBadge(step);
+    const gapNoteHtml = stepGapNote(step);
     return `<div class="mb-2">
-      <div class="sync-step-title">${esc(step.id)}${gapBadge ? " " + gapBadge : ""}${deletedBadge}${notDeployedBadge}</div>
+      <div class="sync-step-title">${esc(step.id)}${gapBadge ? " " + gapBadge : ""}${deletedBadge}${notDeployedBadge}${gapNoteHtml ? " " + gapNoteHtml : ""}</div>
       ${diffLinesHtml(step, typeId)}
     </div>`;
   }

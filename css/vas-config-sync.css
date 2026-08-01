@@ -307,6 +307,7 @@ table.table.sync-table {
   gap: 0.5rem;
   padding: 0.4rem 0.65rem;
   border-bottom: 1px solid var(--border);
+  border-left: 4px solid transparent;
   color: var(--text, #e8eaed);
 }
 .diff-line:last-child { border-bottom: none; }
@@ -344,16 +345,26 @@ table.table.sync-table {
 .diff-tag-deleted {
   color: #f87171;
 }
+/* Bold, badge-strength shading (not the faint tint these used to have) so a
+   line that needs to go to WMS actually pops instead of blending into the
+   the same dark box as every other line. Missing-in-WMS and deleted-only
+   share the same red — they're mutually exclusive per line (a line can only
+   be "still in the draft" or "gone from the draft", never both), so there's
+   no ambiguity in reusing it. Missing-in-config keeps its own blue, boosted
+   to the same strength for consistency. */
 .diff-line-config-only {
-  background: rgba(234, 179, 8, 0.12);
+  background: rgba(239, 68, 68, 0.28);
+  border-left-color: rgba(248, 113, 113, 0.8);
 }
-.diff-line-config-only .diff-gutter { color: #facc15; }
+.diff-line-config-only .diff-gutter { color: #f87171; }
 .diff-line-wms-only {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.28);
+  border-left-color: rgba(96, 165, 250, 0.8);
 }
 .diff-line-wms-only .diff-gutter { color: #60a5fa; }
 .diff-line-deleted-only {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.28);
+  border-left-color: rgba(248, 113, 113, 0.8);
 }
 .diff-line-deleted-only .diff-gutter { color: #f87171; }
 .diff-empty {

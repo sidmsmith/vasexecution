@@ -17,7 +17,7 @@
   let wmsStepsFetchGen = 0;
   let previewThemeScope = null;
   let previewDeviceLogo = null;
-  let previewMode = "mobile"; // mobile | desktop
+  let previewMode = localStorage.getItem("vas_previewMode") === "desktop" ? "desktop" : "mobile";
 
   const themeModalEl = document.getElementById("themeModal");
   const themeModal =
@@ -1048,6 +1048,7 @@
 
   function setPreviewMode(mode) {
     previewMode = mode === "desktop" ? "desktop" : "mobile";
+    localStorage.setItem("vas_previewMode", previewMode);
     els.previewDesktopBtn.classList.toggle("active", previewMode === "desktop");
     els.previewMobileBtn.classList.toggle("active", previewMode === "mobile");
     renderPreview();
@@ -1296,6 +1297,10 @@
 
   els.previewDesktopBtn.onclick = () => setPreviewMode("desktop");
   els.previewMobileBtn.onclick = () => setPreviewMode("mobile");
+  // Sync the button active-classes with the mode restored from localStorage
+  // above (the Mobile button defaults to "active" in the HTML).
+  els.previewDesktopBtn.classList.toggle("active", previewMode === "desktop");
+  els.previewMobileBtn.classList.toggle("active", previewMode === "mobile");
 
   document.getElementById("addInstrBtn").onclick = () => {
     syncEditorToDraft();
