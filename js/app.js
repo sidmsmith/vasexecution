@@ -886,8 +886,18 @@
     </article>`;
   }
 
-  /** Primary: MAWM Sequence; secondary: ProvidedServiceId then Description (base). */
+  /** Primary: item-level services before oLPN-level; secondary: ServiceRequestorDetailId
+   *  (numeric); then MAWM Sequence; then ProvidedServiceId; then Description (base). */
   function compareAssignedServices(a, b) {
+    const olpnA = !!a?.IsOlpnLevel;
+    const olpnB = !!b?.IsOlpnLevel;
+    if (olpnA !== olpnB) return olpnA ? 1 : -1;
+    const detA = Number(a?.ServiceRequestorDetailId);
+    const detB = Number(b?.ServiceRequestorDetailId);
+    const detAHas = Number.isFinite(detA);
+    const detBHas = Number.isFinite(detB);
+    if (detAHas && detBHas && detA !== detB) return detA - detB;
+    if (detAHas !== detBHas) return detAHas ? -1 : 1;
     const seqA = Number(a?.Sequence);
     const seqB = Number(b?.Sequence);
     const aHas = Number.isFinite(seqA);

@@ -528,6 +528,11 @@ def summarize_service(
         "Description": svc.get("Description") or svc.get("ProvidedServiceId"),
         "ServiceRequestorTypeId": svc.get("ServiceRequestorTypeId"),
         "ServiceRequestorId": requestor_id,
+        "ServiceRequestorDetailId": (
+            str(svc.get("ServiceRequestorDetailId")).strip()
+            if svc.get("ServiceRequestorDetailId") not in (None, "")
+            else None
+        ),
         "ServiceUomId": svc.get("ServiceUomId"),
         "Sequence": sequence,
         "AssignedServiceStatusDesc": service_status_desc,
