@@ -1153,9 +1153,9 @@
           (s) => stepRemaining(s) > 0
         ).length;
         const ok = await confirmDialog(
-          `Complete all ${openCount} remaining step${
-            openCount === 1 ? "" : "s"
-          } for ${svc.ProvidedServiceId}?`,
+          openCount === 1
+            ? `Complete 1 remaining step for ${svc.ProvidedServiceId}?`
+            : `Complete all ${openCount} remaining steps for ${svc.ProvidedServiceId}?`,
           { okLabel: "Complete All" }
         );
         if (!ok) return;
@@ -1591,10 +1591,26 @@
   }
 
   if (els.olpnScanBtn) {
-    // No scanner wired up yet — placeholder from the Design C mockup,
-    // just gives feedback instead of doing nothing.
     els.olpnScanBtn.addEventListener("click", () => {
-      status("Barcode scanning is coming soon — enter the oLPN manually for now.", "info");
+      if (!window.BarcodeScanner) {
+        status("Barcode scanning isn't available right now.", "error");
+        return;
+      }
+      window.BarcodeScanner.open({
+        onDecode: (text) => {
+          const value = String(text || "").trim();
+          els.olpnInput.value = value;
+          els.olpnInput.dispatchEvent(new Event("input", { bubbles: true }));
+          if (isValidOlpn(value)) {
+            loadOlpn();
+          } else {
+            status(
+              `Scanned "${value}" — not a recognized oLPN. Check the code or enter it manually.`,
+              "error"
+            );
+          }
+        }
+      });
     });
   }
 

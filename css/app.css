@@ -1156,6 +1156,58 @@ body {
   font-size: 0.9rem;
 }
 
+.barcode-preview-wrap {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+#barcodeVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Purely decorative scan-target guide; ZXing scans the full frame, not
+   just this box — it just helps the eye aim the camera. */
+.barcode-viewfinder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 55%;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.barcode-status {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  min-height: 1.3rem;
+}
+.barcode-status.barcode-status-error {
+  color: var(--red-text);
+}
+.barcode-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+#barcodeTorchBtn.active {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: #1a1a1a;
+}
+
 @media (max-width: 600px) {
   .main-card { margin: 0.5rem; padding: 0.9rem 1rem 1rem; }
   .criteria-row { flex-direction: column; }

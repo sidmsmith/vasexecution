@@ -8,6 +8,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="/css/app.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
 </head>
 <body>
   <div class="main-card">
@@ -107,6 +108,30 @@
     </div>
   </div>
 
+  <div class="modal fade" id="barcodeModal" tabindex="-1" aria-labelledby="barcodeModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="barcodeModalTitle">Scan oLPN Barcode</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="barcode-preview-wrap">
+            <video id="barcodeVideo" autoplay playsinline muted></video>
+            <div class="barcode-viewfinder" aria-hidden="true"></div>
+          </div>
+          <div class="barcode-status" id="barcodeStatus">Point the camera at a barcode or QR code.</div>
+          <div class="barcode-actions">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="barcodeTorchBtn" hidden>
+              <i class="fas fa-bolt me-1"></i> Flash
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="themeModal" tabindex="-1" aria-labelledby="themeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -157,6 +182,7 @@
   <script src="/js/vas-config.js"></script>
   <script src="/js/vas-pads.js"></script>
   <script src="/js/vas-image-modal.js"></script>
+  <script src="/js/barcode-scanner.js"></script>
   <script src="/js/app.js"></script>
 </body>
 </html>

@@ -1352,9 +1352,11 @@
         const openCount = stepIds.filter((id) => !completedSet.has(id)).length;
         if (!openCount) return;
         const ok = await confirmDialog(
-          `Complete all ${openCount} remaining step${
-            openCount === 1 ? "" : "s"
-          } for ${esc(entry.title || typeKey)}?`,
+          openCount === 1
+            ? `Complete 1 remaining step for ${esc(entry.title || typeKey)}?`
+            : `Complete all ${openCount} remaining steps for ${esc(
+                entry.title || typeKey
+              )}?`,
           { okLabel: "Complete All" }
         );
         if (!ok) return;

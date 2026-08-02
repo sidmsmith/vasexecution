@@ -83,7 +83,13 @@
           '--logo-url': 'url("/manhattan-logo.png")',
           '--logo-display': 'block'
         },
-        logo: '/manhattan-logo.png'
+        logo: '/manhattan-logo.png',
+        // manhattan-logo.png is an unusually wide wordmark (1165x146,
+        // ~8:1) — every other themed logo either fits fine under the
+        // height-only default or already has its own logoMaxWidth (shi,
+        // steris, nissan, ...); this one never got one, so at the default
+        // 50px height it rendered ~399px wide with nothing capping it.
+        logoMaxWidth: '200px'
       },
       'msc': {
         name: 'MSC Industrial Supply',
