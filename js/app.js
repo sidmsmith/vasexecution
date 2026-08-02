@@ -198,6 +198,19 @@
     </span>`;
   }
 
+  /** "Item {ItemId} — {Description}" or "oLPN Service" — the shared item-vs-
+   *  oLPN scope label shown on desktop's service card, mobile's Type list
+   *  card, and mobile's steps-screen header. Plain text; callers esc() it. */
+  function itemScopeLabelText(svc) {
+    if (svc.ItemId) {
+      return `Item ${svc.ItemId}${
+        svc.ItemDescription ? " — " + svc.ItemDescription : ""
+      }`;
+    }
+    if (svc.IsOlpnLevel) return "oLPN Service";
+    return "";
+  }
+
   function renderContentBlocks(content) {
     if (!content || !content.length) return "";
     return `<div class="vas-content-list">${content
@@ -805,13 +818,14 @@
       svc.ItemId
         ? `<div class="service-item-row">
             <span class="item-cell">
-              <strong>${esc(svc.ItemId)}</strong>
+              <strong>${esc(itemScopeLabelText(svc))}</strong>
               ${renderItemImage(svc.ImageUrl)}
             </span>
-            <span>${esc(svc.ItemDescription || "")}</span>
           </div>`
         : svc.IsOlpnLevel
-          ? `<div class="service-item-row"><span class="text-muted">oLPN-level service</span></div>`
+          ? `<div class="service-item-row"><span class="text-muted">${esc(
+              itemScopeLabelText(svc)
+            )}</span></div>`
           : "";
 
     const typeCfg = window.VasConfig
@@ -974,14 +988,15 @@
     if (svc.ItemId) {
       return `<div class="mx-service-item-row">
         <span class="item-cell">
-          <strong>${esc(svc.ItemId)}</strong>
+          <strong>${esc(itemScopeLabelText(svc))}</strong>
           ${renderItemImage(svc.ImageUrl)}
         </span>
-        <span>${esc(svc.ItemDescription || "")}</span>
       </div>`;
     }
     if (svc.IsOlpnLevel) {
-      return `<div class="mx-service-item-row"><span class="text-muted">oLPN-level service</span></div>`;
+      return `<div class="mx-service-item-row"><span class="text-muted">${esc(
+        itemScopeLabelText(svc)
+      )}</span></div>`;
     }
     return "";
   }
@@ -1045,13 +1060,11 @@
       <div class="mx-type-topbar-text">
         <div class="mx-type-topbar-title">${esc(svc.ProvidedServiceId || "Service")}</div>
         ${
-          svc.ItemId
-            ? `<div class="mx-type-topbar-sub">${esc(svc.ItemId)}${
-                svc.ItemDescription ? " — " + esc(svc.ItemDescription) : ""
-              }</div>`
-            : svc.IsOlpnLevel
-              ? `<div class="mx-type-topbar-sub">oLPN-level service</div>`
-              : ""
+          itemScopeLabelText(svc)
+            ? `<div class="mx-type-topbar-sub">${esc(
+                itemScopeLabelText(svc)
+              )}</div>`
+            : ""
         }
         <div class="mx-type-topbar-sub">${done} of ${total} step${
           total === 1 ? "" : "s"

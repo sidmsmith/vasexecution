@@ -378,17 +378,39 @@ def build_requestor_item_map(
 ) -> Dict[str, str]:
     mapping: Dict[str, str] = {}
     detail_items: List[str] = []
+    detail_id_to_item: Dict[str, str] = {}
     for detail in as_list(olpn_record.get("OlpnDetail")):
         if not isinstance(detail, dict):
             continue
         item_id = str(detail.get("ItemId") or "").strip()
         if item_id:
             detail_items.append(item_id)
+        detail_id = str(detail.get("OlpnDetailId") or "").strip()
+        if detail_id and item_id:
+            detail_id_to_item.setdefault(detail_id, item_id)
         for svc in as_list(detail.get("AssignedService")):
             if not isinstance(svc, dict):
                 continue
             requestor_id = str(svc.get("ServiceRequestorId") or "").strip()
             if requestor_id and item_id and requestor_id not in mapping:
+                mapping[requestor_id] = item_id
+
+    # Match each item-scoped AssignedService's own ServiceRequestorDetailId to the
+    # oLPN's OlpnDetailId. This is more reliable than the nested-AssignedService
+    # match above, which requires OlpnDetail.AssignedService to have been fetched
+    # successfully — that nesting 500s on some oLPNs, and is skipped entirely by
+    # the safe query template. Also covers oLPNs with more than one distinct item,
+    # which the single-item fallback below can't handle.
+    if services and detail_id_to_item:
+        for svc in services:
+            if not isinstance(svc, dict):
+                continue
+            requestor_id = str(svc.get("ServiceRequestorId") or "").strip()
+            if not requestor_id or requestor_id in mapping:
+                continue
+            svc_detail_id = str(svc.get("ServiceRequestorDetailId") or "").strip()
+            item_id = detail_id_to_item.get(svc_detail_id) if svc_detail_id else ""
+            if item_id:
                 mapping[requestor_id] = item_id
 
     # Fallback when detail AssignedService cannot be expanded: single-item oLPN
