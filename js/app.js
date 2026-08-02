@@ -1283,6 +1283,16 @@
     // A fresh render always means a search just resolved — close the
     // "‹Filter" search form (if open) back to results.
     document.body.classList.remove("mx-filter-open");
+    // Undo desktop's "Main / detail" 2-column grid (applyViewMode() sets this
+    // on #serviceViews, and desktop's grid-template-columns reserves the nav
+    // panel's track even though mobile CSS hides #serviceNavPanel) — without
+    // this, switching desktop -> mobile mid-session squeezes the mobile cards
+    // into the remaining 1fr column instead of the full width. Only matters
+    // after a resize crossed the breakpoint back down; harmless on first load.
+    if (els.serviceViews) {
+      els.serviceViews.classList.remove("main-detail-active");
+      els.serviceViews.classList.add("stacked-active");
+    }
     if (!services.length) {
       els.serviceList.innerHTML =
         '<p class="text-muted mb-0">No assigned service records returned.</p>';
