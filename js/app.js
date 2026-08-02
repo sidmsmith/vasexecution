@@ -957,6 +957,25 @@
       : "";
   }
 
+  /** Same item-vs-oLPN-level distinction as desktop's renderServiceCard
+   *  itemBlock — ItemId (+ image + description) when this service is
+   *  scoped to a specific item, "oLPN-level service" when it isn't. */
+  function mobileItemBlockHtml(svc) {
+    if (svc.ItemId) {
+      return `<div class="mx-service-item-row">
+        <span class="item-cell">
+          <strong>${esc(svc.ItemId)}</strong>
+          ${renderItemImage(svc.ImageUrl)}
+        </span>
+        <span>${esc(svc.ItemDescription || "")}</span>
+      </div>`;
+    }
+    if (svc.IsOlpnLevel) {
+      return `<div class="mx-service-item-row"><span class="text-muted">oLPN-level service</span></div>`;
+    }
+    return "";
+  }
+
   function mobileTypeCardHtml(svc, idx) {
     const { total, done } = mobileServiceProgress(svc);
     return `<div class="mx-type-card" data-mobile-service-index="${idx}">
@@ -967,6 +986,7 @@
         )}${esc(svc.ProvidedServiceId || "Service")}</span>
         ${statusBadgeHtml(svc.StatusId, svc.AssignedServiceStatusDesc)}
       </div>
+      ${mobileItemBlockHtml(svc)}
       <div class="mx-type-card-meta">
         <span><strong>Steps</strong> ${total}</span>
         <span><strong>Complete</strong> ${done}</span>
@@ -1014,6 +1034,15 @@
       ${mobileTypeIconHtml(svc, "mx-type-topbar-icon")}
       <div class="mx-type-topbar-text">
         <div class="mx-type-topbar-title">${esc(svc.ProvidedServiceId || "Service")}</div>
+        ${
+          svc.ItemId
+            ? `<div class="mx-type-topbar-sub">${esc(svc.ItemId)}${
+                svc.ItemDescription ? " — " + esc(svc.ItemDescription) : ""
+              }</div>`
+            : svc.IsOlpnLevel
+              ? `<div class="mx-type-topbar-sub">oLPN-level service</div>`
+              : ""
+        }
         <div class="mx-type-topbar-sub">${done} of ${total} step${
           total === 1 ? "" : "s"
         } complete</div>
@@ -1082,11 +1111,19 @@
     const steps = orderedAssignedSteps(svc);
     const { total, done } = mobileServiceProgress(svc);
     const allDone = total > 0 && done >= total;
+    // Same item-level config block desktop renders after the step list —
+    // instructions attached to this specific item (Admin's "Item" config),
+    // separate from the VAS Type's per-step instructions above.
+    const itemCfg =
+      svc.ItemId && window.VasConfig
+        ? window.VasConfig.getItemConfig(vasConfig, svc.ItemId)
+        : null;
+    const itemConfigHtml = renderConfigBlock("item", itemCfg);
     return `${mobileOlpnHeaderHtml()}
       ${mobileTypeHeaderHtml(svc, idx)}
       <div class="mx-steps-body">${steps
         .map((st) => mobileStepCardHtml(svc, st))
-        .join("")}</div>
+        .join("")}${itemConfigHtml}</div>
       <div class="mx-steps-footer">
         <span class="mx-steps-footer-status">${done} of ${total} step${
           total === 1 ? "" : "s"

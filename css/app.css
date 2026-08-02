@@ -1311,6 +1311,19 @@ body.mx-card-mode:not(.mx-filter-open) .mx-filter-btn {
 .mx-type-card-icon { width: 1.75rem; height: 1.75rem; object-fit: contain; border-radius: 6px; }
 .mx-type-card-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; }
 .mx-type-card-meta strong { color: var(--text-secondary); font-weight: 600; }
+/* Item-vs-oLPN-level line (mobileItemBlockHtml) — reuses .item-cell/
+   .item-image-wrap as-is (css/app.css, already unconditional/shared with
+   desktop's service-item-row), just a fresh wrapper class so this doesn't
+   inherit desktop's own .service-item-row margins. */
+.mx-service-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin: 0.4rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
 
 .mx-type-topbar {
   position: sticky;
