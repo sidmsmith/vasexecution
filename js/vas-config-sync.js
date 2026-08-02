@@ -1016,7 +1016,10 @@
       }${p.instructionCount ? `, ${p.instructionCount} instructions` : ""}). Steps: ${esc(steps)}</li>`;
     }
     if (p.action === "added_steps") {
-      return `<li><strong>${esc(p.id)}</strong> — add step(s): ${esc((p.steps || []).join(", ") || "none")}</li>`;
+      const stepCount = (p.steps || []).length;
+      return `<li><strong>${esc(p.id)}</strong> — add step${
+        stepCount === 1 ? "" : "s"
+      }: ${esc((p.steps || []).join(", ") || "none")}</li>`;
     }
     if (p.action === "merged_instructions") {
       const stepLines = (p.stepDetails || [])
@@ -1025,7 +1028,10 @@
             `<li>${esc(d.step)}: ${(d.texts || []).map((t) => `"${esc(t)}"`).join(", ")}</li>`
         )
         .join("");
-      return `<li><strong>${esc(p.id)}</strong> — merge ${p.instructionCount || 0} instruction(s) onto step(s): ${esc(
+      const mergeStepCount = (p.steps || []).length;
+      return `<li><strong>${esc(p.id)}</strong> — merge ${p.instructionCount || 0} instruction(s) onto step${
+        mergeStepCount === 1 ? "" : "s"
+      }: ${esc(
         (p.steps || []).join(", ") || "none"
       )}${stepLines ? `<ul class="confirm-plan-sublist">${stepLines}</ul>` : ""}</li>`;
     }

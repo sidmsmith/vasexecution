@@ -1263,14 +1263,18 @@
         ${iconHtml}
         <div class="mx-type-topbar-text">
           <div class="mx-type-topbar-title">${esc(entry.title || typeKey)}</div>
-          <div class="mx-type-topbar-sub">${done} of ${total} steps complete</div>
+          <div class="mx-type-topbar-sub">${done} of ${total} step${
+            total === 1 ? "" : "s"
+          } complete</div>
         </div>
       </div>
       <div class="mx-steps-body">${stepIds
         .map((id) => mobilePreviewStepCardHtml(typeKey, id, entry.steps[id]))
         .join("")}</div>
       <div class="mx-steps-footer">
-        <span class="mx-steps-footer-status">${done} of ${total} steps complete</span>
+        <span class="mx-steps-footer-status">${done} of ${total} step${
+          total === 1 ? "" : "s"
+        } complete</span>
         ${
           allDone
             ? ""
@@ -1348,9 +1352,9 @@
         const openCount = stepIds.filter((id) => !completedSet.has(id)).length;
         if (!openCount) return;
         const ok = await confirmDialog(
-          `Complete all ${openCount} remaining step(s) for ${esc(
-            entry.title || typeKey
-          )}?`,
+          `Complete all ${openCount} remaining step${
+            openCount === 1 ? "" : "s"
+          } for ${esc(entry.title || typeKey)}?`,
           { okLabel: "Complete All" }
         );
         if (!ok) return;

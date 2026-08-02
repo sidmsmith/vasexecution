@@ -162,6 +162,37 @@ body {
 }
 .criteria-row .form-control { flex: 1; }
 
+/* Wraps just the oLPN input + camera button as one atomic row-level unit,
+   so when .criteria-row stacks to a column on narrow screens (below),
+   input+camera stay side by side and only the Load button drops beneath
+   them — matching the Design C mockup's layout. */
+.mx-olpn-input-row {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+/* Mobile-only, like the barcode-scan button in the Design C mockup — no
+   scanner is wired up yet, so the click handler just says so for now. */
+.mx-olpn-camera-btn {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: var(--primary);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+@media (max-width: 991px) {
+  .mx-olpn-camera-btn {
+    display: inline-flex;
+  }
+}
+
 .olpn-meta {
   font-size: 0.9rem;
   color: var(--text-muted);
@@ -1170,13 +1201,23 @@ body.mx-card-mode.mx-filter-open #results {
 }
 /* Info/success status text (e.g. "Found N assigned service(s)") duplicates
    the oLPN header below it once cards are showing — but keep errors
-   visible, there's no other surface for those on mobile. */
-body.mx-card-mode #status:not(.error) {
+   visible, there's no other surface for those on mobile. Only while
+   results are actually showing (not filter-open) — status text is the
+   only feedback surface on the search prompt itself (e.g. the barcode-
+   scan placeholder message), so it must stay visible there. */
+body.mx-card-mode:not(.mx-filter-open) #status:not(.error) {
   display: none !important;
 }
 body.mx-card-mode .main-card {
   margin: 0.35rem;
   padding: 0.65rem 0.65rem 0.5rem;
+}
+/* Explicitly allow the browser's default vertical scroll but leave
+   horizontal gestures to setupMobileSwipeNav()'s pointer events (js/app.js)
+   — without this, a touch browser's gesture recognizer can claim a
+   horizontal drag as a scroll before our own pointerup ever fires. */
+body.mx-card-mode #serviceList {
+  touch-action: pan-y;
 }
 
 /* Base .mx-filter-btn { display:none } lives near .camera-btn/
@@ -1254,6 +1295,15 @@ body.mx-card-mode:not(.mx-filter-open) .mx-filter-btn {
   background: rgba(255, 255, 255, 0.02);
 }
 .mx-step-card.is-complete { border-color: rgba(74, 222, 128, 0.45); }
+/* Instructions always render single-column here, regardless of a step's
+   configured multi-column layout — a card this narrow doesn't have room
+   for 2-3 columns without text overlapping/crowding. Scoped by component
+   (.mx-step-card), not viewport width, so real mobile execution and
+   Admin's Live Preview (a fixed-size box at real desktop viewport width)
+   render it identically. */
+.mx-step-card .vas-content-columns {
+  grid-template-columns: 1fr !important;
+}
 .mx-step-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
 .mx-step-card-title { font-weight: 700; font-size: 0.95rem; }
 .mx-step-qty-grid {

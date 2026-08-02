@@ -36,7 +36,12 @@
     <div id="mainUI" style="display:none">
       <label class="form-label" for="olpn">oLPN:</label>
       <div class="criteria-row mb-2">
-        <input type="text" id="olpn" class="form-control" placeholder="Enter oLPN" autocomplete="off" />
+        <div class="mx-olpn-input-row">
+          <input type="text" id="olpn" class="form-control" placeholder="Enter oLPN" autocomplete="off" />
+          <button type="button" class="mx-olpn-camera-btn" id="olpnScanBtn" title="Scan barcode with camera" aria-label="Scan barcode with camera">
+            <i class="fas fa-camera"></i>
+          </button>
+        </div>
         <button type="button" class="btn btn-primary px-4" id="inspectBtn" disabled>Enter Valid oLPN</button>
       </div>
     </div>

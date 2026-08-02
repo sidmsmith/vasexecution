@@ -52,7 +52,8 @@
     cameraBtn: document.getElementById("cameraBtn"),
     cameraFileInput: document.getElementById("cameraFileInput"),
     cameraPhotoCount: document.getElementById("cameraPhotoCount"),
-    mobileFilterBtn: document.getElementById("mobileFilterBtn")
+    mobileFilterBtn: document.getElementById("mobileFilterBtn"),
+    olpnScanBtn: document.getElementById("olpnScanBtn")
   };
 
   const themeModal = els.themeList
@@ -1013,9 +1014,10 @@
       ${mobileTypeIconHtml(svc, "mx-type-topbar-icon")}
       <div class="mx-type-topbar-text">
         <div class="mx-type-topbar-title">${esc(svc.ProvidedServiceId || "Service")}</div>
-        <div class="mx-type-topbar-sub">${done} of ${total} steps complete · Type ${
-          nav.position
-        } of ${nav.total}</div>
+        <div class="mx-type-topbar-sub">${done} of ${total} step${
+          total === 1 ? "" : "s"
+        } complete</div>
+        <div class="mx-type-topbar-sub">Type ${nav.position} of ${nav.total}</div>
       </div>
       ${statusBadgeHtml(svc.StatusId, svc.AssignedServiceStatusDesc)}
     </div>`;
@@ -1086,7 +1088,9 @@
         .map((st) => mobileStepCardHtml(svc, st))
         .join("")}</div>
       <div class="mx-steps-footer">
-        <span class="mx-steps-footer-status">${done} of ${total} steps complete</span>
+        <span class="mx-steps-footer-status">${done} of ${total} step${
+          total === 1 ? "" : "s"
+        } complete</span>
         ${
           allDone
             ? ""
@@ -1149,7 +1153,9 @@
           (s) => stepRemaining(s) > 0
         ).length;
         const ok = await confirmDialog(
-          `Complete all ${openCount} remaining step(s) for ${svc.ProvidedServiceId}?`,
+          `Complete all ${openCount} remaining step${
+            openCount === 1 ? "" : "s"
+          } for ${svc.ProvidedServiceId}?`,
           { okLabel: "Complete All" }
         );
         if (!ok) return;
@@ -1179,6 +1185,16 @@
       if (mobileScreen !== "steps") return;
       startX = e.clientX;
       startY = e.clientY;
+    });
+    // Without touch-action:pan-y (css/app.css), a touch browser's own
+    // gesture recognizer frequently claims a horizontal drag started over
+    // scrollable content as a scroll before it ever reaches us, firing
+    // pointercancel instead of pointerup — so a real-device swipe never
+    // completed even though this exact logic worked fine with mouse-drag
+    // testing (which doesn't go through that same touch gesture path).
+    el.addEventListener("pointercancel", () => {
+      startX = null;
+      startY = null;
     });
     el.addEventListener("pointerup", (e) => {
       if (mobileScreen !== "steps" || startX === null) return;
@@ -1452,7 +1468,9 @@
       attempt: step1.attempt
     });
     status(
-      `Found ${(step2.services || []).length} assigned service(s)`,
+      `Found ${(step2.services || []).length} assigned service${
+        (step2.services || []).length === 1 ? "" : "s"
+      }`,
       "success"
     );
   }
@@ -1473,7 +1491,11 @@
     }
 
     setBusy(true, "Completing VAS...");
-    status(`Completing ${completions.length} step(s)...`);
+    status(
+      `Completing ${completions.length} step${
+        completions.length === 1 ? "" : "s"
+      }...`
+    );
     const res = await api("perform_vas", {
       org,
       token,
@@ -1515,8 +1537,9 @@
       completed_count: (res.completed || []).length
     });
     status(
-      `Completed ${(res.completed || []).length} step(s)` +
-        (res.warning ? ` — ${res.warning}` : ""),
+      `Completed ${(res.completed || []).length} step${
+        (res.completed || []).length === 1 ? "" : "s"
+      }` + (res.warning ? ` — ${res.warning}` : ""),
       res.warning ? "info" : "success"
     );
   }
@@ -1564,6 +1587,14 @@
         els.olpnInput.focus();
         els.olpnInput.select();
       }
+    });
+  }
+
+  if (els.olpnScanBtn) {
+    // No scanner wired up yet — placeholder from the Design C mockup,
+    // just gives feedback instead of doing nothing.
+    els.olpnScanBtn.addEventListener("click", () => {
+      status("Barcode scanning is coming soon — enter the oLPN manually for now.", "info");
     });
   }
 
