@@ -1053,13 +1053,66 @@
     }
   }
 
+  /** Desktop preview only shows one step's content at a time, with nothing
+   *  indicating which step or what its qty/status would look like — unlike
+   *  the mobile preview's per-step card. This mimics the real execution
+   *  table's Step/Description/Requested/Remaining/Completed/Status row so
+   *  desktop preview reads the same way, with Requested/Remaining/Completed/
+   *  Status hardcoded (1/1/0/Created) since this is a static preview.
+   *  TODO(step-description): steps only store `title` (always == step id)
+   *  today — there's no real per-step Description field, so "Description"
+   *  below is just the step name again as a stand-in. If we ever want a
+   *  genuine description: add `description` to normalizeStepEntry in
+   *  vas-config.js, an input in admin.html between the Steps tabs and Step
+   *  content (wired like edTitle/edDescription), and use it here + in
+   *  mobilePreviewStepCardHtml + (as a fallback when WMS StepDescription is
+   *  blank) in app.js's stepRowCellsHtml/mobileStepCardHtml. Logged in
+   *  vasexecution-open-items.md if this gets picked up later. */
+  function desktopPreviewStepHeaderHtml(step, stepId) {
+    const name = step.title || stepId;
+    return `<table class="steps-table compact step-preview-table">
+      <colgroup>
+        <col class="col-step" />
+        <col class="col-desc" />
+        <col class="col-num" />
+        <col class="col-num" />
+        <col class="col-num" />
+        <col class="col-status" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Description</th>
+          <th class="step-num">Requested</th>
+          <th class="step-num">Remaining</th>
+          <th class="step-num">Completed</th>
+          <th class="step-status">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>${esc(name)}</td>
+          <td class="step-desc">${esc(name)}</td>
+          <td class="step-num">1</td>
+          <td class="step-num">1</td>
+          <td class="step-num">0</td>
+          <td class="step-status"><span class="badge status-chip status-created">Created</span></td>
+        </tr>
+      </tbody>
+    </table>`;
+  }
+
   function buildCardHtml(entry, sections) {
-    const contentHtml =
-      tab === "types"
-        ? selectedStepId && entry.steps?.[selectedStepId]
-          ? VasConfig.renderStepContentHtml(entry.steps[selectedStepId], esc)
-          : ""
-        : VasConfig.renderContentListHtml(entry.content || [], esc);
+    const selectedStep =
+      tab === "types" && selectedStepId ? entry.steps?.[selectedStepId] : null;
+    const contentHtml = selectedStep
+      ? VasConfig.renderStepContentHtml(selectedStep, esc)
+      : tab === "items"
+      ? VasConfig.renderContentListHtml(entry.content || [], esc)
+      : "";
+    const stepHeaderHtml = selectedStep
+      ? desktopPreviewStepHeaderHtml(selectedStep, selectedStepId)
+      : "";
     const iconHtml =
       tab === "types"
         ? `<img class="service-type-icon" src="${esc(
@@ -1075,6 +1128,7 @@
           </div>
           ${iconHtml}
         </div>
+        ${stepHeaderHtml}
         <div class="vas-config-block ${tab === "items" ? "item-block" : "type-block"}">
           ${tab === "items" ? "<h4>Item instructions</h4>" : ""}
           ${contentHtml || "<p class='text-muted'>No content</p>"}
