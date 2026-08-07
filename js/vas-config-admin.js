@@ -165,13 +165,40 @@
     return `<button type="button" class="btn btn-icon row-action-btn del-btn ${extraClass}" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>`;
   }
 
+  /** 3x3 position-grid dropdown for where an image sits within its column. */
+  function imageAlignPickerHtml(align) {
+    const dotsHtml = VasConfig.IMAGE_ALIGNS.map(
+      (a) =>
+        `<i class="img-align-opt img-align-dot${
+          a === align ? " active" : ""
+        }" data-align="${a}"></i>`
+    ).join("");
+    const cellsHtml = VasConfig.IMAGE_ALIGNS.map(
+      (a) =>
+        `<button type="button" class="img-align-opt img-align-cell${
+          a === align ? " active" : ""
+        }" data-align="${a}" title="${esc(VasConfig.IMAGE_ALIGN_LABELS[a])}"></button>`
+    ).join("");
+    return `<div class="dropdown img-align-picker">
+              <button type="button" class="img-align-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Image position (${esc(
+                VasConfig.IMAGE_ALIGN_LABELS[align]
+              )})">
+                <span class="img-align-mini" aria-hidden="true">${dotsHtml}</span>
+              </button>
+              <div class="dropdown-menu img-align-menu">
+                <div class="img-align-grid">${cellsHtml}</div>
+              </div>
+            </div>`;
+  }
+
   /** HTML for a single editable content row (text or image block). */
   function contentRowHtml(block, idx) {
     if (block.type === "image") {
       const scale = VasConfig.normalizeImageScale(block.scale);
+      const align = VasConfig.normalizeImageAlign(block.align);
       return `<div class="content-row image-row draggable-item" data-idx="${idx}" data-type="image" data-id="${esc(
         block.id
-      )}">
+      )}" data-align="${esc(align)}">
             <span class="grip" aria-label="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
             <div class="content-fields">
               <div class="text-format-bar image-scale-bar">
@@ -184,6 +211,7 @@
                   <input type="range" class="img-scale" min="0" max="200" step="1" value="${scale}" aria-label="Image size percent" />
                   <span class="img-scale-value">${scale}%</span>
                 </label>
+                ${imageAlignPickerHtml(align)}
               </div>
               <input class="form-control img-url" placeholder="Image or Cloudinary PDF URL" value="${esc(
                 block.url
@@ -344,7 +372,8 @@
         caption: row.querySelector(".img-caption")?.value.trim() || "",
         scale: VasConfig.normalizeImageScale(
           row.querySelector(".img-scale")?.value
-        )
+        ),
+        align: VasConfig.normalizeImageAlign(row.dataset.align)
       };
     }
     const colorEl = row.querySelector(".fmt-color");
@@ -979,6 +1008,23 @@
     els.contentList.querySelectorAll(".rm-content").forEach((btn) => {
       btn.onclick = () => {
         btn.closest(".content-row")?.remove();
+        syncEditorToDraft();
+        renderPreview();
+      };
+    });
+    els.contentList.querySelectorAll(".img-align-cell").forEach((cell) => {
+      cell.onclick = () => {
+        const row = cell.closest(".content-row");
+        const align = cell.dataset.align;
+        if (!row) return;
+        row.dataset.align = align;
+        row.querySelectorAll(".img-align-opt").forEach((opt) => {
+          opt.classList.toggle("active", opt.dataset.align === align);
+        });
+        const toggle = row.querySelector(".img-align-toggle");
+        if (toggle) {
+          toggle.title = `Image position (${VasConfig.IMAGE_ALIGN_LABELS[align]})`;
+        }
         syncEditorToDraft();
         renderPreview();
       };

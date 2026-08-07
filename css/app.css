@@ -909,11 +909,25 @@ body {
 .vas-content-columns {
   display: grid;
   gap: 1rem;
-  align-items: start;
+  /* stretch (not start) so every column matches the row's tallest column —
+     needed for vas-align-* below to have vertical room to position within,
+     e.g. a short image next to a column of long wrapped text. */
+  align-items: stretch;
   width: 100%;
 }
 .vas-content-column {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* Only the column's direct list becomes a flex column (so vas-align-*
+   margin:auto can position a block within the stretched column height);
+   the same .vas-content-list is also used standalone (single-column /
+   mobile stacking) where it must stay normal block flow. */
+.vas-content-column > .vas-content-list {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
 }
 .vas-content-list--empty {
   min-height: 0;
@@ -1004,6 +1018,40 @@ body {
   box-shadow: none;
   background: transparent;
   display: block;
+}
+/* Horizontal position: margin-auto on the (block-level, width:scale%) img
+   itself — works everywhere, including single-column/mobile stacking. */
+.vas-content-image.vas-align-top-left .vas-content-image-btn img,
+.vas-content-image.vas-align-middle-left .vas-content-image-btn img,
+.vas-content-image.vas-align-bottom-left .vas-content-image-btn img {
+  margin-left: 0;
+  margin-right: auto;
+}
+.vas-content-image.vas-align-top-center .vas-content-image-btn img,
+.vas-content-image.vas-align-center .vas-content-image-btn img,
+.vas-content-image.vas-align-bottom-center .vas-content-image-btn img {
+  margin-left: auto;
+  margin-right: auto;
+}
+.vas-content-image.vas-align-top-right .vas-content-image-btn img,
+.vas-content-image.vas-align-middle-right .vas-content-image-btn img,
+.vas-content-image.vas-align-bottom-right .vas-content-image-btn img {
+  margin-left: auto;
+  margin-right: 0;
+}
+/* Vertical position: margin-auto on the flex item itself — only meaningful
+   inside a stretched multi-column layout; a harmless no-op elsewhere. */
+.vas-content-column > .vas-content-list > .vas-content-image.vas-align-middle-left,
+.vas-content-column > .vas-content-list > .vas-content-image.vas-align-center,
+.vas-content-column > .vas-content-list > .vas-content-image.vas-align-middle-right {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+.vas-content-column > .vas-content-list > .vas-content-image.vas-align-bottom-left,
+.vas-content-column > .vas-content-list > .vas-content-image.vas-align-bottom-center,
+.vas-content-column > .vas-content-list > .vas-content-image.vas-align-bottom-right {
+  margin-top: auto;
+  margin-bottom: 0;
 }
 .vas-content-list .vas-content-image .caption {
   font-size: 0.75rem;

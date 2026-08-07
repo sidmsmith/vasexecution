@@ -54,6 +54,30 @@
     return Math.max(0, Math.min(200, Math.round(n)));
   }
 
+  /** 3x3 position grid for placing an image within its content column. */
+  const IMAGE_ALIGNS = [
+    "top-left", "top-center", "top-right",
+    "middle-left", "center", "middle-right",
+    "bottom-left", "bottom-center", "bottom-right"
+  ];
+  const DEFAULT_IMAGE_ALIGN = "center";
+  const IMAGE_ALIGN_LABELS = {
+    "top-left": "Top Left",
+    "top-center": "Top Center",
+    "top-right": "Top Right",
+    "middle-left": "Middle Left",
+    "center": "Center",
+    "middle-right": "Middle Right",
+    "bottom-left": "Bottom Left",
+    "bottom-center": "Bottom Center",
+    "bottom-right": "Bottom Right"
+  };
+
+  function normalizeImageAlign(value) {
+    const v = String(value || "").trim().toLowerCase();
+    return IMAGE_ALIGNS.includes(v) ? v : DEFAULT_IMAGE_ALIGN;
+  }
+
   /** Text size % relative to base; slider 50–150 with 100 in the middle. */
   function normalizeFontSize(value) {
     const n = Number(value);
@@ -72,7 +96,8 @@
         type: "image",
         url,
         caption: String(raw.caption || "").trim(),
-        scale: normalizeImageScale(raw.scale)
+        scale: normalizeImageScale(raw.scale),
+        align: normalizeImageAlign(raw.align)
       };
     }
     const text = String(raw.text || raw.InstructionText || "").trim();
@@ -252,6 +277,7 @@
     const { openUrl, displayUrl, isPdf } = contentImageUrls(block);
     if (!openUrl || !displayUrl) return "";
     const imgStyle = imageBlockStyle(block);
+    const align = normalizeImageAlign(block && block.align);
     const caption = String((block && block.caption) || "").trim();
     const title = isPdf ? "Open PDF" : "Open";
     const candidates = isPdf ? [displayUrl] : imageUrlCandidates(displayUrl);
@@ -260,7 +286,7 @@
     const onError = isPdf
       ? `if(!this.dataset.fb){this.dataset.fb='1';this.src='${PDF_PLACEHOLDER_URL}';}else{this.closest('.vas-content-image')?.remove();}`
       : "window.VasConfig&&window.VasConfig.advanceImageFallback(this)";
-    return `<div class="vas-content-image${isPdf ? " is-pdf" : ""}">
+    return `<div class="vas-content-image${isPdf ? " is-pdf" : ""} vas-align-${esc(align)}">
       <button type="button" class="vas-content-image-btn" data-image-url="${esc(
         first
       )}" data-open-url="${esc(openUrl)}" data-media-kind="${
@@ -691,6 +717,10 @@
     contentToLegacy,
     sanitizeColor,
     normalizeImageScale,
+    normalizeImageAlign,
+    IMAGE_ALIGNS,
+    IMAGE_ALIGN_LABELS,
+    DEFAULT_IMAGE_ALIGN,
     normalizeFontSize,
     normalizeIconUrl,
     typeIconUrl,

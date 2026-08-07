@@ -327,6 +327,73 @@
   margin-left: 0.25rem;
 }
 
+.img-align-picker {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.img-align-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel-bg, var(--card-bg));
+  cursor: pointer;
+}
+
+.img-align-mini {
+  display: grid;
+  grid-template-columns: repeat(3, 4px);
+  grid-template-rows: repeat(3, 4px);
+  gap: 2px;
+}
+
+.img-align-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--text-muted);
+  opacity: 0.5;
+}
+
+.img-align-dot.active {
+  background: var(--primary);
+  opacity: 1;
+}
+
+.img-align-menu {
+  padding: 0.4rem;
+  min-width: auto;
+}
+
+.img-align-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1.6rem);
+  grid-template-rows: repeat(3, 1.6rem);
+  gap: 3px;
+}
+
+.img-align-cell {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--panel-bg, var(--card-bg));
+  padding: 0;
+  cursor: pointer;
+}
+
+.img-align-cell:hover {
+  border-color: var(--primary);
+}
+
+.img-align-cell.active {
+  background: rgba(59, 130, 246, 0.35);
+  border-color: var(--primary);
+}
+
 .vas-content-image-btn {
   position: relative;
   display: block;
