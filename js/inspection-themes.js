@@ -323,6 +323,36 @@
         logoMaxWidth: '300px',
         logoMobileScale: 0.8
       },
+      'vineyardvines': {
+        name: 'Vineyard Vines',
+        colors: {
+          '--bg-dark': '#faf8f4',
+          '--card-bg': '#ffffff',
+          '--input-bg': '#f5f2ea',
+          '--border': '#dcd6c8',
+          '--text': '#0b2545',
+          '--text-secondary': '#1d3557',
+          '--text-muted': '#6b7a8f',
+          '--red-bg': '#fff5f5',
+          '--red-text': '#c62828',
+          '--blue-select': '#D6537A',
+          '--success': '#2e7d32',
+          '--primary': '#002B5C',
+          '--primary-hover': '#001c3d',
+          '--success-hover': '#1b5e20',
+          '--table-header-bg': '#002B5C',
+          '--table-header-text': '#ffffff',
+          '--input-border': '#d8d2c0',
+          '--input-focus-bg': '#ffffff',
+          '--input-focus-border': '#002B5C',
+          '--input-focus-shadow': 'rgba(0, 43, 92, 0.25)',
+          '--logo-url': 'url("/vineyardvines-logo.png")',
+          '--logo-display': 'block'
+        },
+        logo: '/vineyardvines-logo.png',
+        logoMaxHeight: '50px',
+        logoMaxWidth: '200px'
+      },
       'pricesmart': {
         name: 'PriceSmart',
         colors: {
