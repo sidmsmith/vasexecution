@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-08-07T16:32:18.444Z",
+  "updatedAt": "2026-08-07T16:44:04.794Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -539,7 +539,8 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1783445906/sidney/bracket1.gif",
               "caption": "",
-              "scale": 48
+              "scale": 48,
+              "align": "center"
             }
           ],
           "layout": {
@@ -1429,7 +1430,8 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_09.png",
               "caption": "",
-              "scale": 48
+              "scale": 48,
+              "align": "center"
             }
           ],
           "layout": {
@@ -1471,7 +1473,8 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_2.png",
               "caption": "",
-              "scale": 10
+              "scale": 10,
+              "align": "center"
             }
           ],
           "layout": {
@@ -1588,7 +1591,8 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.png",
               "caption": "",
-              "scale": 63
+              "scale": 63,
+              "align": "center"
             },
             {
               "id": "ins_1ln2jdve",
@@ -1668,12 +1672,12 @@
               "id": "ins_awyd4dkh",
               "type": "text",
               "text": "Retrieve the approved monogram design file and verify spelling, style, and size",
-              "bold": false,
+              "bold": true,
               "italic": false,
               "underline": false,
-              "color": "#000000",
+              "color": "#002b5c",
               "fontSize": 100,
-              "listMarker": "bullet"
+              "listMarker": "star"
             },
             {
               "id": "ins_agt3cjkn",
@@ -1682,7 +1686,7 @@
               "bold": false,
               "italic": false,
               "underline": false,
-              "color": "#000000",
+              "color": "#002b5c",
               "fontSize": 100,
               "listMarker": "bullet"
             },
@@ -1693,7 +1697,7 @@
               "bold": false,
               "italic": false,
               "underline": false,
-              "color": "#000000",
+              "color": "#002b5c",
               "fontSize": 100,
               "listMarker": "bullet"
             },
@@ -1702,7 +1706,8 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/sidney/sewingmachineicon.png",
               "caption": "",
-              "scale": 51
+              "scale": 36,
+              "align": "center"
             }
           ],
           "layout": {
@@ -1733,12 +1738,12 @@
               "id": "ins_blnfp9d3",
               "type": "text",
               "text": "Select the correct hoop size for the item and monogram placement",
-              "bold": false,
+              "bold": true,
               "italic": false,
               "underline": false,
-              "color": "#000000",
+              "color": "#002b5c",
               "fontSize": 100,
-              "listMarker": "bullet"
+              "listMarker": "star"
             },
             {
               "id": "ins_9zyil7ok",
@@ -1747,7 +1752,7 @@
               "bold": false,
               "italic": false,
               "underline": false,
-              "color": "#000000",
+              "color": "#002b5c",
               "fontSize": 100,
               "listMarker": "bullet"
             },
@@ -1758,7 +1763,7 @@
               "bold": false,
               "italic": false,
               "underline": false,
-              "color": "#000000",
+              "color": "#002b5c",
               "fontSize": 100,
               "listMarker": "bullet"
             },
@@ -1767,7 +1772,8 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1786116807/sidney/shirticon.png",
               "caption": "",
-              "scale": 53
+              "scale": 36,
+              "align": "center"
             }
           ],
           "layout": {
@@ -1798,12 +1804,12 @@
               "id": "ins_pxuu7sme",
               "type": "text",
               "text": "Run the embroidery cycle and monitor for thread breaks or misalignment",
-              "bold": false,
+              "bold": true,
               "italic": false,
               "underline": false,
               "color": "#002b5c",
               "fontSize": 100,
-              "listMarker": "bullet"
+              "listMarker": "star"
             },
             {
               "id": "ins_79ofu2w8",
@@ -1832,7 +1838,8 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1786116806/sidney/checklist.png",
               "caption": "",
-              "scale": 49
+              "scale": 36,
+              "align": "center"
             }
           ],
           "layout": {
@@ -1904,7 +1911,8 @@
           "type": "image",
           "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1752528139/sidney/Sterilant-Agent.png",
           "caption": "HMTS Accessories",
-          "scale": 30
+          "scale": 30,
+          "align": "center"
         },
         {
           "id": "ins_6049596f",
