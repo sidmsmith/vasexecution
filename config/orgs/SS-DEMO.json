@@ -1,128 +1,8 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-08-01T13:29:59.194Z",
+  "updatedAt": "2026-08-07T14:54:06.636Z",
   "version": 1,
   "vasTypes": {
-    "Accessories Bundle": {
-      "title": "Accessories Bundle",
-      "description": "Accessories Bundle",
-      "iconUrl": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254064/sidney/SHI_1.png",
-      "content": [],
-      "instructions": [],
-      "images": [],
-      "steps": {
-        "Gather all accessories": {
-          "title": "Gather all accessories",
-          "content": [
-            {
-              "id": "ins_khljcso9",
-              "type": "text",
-              "text": "Pick all accessories",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "ins_ao9jzt33",
-              "type": "text",
-              "text": "Package all accessories into plastic bags",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "img_mu2x95p5",
-              "type": "image",
-              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_09.png",
-              "caption": "",
-              "scale": 48
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_khljcso9",
-                  "ins_ao9jzt33"
-                ]
-              },
-              {
-                "id": "col_eznxg1tb",
-                "width": 1,
-                "blockIds": [
-                  "img_mu2x95p5"
-                ]
-              }
-            ]
-          }
-        },
-        "Pack accessories": {
-          "title": "Pack accessories",
-          "content": [
-            {
-              "id": "ins_8cs1r00f",
-              "type": "text",
-              "text": "Pack accessories bags into laptop bag",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "img_k0exjvnk",
-              "type": "image",
-              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_2.png",
-              "caption": "",
-              "scale": 10
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_8cs1r00f",
-                  "img_k0exjvnk"
-                ]
-              }
-            ]
-          }
-        }
-      },
-      "stepOrder": [
-        "Gather all accessories",
-        "Pack accessories"
-      ],
-      "sections": {
-        "signature": {
-          "enabled": false,
-          "required": false,
-          "label": "Accessories Bundle Signature"
-        },
-        "photos": {
-          "enabled": false,
-          "required": false,
-          "label": "Accessories Bundle Photos"
-        },
-        "markupPad": {
-          "enabled": false,
-          "required": false,
-          "label": "Accessories Bundle Markup",
-          "mode": "photo"
-        }
-      }
-    },
     "Apply UPC Tags": {
       "title": "Apply UPC Tags",
       "description": "Apply UPC Tags",
@@ -1417,148 +1297,6 @@
         }
       }
     },
-    "Verizon Laptop Prep": {
-      "title": "Verizon Laptop Prep",
-      "description": "Verizon Laptop Prep",
-      "iconUrl": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_Yoga_9i_2_in_1_Aura_Edition_v01.png",
-      "content": [],
-      "instructions": [],
-      "images": [],
-      "steps": {
-        "Asset Tag": {
-          "title": "Asset Tag",
-          "content": [
-            {
-              "id": "ins_glju9tft",
-              "type": "text",
-              "text": "Attach Asset Tag",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "ins_izy5dbwy",
-              "type": "text",
-              "text": "Log Tag in tracking system",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_glju9tft",
-                  "ins_izy5dbwy"
-                ]
-              }
-            ]
-          }
-        },
-        "Flash BIOS": {
-          "title": "Flash BIOS",
-          "content": [
-            {
-              "id": "ins_dgm3v72k",
-              "type": "text",
-              "text": "Set default passwords",
-              "bold": true,
-              "italic": false,
-              "underline": false,
-              "color": "#f90b0b",
-              "fontSize": 129,
-              "listMarker": "star"
-            },
-            {
-              "id": "ins_w95idiam",
-              "type": "text",
-              "text": "Configure boot sequence",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            },
-            {
-              "id": "img_z0cnaddw",
-              "type": "image",
-              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.png",
-              "caption": "",
-              "scale": 63
-            },
-            {
-              "id": "ins_1ln2jdve",
-              "type": "text",
-              "text": "Update Power Management",
-              "bold": false,
-              "italic": false,
-              "underline": false,
-              "color": "#000000",
-              "fontSize": 100,
-              "listMarker": "bullet"
-            }
-          ],
-          "layout": {
-            "columns": [
-              {
-                "id": "col_0",
-                "width": 1,
-                "blockIds": [
-                  "ins_dgm3v72k",
-                  "ins_w95idiam"
-                ]
-              },
-              {
-                "id": "col_ota6b4vw",
-                "width": 1,
-                "blockIds": [
-                  "img_z0cnaddw"
-                ]
-              },
-              {
-                "id": "col_ai8w7m0k",
-                "width": 1,
-                "blockIds": [
-                  "ins_1ln2jdve"
-                ]
-              }
-            ]
-          }
-        }
-      },
-      "stepOrder": [
-        "Asset Tag",
-        "Flash BIOS"
-      ],
-      "sections": {
-        "signature": {
-          "enabled": false,
-          "required": false,
-          "label": "Verizon Laptop Prep Signature"
-        },
-        "photos": {
-          "enabled": false,
-          "required": false,
-          "label": "Verizon Laptop Prep Photos"
-        },
-        "markupPad": {
-          "enabled": false,
-          "required": false,
-          "label": "Verizon Laptop Prep Markup",
-          "mode": "photo"
-        }
-      }
-    },
     "Walmart-Repack": {
       "title": "Walmart-Repack",
       "description": "Repack",
@@ -1649,6 +1387,454 @@
           "enabled": true,
           "required": false,
           "label": "Walmart-Repack Markup",
+          "mode": "photo"
+        }
+      }
+    },
+    "Accessories Bundle": {
+      "title": "Accessories Bundle",
+      "description": "Accessories Bundle",
+      "iconUrl": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254064/sidney/SHI_1.png",
+      "content": [],
+      "instructions": [],
+      "images": [],
+      "steps": {
+        "Gather all accessories": {
+          "title": "Gather all accessories",
+          "content": [
+            {
+              "id": "ins_khljcso9",
+              "type": "text",
+              "text": "Pick all accessories",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_ao9jzt33",
+              "type": "text",
+              "text": "Package all accessories into plastic bags",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "img_mu2x95p5",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_09.png",
+              "caption": "",
+              "scale": 48
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_khljcso9",
+                  "ins_ao9jzt33"
+                ]
+              },
+              {
+                "id": "col_eznxg1tb",
+                "width": 1,
+                "blockIds": [
+                  "img_mu2x95p5"
+                ]
+              }
+            ]
+          }
+        },
+        "Pack accessories": {
+          "title": "Pack accessories",
+          "content": [
+            {
+              "id": "ins_8cs1r00f",
+              "type": "text",
+              "text": "Pack accessories bags into laptop bag",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "img_k0exjvnk",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784254063/sidney/SHI_2.png",
+              "caption": "",
+              "scale": 10
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_8cs1r00f",
+                  "img_k0exjvnk"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "stepOrder": [
+        "Gather all accessories",
+        "Pack accessories"
+      ],
+      "sections": {
+        "signature": {
+          "enabled": false,
+          "required": false,
+          "label": "Accessories Bundle Signature"
+        },
+        "photos": {
+          "enabled": false,
+          "required": false,
+          "label": "Accessories Bundle Photos"
+        },
+        "markupPad": {
+          "enabled": false,
+          "required": false,
+          "label": "Accessories Bundle Markup",
+          "mode": "photo"
+        }
+      }
+    },
+    "Verizon Laptop Prep": {
+      "title": "Verizon Laptop Prep",
+      "description": "Verizon Laptop Prep",
+      "iconUrl": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_Yoga_9i_2_in_1_Aura_Edition_v01.png",
+      "content": [],
+      "instructions": [],
+      "images": [],
+      "steps": {
+        "Asset Tag": {
+          "title": "Asset Tag",
+          "content": [
+            {
+              "id": "ins_glju9tft",
+              "type": "text",
+              "text": "Attach Asset Tag",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_izy5dbwy",
+              "type": "text",
+              "text": "Log Tag in tracking system",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_glju9tft",
+                  "ins_izy5dbwy"
+                ]
+              }
+            ]
+          }
+        },
+        "Flash BIOS": {
+          "title": "Flash BIOS",
+          "content": [
+            {
+              "id": "ins_dgm3v72k",
+              "type": "text",
+              "text": "Set default passwords",
+              "bold": true,
+              "italic": false,
+              "underline": false,
+              "color": "#f90b0b",
+              "fontSize": 106,
+              "listMarker": "check"
+            },
+            {
+              "id": "ins_w95idiam",
+              "type": "text",
+              "text": "Configure boot sequence",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "img_z0cnaddw",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1784262476/sidney/Lenovo_ThinkPad_X1_Carbon_Gen_13_Aura_Edition_v01.png",
+              "caption": "",
+              "scale": 63
+            },
+            {
+              "id": "ins_1ln2jdve",
+              "type": "text",
+              "text": "Update Power Management",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_dgm3v72k",
+                  "ins_w95idiam"
+                ]
+              },
+              {
+                "id": "col_ota6b4vw",
+                "width": 1,
+                "blockIds": [
+                  "img_z0cnaddw"
+                ]
+              },
+              {
+                "id": "col_ai8w7m0k",
+                "width": 1,
+                "blockIds": [
+                  "ins_1ln2jdve"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "stepOrder": [
+        "Asset Tag",
+        "Flash BIOS"
+      ],
+      "sections": {
+        "signature": {
+          "enabled": false,
+          "required": false,
+          "label": "Verizon Laptop Prep Signature"
+        },
+        "photos": {
+          "enabled": false,
+          "required": false,
+          "label": "Verizon Laptop Prep Photos"
+        },
+        "markupPad": {
+          "enabled": false,
+          "required": false,
+          "label": "Verizon Laptop Prep Markup",
+          "mode": "photo"
+        }
+      }
+    },
+    "Embroidery": {
+      "title": "Embroidery",
+      "description": "Embroidery",
+      "iconUrl": "/assets/icons/vas-type-shirts.svg",
+      "content": [],
+      "instructions": [],
+      "images": [],
+      "steps": {
+        "Prepare the Design": {
+          "title": "Prepare the Design",
+          "content": [
+            {
+              "id": "ins_awyd4dkh",
+              "type": "text",
+              "text": "Retrieve the approved monogram design file and verify spelling, style, and size",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_agt3cjkn",
+              "type": "text",
+              "text": "Load the correct embroidery program into the machine",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_tpegio45",
+              "type": "text",
+              "text": "Confirm thread color matches the order specifications",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_awyd4dkh",
+                  "ins_agt3cjkn",
+                  "ins_tpegio45"
+                ]
+              }
+            ]
+          }
+        },
+        "Set Up the Garment": {
+          "title": "Set Up the Garment",
+          "content": [
+            {
+              "id": "ins_blnfp9d3",
+              "type": "text",
+              "text": "Select the correct hoop size for the item and monogram placement",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_9zyil7ok",
+              "type": "text",
+              "text": "Position and hoop the garment according to the placement guidelines",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_vkcb5wmh",
+              "type": "text",
+              "text": "Install the specified thread color and check tension",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#000000",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_blnfp9d3",
+                  "ins_9zyil7ok",
+                  "ins_vkcb5wmh"
+                ]
+              }
+            ]
+          }
+        },
+        "Execute & Inspect": {
+          "title": "Execute & Inspect",
+          "content": [
+            {
+              "id": "ins_pxuu7sme",
+              "type": "text",
+              "text": "Run the embroidery cycle and monitor for thread breaks or misalignment",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#002b5c",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_79ofu2w8",
+              "type": "text",
+              "text": "Remove the garment from the hoop and trim excess threads",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#002b5c",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            },
+            {
+              "id": "ins_3cwxea52",
+              "type": "text",
+              "text": "Perform a final visual quality check against the approved design before releasing the item",
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "color": "#002b5c",
+              "fontSize": 100,
+              "listMarker": "bullet"
+            }
+          ],
+          "layout": {
+            "columns": [
+              {
+                "id": "col_0",
+                "width": 1,
+                "blockIds": [
+                  "ins_pxuu7sme",
+                  "ins_79ofu2w8",
+                  "ins_3cwxea52"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "stepOrder": [
+        "Prepare the Design",
+        "Set Up the Garment",
+        "Execute & Inspect"
+      ],
+      "sections": {
+        "signature": {
+          "enabled": false,
+          "required": false,
+          "label": "Embroidery Signature"
+        },
+        "photos": {
+          "enabled": false,
+          "required": false,
+          "label": "Embroidery Photos"
+        },
+        "markupPad": {
+          "enabled": false,
+          "required": false,
+          "label": "Embroidery Markup",
           "mode": "photo"
         }
       }
