@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-08-07T15:41:09.033Z",
+  "updatedAt": "2026-08-07T15:46:17.968Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1698,11 +1698,11 @@
               "listMarker": "bullet"
             },
             {
-              "id": "img_9qhto7bn",
+              "id": "img_clvarwbh",
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1786116807/sidney/sewingmachineicon.png",
               "caption": "",
-              "scale": 53
+              "scale": 51
             }
           ],
           "layout": {
@@ -1720,7 +1720,7 @@
                 "id": "col_cdaxji4r",
                 "width": 1,
                 "blockIds": [
-                  "img_9qhto7bn"
+                  "img_clvarwbh"
                 ]
               }
             ]
