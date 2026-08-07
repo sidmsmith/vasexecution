@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-08-07T14:54:06.636Z",
+  "updatedAt": "2026-08-07T15:35:24.560Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1696,6 +1696,13 @@
               "color": "#000000",
               "fontSize": 100,
               "listMarker": "bullet"
+            },
+            {
+              "id": "img_9qhto7bn",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1786116807/sidney/sewingmachineicon.png",
+              "caption": "",
+              "scale": 53
             }
           ],
           "layout": {
@@ -1707,6 +1714,13 @@
                   "ins_awyd4dkh",
                   "ins_agt3cjkn",
                   "ins_tpegio45"
+                ]
+              },
+              {
+                "id": "col_cdaxji4r",
+                "width": 1,
+                "blockIds": [
+                  "img_9qhto7bn"
                 ]
               }
             ]
@@ -1747,6 +1761,13 @@
               "color": "#000000",
               "fontSize": 100,
               "listMarker": "bullet"
+            },
+            {
+              "id": "img_jwynz63y",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1786116807/sidney/shirticon.png",
+              "caption": "",
+              "scale": 72
             }
           ],
           "layout": {
@@ -1758,6 +1779,13 @@
                   "ins_blnfp9d3",
                   "ins_9zyil7ok",
                   "ins_vkcb5wmh"
+                ]
+              },
+              {
+                "id": "col_vubzggew",
+                "width": 1,
+                "blockIds": [
+                  "img_jwynz63y"
                 ]
               }
             ]
@@ -1798,6 +1826,13 @@
               "color": "#002b5c",
               "fontSize": 100,
               "listMarker": "bullet"
+            },
+            {
+              "id": "img_27yfr424",
+              "type": "image",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1786116806/sidney/checklist.png",
+              "caption": "",
+              "scale": 49
             }
           ],
           "layout": {
@@ -1809,6 +1844,13 @@
                   "ins_pxuu7sme",
                   "ins_79ofu2w8",
                   "ins_3cwxea52"
+                ]
+              },
+              {
+                "id": "col_i6ykb0ey",
+                "width": 1,
+                "blockIds": [
+                  "img_27yfr424"
                 ]
               }
             ]
