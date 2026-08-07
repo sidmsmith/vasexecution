@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-08-07T15:35:24.560Z",
+  "updatedAt": "2026-08-07T15:41:09.033Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1767,7 +1767,7 @@
               "type": "image",
               "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1786116807/sidney/shirticon.png",
               "caption": "",
-              "scale": 72
+              "scale": 53
             }
           ],
           "layout": {
