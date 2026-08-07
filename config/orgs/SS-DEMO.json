@@ -1,6 +1,6 @@
 {
   "org": "SS-DEMO",
-  "updatedAt": "2026-08-07T15:46:17.968Z",
+  "updatedAt": "2026-08-07T16:32:18.444Z",
   "version": 1,
   "vasTypes": {
     "Apply UPC Tags": {
@@ -1700,7 +1700,7 @@
             {
               "id": "img_clvarwbh",
               "type": "image",
-              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/v1786116807/sidney/sewingmachineicon.png",
+              "url": "https://res.cloudinary.com/com-manh-cp/image/upload/sidney/sewingmachineicon.png",
               "caption": "",
               "scale": 51
             }
