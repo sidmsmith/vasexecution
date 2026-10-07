@@ -773,22 +773,102 @@
     const lines = Array.isArray(step.Instructions)
       ? step.Instructions.map((t) => String(t || "").trim()).filter(Boolean)
       : [];
-    const items = assignedStepItems(step);
-    const ordered = items ? items.map((i) => i.Text).filter(Boolean) : lines;
-    // Admin images for this step still apply when the text comes from WMS.
-    const images = hasConfig
-      ? (stepCfg.content || []).filter((b) => b && b.type === "image" && String(b.url || "").trim())
-      : [];
-    const imagesHtml = images.length
-      ? window.VasConfig.renderStepContentHtml({ ...stepCfg, content: images, layout: null }, esc)
-      : "";
-    if (!ordered.length && !imagesHtml) return "";
+    const items = assignedStepItems(step) || lines.map((t) => ({ Id: null, Text: t }));
+
+    // With Admin config: the oLPN's lines in the oLPN's order, each wearing
+    // its Admin block's formatting, inside the Admin column layout (images
+    // where the Admin put them).
+    if (hasConfig) {
+      const formatted = formattedWmsStepConfig(svc, step, stepCfg, items);
+      if (!formatted) return "";
+      return `<div class="${cls}" data-step-panel="${esc(stepId)}">
+        ${window.VasConfig.renderStepContentHtml(formatted, esc)}
+      </div>`;
+    }
+
+    const ordered = items.map((i) => i.Text).filter(Boolean);
+    if (!ordered.length) return "";
     return `<div class="${cls}" data-step-panel="${esc(stepId)}">
-      ${ordered.length
-        ? `<ul class="vas-instruction-list mb-0">${ordered.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`
-        : ""}
-      ${imagesHtml}
+      <ul class="vas-instruction-list mb-0">${ordered.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
     </div>`;
+  }
+
+  // Builds a step config whose text blocks are the oLPN's own instructions
+  // (in the oLPN's order), each styled like the Admin block it came from:
+  //   1. by id — VAS WMS Sync names instructions {TypeId}_{StepId}_{blockId},
+  //      so moved AND edited lines keep their original block's style;
+  //   2. by the standard text for that id (standard pushed some other way);
+  //   3. by identical text;
+  //   4. otherwise (added lines) the step's most common text style.
+  // Each Admin block styles at most one line. Images keep their Admin
+  // column; the oLPN's lines go where the Admin text was.
+  function formattedWmsStepConfig(svc, step, stepCfg, items) {
+    const VC = window.VasConfig;
+    const content = (stepCfg.content || []).filter(Boolean);
+    const isText = (b) => b.type !== "image" && String(b.text || "").trim();
+    const textBlocks = content.filter(isText);
+    const images = content.filter((b) => b.type === "image" && String(b.url || "").trim());
+    const stepId = String(step.AssignedServiceStepId || "").trim();
+    const norm = (s) => String(s || "").replace(/\s+/g, " ").trim().toLowerCase();
+    const stdText = new Map(
+      ((standardSteps && standardSteps.get(`${svc.ProvidedServiceId}|${stepId}`)) || []).map((s) => [s.Id, s.Text])
+    );
+    const idPrefix = `${svc.ProvidedServiceId}_${stepId}_`;
+    const used = new Set();
+    const take = (pred) => {
+      const b = textBlocks.find((x) => !used.has(x.id) && pred(x));
+      if (b) used.add(b.id);
+      return b || null;
+    };
+
+    // Most common text style in the step — used for lines with no match.
+    const styleKeys = ["bold", "italic", "underline", "color", "fontSize", "listMarker"];
+    const sig = (b) => JSON.stringify(styleKeys.map((k) => b[k] ?? null));
+    const counts = new Map();
+    textBlocks.forEach((b) => counts.set(sig(b), (counts.get(sig(b)) || 0) + 1));
+    let baseStyle = {};
+    let best = 0;
+    textBlocks.forEach((b) => {
+      const n = counts.get(sig(b));
+      if (n > best) { best = n; baseStyle = Object.fromEntries(styleKeys.map((k) => [k, b[k]])); }
+    });
+
+    const newBlocks = items.filter((it) => it.Text).map((it, i) => {
+      const match =
+        (it.Id && take((x) => `${idPrefix}${x.id}` === it.Id)) ||
+        (it.Id && stdText.has(it.Id) && take((x) => norm(x.text) === norm(stdText.get(it.Id)))) ||
+        take((x) => norm(x.text) === norm(it.Text));
+      const style = match ? Object.fromEntries(styleKeys.map((k) => [k, match[k]])) : baseStyle;
+      return { ...style, id: `wms_line_${i}`, type: "text", text: it.Text };
+    });
+    if (!newBlocks.length && !images.length) return null;
+
+    // Same columns as the Admin layout: images stay put; the oLPN's lines go
+    // in the column that held the most Admin text, where that text started.
+    const layout = VC.normalizeLayout(stepCfg.layout, content);
+    const cols = layout.columns || [];
+    const textIds = new Set(textBlocks.map((b) => b.id));
+    let textCol = 0;
+    let most = -1;
+    cols.forEach((c, ci) => {
+      const n = (c.blockIds || []).filter((id) => textIds.has(id)).length;
+      if (n > most) { most = n; textCol = ci; }
+    });
+    const newIds = newBlocks.map((b) => b.id);
+    const columns = cols.map((c, ci) => {
+      const out = [];
+      let placed = false;
+      for (const id of c.blockIds || []) {
+        if (textIds.has(id)) {
+          if (ci === textCol && !placed) { out.push(...newIds); placed = true; }
+        } else {
+          out.push(id);
+        }
+      }
+      if (ci === textCol && !placed) out.unshift(...newIds);
+      return { ...c, blockIds: out };
+    });
+    return { ...stepCfg, content: [...newBlocks, ...images], layout: { columns: columns.length ? columns : [{ id: "col_0", width: 1, blockIds: newIds.concat(images.map((b) => b.id)) }] } };
   }
 
   // Standard VAS definitions, once per org (one paginated providedService
