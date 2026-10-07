@@ -382,6 +382,40 @@
         logo: '/pricesmart_logo.png',
         logoMaxHeight: '56px',
         logoMaxWidth: '240px'
+      },
+      'cottonon': {
+        name: 'Cotton On',
+        // Monochrome, sampled from cottonon.com/US: charcoal primary buttons
+        // (#333434) with white text, #222222 wordmark/outlines, light-grey
+        // surfaces, and the site's #1D75DC link blue as the selection accent.
+        colors: {
+          '--bg-dark': '#f9f9f9',
+          '--card-bg': '#ffffff',
+          '--input-bg': '#f8f8f8',
+          '--border': '#e9e9e9',
+          '--text': '#333434',
+          '--text-secondary': '#535353',
+          '--text-muted': '#898989',
+          '--red-bg': '#fff2f2',
+          '--red-text': '#cc0000',
+          '--blue-select': '#1D75DC',
+          '--success': '#2e7d32',
+          '--primary': '#333434',
+          '--primary-hover': '#222222',
+          '--success-hover': '#1b5e20',
+          '--table-header-bg': '#222222',
+          '--table-header-text': '#ffffff',
+          '--input-border': '#d6d6d6',
+          '--input-focus-bg': '#ffffff',
+          '--input-focus-border': '#333434',
+          '--input-focus-shadow': 'rgba(51, 52, 52, 0.2)',
+          '--logo-url': 'url("/cottonon-logo.svg")',
+          '--logo-display': 'block'
+        },
+        logo: '/cottonon-logo.svg',
+        // 7:1 wordmark — width-capped so it stays legible on phones.
+        logoMaxHeight: '32px',
+        logoMaxWidth: '220px'
       }
     };
 
