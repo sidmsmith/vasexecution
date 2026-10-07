@@ -413,9 +413,10 @@
           '--logo-display': 'block'
         },
         logo: '/cottonon-logo.svg',
-        // 7:1 wordmark — width-capped so it stays legible on phones.
+        // 7:1 wordmark; the SVG's own size is 200x29 so it matches the
+        // Vineyard Vines wordmark (200px wide) instead of rendering at 154px.
         logoMaxHeight: '32px',
-        logoMaxWidth: '220px'
+        logoMaxWidth: '200px'
       }
     };
 
