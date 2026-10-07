@@ -63,6 +63,7 @@ Git remote: `https://github.com/sidmsmith/vasexecution` on `main`.
 | `org` | `organization` | Auto-authenticate |
 | `olpn` | `OLPN`, `oLPN`, `olpnId`, `olpn_id` | Prefill + auto-load after auth |
 | `theme` | — | Apply theme key, or `theme=N` to hide theme gear |
+| `instructions` | `auto` | Which step instructions to show: `auto` — the Admin config, unless this oLPN's step differs from the standard VAS definition, then the oLPN's own WMS instructions (with a "Differs from standard" badge); `config` — always the Admin config (previous behavior); `wms` — always the oLPN's WMS instructions. Admin images for a step are kept under WMS instructions. |
 
 Example: `/?org=SS-DEMO&olpn=0000099999000013973&theme=manhattan`
 

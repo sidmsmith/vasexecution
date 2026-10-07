@@ -21,6 +21,10 @@
   let currentItemMap = {};
   let currentServices = [];
   let vasConfig = null;
+  // Standard VAS definitions (providedService), keyed "TypeId|StepId" ->
+  // [{Id, Text}] in sequence order. Loaded once per org; null = unavailable.
+  let standardSteps = null;
+  let standardStepsOrg = null;
   let activeServiceIndex = 0;
 
   const VIEW_KEY = "vas-execution-view";
@@ -610,6 +614,43 @@
       )}</td>`;
   }
 
+  // Which instructions a step shows (URL ?instructions=auto|config|wms):
+  //   auto   (default) — the Admin config, unless THIS oLPN's step differs
+  //          from the standard VAS definition (instructions added, edited,
+  //          deleted or reordered, e.g. in Find Instructions); then the
+  //          oLPN's own WMS instructions win ("most specific wins").
+  //   config — always the Admin config when it has content (previous behavior).
+  //   wms    — always the oLPN's own WMS instructions.
+  // Admin images for the step are still shown under WMS instructions.
+  const INSTRUCTION_MODE = (() => {
+    const v = String(new URLSearchParams(window.location.search).get("instructions") || "").trim().toLowerCase();
+    return v === "config" || v === "wms" ? v : "auto";
+  })();
+
+  function assignedStepItems(step) {
+    const items = Array.isArray(step.InstructionItems) ? step.InstructionItems : null;
+    if (!items) return null;
+    return items
+      .slice()
+      .sort((a, b) => (Number(a.Sequence) || 0) - (Number(b.Sequence) || 0))
+      .map((i) => ({ Id: i.Id || null, Text: String(i.Text || "").trim() }));
+  }
+
+  // true = differs from standard, false = matches, null = can't tell
+  // (standard definitions unavailable, or no standard for this step).
+  function stepDiffersFromStandard(svc, step) {
+    if (!standardSteps) return null;
+    const std = standardSteps.get(`${svc.ProvidedServiceId}|${step.AssignedServiceStepId || ""}`);
+    const mine = assignedStepItems(step);
+    if (!std || !mine) return null;
+    if (std.length !== mine.length) return true;
+    return std.some((s, i) => s.Id !== mine[i].Id || s.Text !== mine[i].Text);
+  }
+
+  function customizedBadgeHtml() {
+    return `<div class="step-custom-badge" title="This oLPN's instructions for this step differ from the standard VAS definition (added, edited, removed or reordered), so the oLPN's own instructions are shown.">Differs from standard — showing this oLPN's instructions</div>`;
+  }
+
   function stepInstructionsPanelHtml(svc, step, extraClass) {
     const stepId = step.AssignedServiceStepId || "";
     const cls = ["step-panel", extraClass].filter(Boolean).join(" ");
@@ -619,20 +660,64 @@
     const stepCfg = window.VasConfig
       ? window.VasConfig.getStepConfig(typeCfg, stepId)
       : null;
-    if (window.VasConfig && window.VasConfig.stepHasContent(stepCfg)) {
+    const hasConfig = !!(window.VasConfig && window.VasConfig.stepHasContent(stepCfg));
+    const differs = stepDiffersFromStandard(svc, step);
+    const useWms =
+      INSTRUCTION_MODE === "wms" ||
+      (INSTRUCTION_MODE === "auto" && differs === true) ||
+      !hasConfig;
+
+    if (!useWms) {
       return `<div class="${cls}" data-step-panel="${esc(stepId)}">
         ${window.VasConfig.renderStepContentHtml(stepCfg, esc)}
       </div>`;
     }
+
     const lines = Array.isArray(step.Instructions)
       ? step.Instructions.map((t) => String(t || "").trim()).filter(Boolean)
       : [];
-    if (!lines.length) return "";
+    const items = assignedStepItems(step);
+    const ordered = items ? items.map((i) => i.Text).filter(Boolean) : lines;
+    // Admin images for this step still apply when the text comes from WMS.
+    const images = hasConfig
+      ? (stepCfg.content || []).filter((b) => b && b.type === "image" && String(b.url || "").trim())
+      : [];
+    const imagesHtml = images.length
+      ? window.VasConfig.renderStepContentHtml({ ...stepCfg, content: images, layout: null }, esc)
+      : "";
+    const badge = differs === true ? customizedBadgeHtml() : "";
+    if (!ordered.length && !imagesHtml && !badge) return "";
     return `<div class="${cls}" data-step-panel="${esc(stepId)}">
-      <ul class="vas-instruction-list mb-0">
-        ${lines.map((t) => `<li>${esc(t)}</li>`).join("")}
-      </ul>
+      ${badge}
+      ${ordered.length
+        ? `<ul class="vas-instruction-list mb-0">${ordered.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`
+        : (badge ? '<div class="text-muted small">All instructions were removed for this oLPN.</div>' : "")}
+      ${imagesHtml}
     </div>`;
+  }
+
+  // Standard VAS definitions, once per org (one paginated providedService
+  // search). Failure just means "can't tell", which keeps auto = config.
+  async function ensureStandardSteps() {
+    if (standardSteps && standardStepsOrg === org) return;
+    try {
+      const res = await api("provided_services", { org, token });
+      if (!res.success) return;
+      const map = new Map();
+      for (const svcDef of res.services || []) {
+        for (const st of svcDef.ProvidedServiceStep || []) {
+          const list = (st.Instructions || [])
+            .slice()
+            .sort((a, b) => (Number(a.Sequence) || 0) - (Number(b.Sequence) || 0))
+            .map((i) => ({ Id: i.StepInstructionId || null, Text: String(i.InstructionText || "").trim() }));
+          map.set(`${svcDef.ProvidedServiceId}|${st.ProvidedServiceStepId}`, list);
+        }
+      }
+      standardSteps = map;
+      standardStepsOrg = org;
+    } catch (e) {
+      console.warn("Standard VAS definitions unavailable:", e);
+    }
   }
 
   function orderedAssignedSteps(svc) {
@@ -1506,12 +1591,15 @@
     status(
       `Resolved ${currentRequestorIds.length} requestor id(s); fetching assigned services...`
     );
-    const step2 = await api("assigned_services", {
-      org,
-      token,
-      requestor_ids: currentRequestorIds,
-      olpn_record: currentOlpnRecord
-    });
+    const [step2] = await Promise.all([
+      api("assigned_services", {
+        org,
+        token,
+        requestor_ids: currentRequestorIds,
+        olpn_record: currentOlpnRecord
+      }),
+      INSTRUCTION_MODE === "config" ? Promise.resolve() : ensureStandardSteps()
+    ]);
     setBusy(false);
 
     if (!step2.success) {

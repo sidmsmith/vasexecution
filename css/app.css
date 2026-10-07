@@ -363,6 +363,18 @@ body {
   margin-bottom: 0;
 }
 
+.step-custom-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 4px;
+  padding: 0.05rem 0.45rem;
+  margin-bottom: 0.35rem;
+}
+
 .step-panel {
   margin: 0;
   padding: 0.55rem 0.75rem 0.65rem;

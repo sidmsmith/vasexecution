@@ -38,7 +38,7 @@ GITHUB_REPO = os.getenv("GITHUB_REPO", "sidmsmith/vasexecution").strip()
 GITHUB_REF = os.getenv("GITHUB_REF", "main").strip()
 
 APP_NAME = "vasexecution"
-APP_VERSION = "0.3.1"
+APP_VERSION = "0.3.2"
 
 # mawm_api_library/_conventions statuses.json â†’ assigned_service_status
 # Also documented in olpn_vas_sequential.py (1000 created, 2000 in progress, 5000 complete)
@@ -525,9 +525,20 @@ def summarize_service(
             step.get("AssignedServiceStepStatusDesc") or step.get("StatusDesc"),
         )
         instructions = []
+        # Same instructions with their ids + sequence, so the UI can tell
+        # whether this oLPN's step still matches the standard VAS definition
+        # (providedService StepInstructionIds == AssignedServiceStepInstructionIds).
+        instruction_items = []
         for instr in as_list(step.get("AssignedServiceStepInstruction")):
             if isinstance(instr, dict) and instr.get("InstructionText"):
                 instructions.append(str(instr.get("InstructionText")))
+                instruction_items.append(
+                    {
+                        "Id": str(instr.get("AssignedServiceStepInstructionId") or "").strip() or None,
+                        "Text": str(instr.get("InstructionText")),
+                        "Sequence": instr.get("Sequence"),
+                    }
+                )
         steps.append(
             {
                 "AssignedServiceStepId": str(
@@ -540,6 +551,7 @@ def summarize_service(
                 "AssignedServiceStepStatusDesc": step_status_desc,
                 "StatusId": step_status_id,
                 "Instructions": instructions,
+                "InstructionItems": instruction_items,
             }
         )
     sequence = parse_service_sequence(svc.get("Sequence"))
