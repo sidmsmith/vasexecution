@@ -380,7 +380,9 @@ body {
 .step-diff-btn:focus-visible { color: var(--primary); }
 
 .diff-popover {
-  position: absolute;
+  position: fixed;
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
   z-index: 2000;
   width: min(560px, calc(100vw - 16px));
   background: var(--card-bg);

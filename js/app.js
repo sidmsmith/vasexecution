@@ -717,14 +717,24 @@
     pop.setAttribute("role", "dialog");
     pop.innerHTML = diffPopoverHtml(d);
     document.body.appendChild(pop);
-    // Below the icon, kept inside the viewport (full width on phones).
+    // Fixed to the icon's on-screen position: below it, or above when
+    // there's no room; kept inside the viewport. Closed on scroll/resize
+    // (below) so it never drifts away from its icon.
     const r = btn.getBoundingClientRect();
     const w = pop.offsetWidth;
-    const left = Math.max(8, Math.min(window.scrollX + r.left - 12, window.scrollX + document.documentElement.clientWidth - w - 8));
+    const h = pop.offsetHeight;
+    const vw = document.documentElement.clientWidth;
+    const vh = window.innerHeight;
+    const left = Math.max(8, Math.min(r.left - 12, vw - w - 8));
+    let top = r.bottom + 6;
+    if (top + h > vh - 8) top = Math.max(8, r.top - h - 6);
     pop.style.left = `${left}px`;
-    pop.style.top = `${window.scrollY + r.bottom + 6}px`;
+    pop.style.top = `${top}px`;
     pop.querySelector(".diff-pop-close").addEventListener("click", closeDiffPopover);
   }
+
+  window.addEventListener("scroll", closeDiffPopover, true);
+  window.addEventListener("resize", closeDiffPopover);
 
   document.addEventListener("click", (e) => {
     const btn = e.target.closest && e.target.closest(".step-diff-btn");
