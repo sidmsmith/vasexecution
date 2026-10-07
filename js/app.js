@@ -603,7 +603,7 @@
         : `<span class="text-muted">—</span>`;
     return `<td class="step-select-col">${selectControl}</td>
       <td>${esc(step.AssignedServiceStepId)}</td>
-      <td class="step-desc">${esc(step.StepDescription || "")}</td>
+      <td class="step-desc">${esc(step.StepDescription || "")}${diffIconHtml(svc, step)}</td>
       <td class="step-num">${esc(step.RequestedQuantity)}</td>
       <td class="step-num">${esc(step.RemainingQuantity)}</td>
       <td class="step-num">${esc(step.CompletedQuantity)}</td>
@@ -622,6 +622,12 @@
   //   config — always the Admin config when it has content (previous behavior).
   //   wms    — always the oLPN's own WMS instructions.
   // Admin images for the step are still shown under WMS instructions.
+  // ?diff=Y adds a small note icon after the description of each step that
+  // differs from standard; clicking it shows Standard vs This oLPN. Off by
+  // default so demos stay clean.
+  const SHOW_DIFF = /^(y|yes|1|true|on)$/i.test(
+    String(new URLSearchParams(window.location.search).get("diff") || "").trim()
+  );
   const INSTRUCTION_MODE = (() => {
     const v = String(new URLSearchParams(window.location.search).get("instructions") || "").trim().toLowerCase();
     return v === "config" || v === "wms" ? v : "auto";
@@ -647,9 +653,90 @@
     return std.some((s, i) => s.Id !== mine[i].Id || s.Text !== mine[i].Text);
   }
 
-  function customizedBadgeHtml() {
-    return `<div class="step-custom-badge" title="This oLPN's instructions for this step differ from the standard VAS definition (added, edited, removed or reordered), so the oLPN's own instructions are shown.">Differs from standard — showing this oLPN's instructions</div>`;
+  // Steps whose diff popover can be opened, keyed by the icon's data-diff-key.
+  const diffRegistry = new Map();
+
+  function diffIconHtml(svc, step) {
+    if (!SHOW_DIFF || stepDiffersFromStandard(svc, step) !== true) return "";
+    const key = `${svc.ServiceRequestorId}|${svc.ProvidedServiceId}|${step.AssignedServiceStepId || ""}`;
+    diffRegistry.set(key, {
+      title: `${svc.ProvidedServiceId} · ${step.StepDescription || step.AssignedServiceStepId || ""}`,
+      std: standardSteps.get(`${svc.ProvidedServiceId}|${step.AssignedServiceStepId || ""}`) || [],
+      mine: assignedStepItems(step) || []
+    });
+    return `<button type="button" class="step-diff-btn" data-diff-key="${esc(key)}"
+      title="This oLPN's instructions differ from the standard — click to compare"
+      aria-label="Compare with standard instructions"><i class="fa-regular fa-note-sticky"></i></button>`;
   }
+
+  // Side-by-side Standard vs This oLPN. Lines are matched by instruction id:
+  // removed (only in standard), added (only on the oLPN), edited (same id,
+  // different text), moved (same id + text, different position).
+  function diffPopoverHtml(d) {
+    const mineById = new Map(d.mine.filter((m) => m.Id).map((m, i) => [m.Id, { ...m, pos: i }]));
+    const stdById = new Map(d.std.filter((s) => s.Id).map((s, i) => [s.Id, { ...s, pos: i }]));
+    const stdCommon = d.std.filter((s) => mineById.has(s.Id)).map((s) => s.Id);
+    const mineCommon = d.mine.filter((m) => stdById.has(m.Id)).map((m) => m.Id);
+    const moved = new Set(stdCommon.filter((id, i) => mineCommon[i] !== id));
+    const tag = (cls, label) => `<span class="diff-tag ${cls}">${label}</span>`;
+    const stdLines = d.std.map((s) => {
+      const m = mineById.get(s.Id);
+      if (!m) return `<li class="diff-removed">${esc(s.Text)} ${tag("removed", "removed")}</li>`;
+      if (m.Text !== s.Text) return `<li class="diff-edited">${esc(s.Text)}</li>`;
+      return `<li>${esc(s.Text)}</li>`;
+    }).join("");
+    const mineLines = d.mine.map((m) => {
+      const s = m.Id ? stdById.get(m.Id) : null;
+      if (!s) return `<li class="diff-added">${esc(m.Text)} ${tag("added", "added")}</li>`;
+      if (s.Text !== m.Text) return `<li class="diff-edited">${esc(m.Text)} ${tag("edited", "edited")}</li>`;
+      if (moved.has(m.Id)) return `<li class="diff-moved">${esc(m.Text)} ${tag("moved", "moved")}</li>`;
+      return `<li>${esc(m.Text)}</li>`;
+    }).join("");
+    return `<div class="diff-pop-head">
+        <strong>${esc(d.title)}</strong>
+        <button type="button" class="diff-pop-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="diff-pop-cols">
+        <div><div class="diff-col-title">Standard</div><ol>${stdLines || '<li class="text-muted">(none)</li>'}</ol></div>
+        <div><div class="diff-col-title">This oLPN</div><ol>${mineLines || '<li class="text-muted">(none — all removed)</li>'}</ol></div>
+      </div>`;
+  }
+
+  function closeDiffPopover() {
+    const pop = document.getElementById("diffPopover");
+    if (pop) pop.remove();
+  }
+
+  function openDiffPopover(btn) {
+    closeDiffPopover();
+    const d = diffRegistry.get(btn.dataset.diffKey);
+    if (!d) return;
+    const pop = document.createElement("div");
+    pop.id = "diffPopover";
+    pop.className = "diff-popover";
+    pop.setAttribute("role", "dialog");
+    pop.innerHTML = diffPopoverHtml(d);
+    document.body.appendChild(pop);
+    // Below the icon, kept inside the viewport (full width on phones).
+    const r = btn.getBoundingClientRect();
+    const w = pop.offsetWidth;
+    const left = Math.max(8, Math.min(window.scrollX + r.left - 12, window.scrollX + document.documentElement.clientWidth - w - 8));
+    pop.style.left = `${left}px`;
+    pop.style.top = `${window.scrollY + r.bottom + 6}px`;
+    pop.querySelector(".diff-pop-close").addEventListener("click", closeDiffPopover);
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest && e.target.closest(".step-diff-btn");
+    if (btn) {
+      e.preventDefault();
+      e.stopPropagation();
+      openDiffPopover(btn);
+      return;
+    }
+    if (!e.target.closest || !e.target.closest("#diffPopover")) closeDiffPopover();
+  }, true);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDiffPopover(); });
 
   function stepInstructionsPanelHtml(svc, step, extraClass) {
     const stepId = step.AssignedServiceStepId || "";
@@ -685,13 +772,11 @@
     const imagesHtml = images.length
       ? window.VasConfig.renderStepContentHtml({ ...stepCfg, content: images, layout: null }, esc)
       : "";
-    const badge = differs === true ? customizedBadgeHtml() : "";
-    if (!ordered.length && !imagesHtml && !badge) return "";
+    if (!ordered.length && !imagesHtml) return "";
     return `<div class="${cls}" data-step-panel="${esc(stepId)}">
-      ${badge}
       ${ordered.length
         ? `<ul class="vas-instruction-list mb-0">${ordered.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`
-        : (badge ? '<div class="text-muted small">All instructions were removed for this oLPN.</div>' : "")}
+        : ""}
       ${imagesHtml}
     </div>`;
   }
@@ -1199,7 +1284,7 @@
       isComplete ? " is-complete" : ""
     }" data-mobile-step-id="${esc(stepId)}">
       <div class="mx-step-card-top">
-        <span class="mx-step-card-title">${esc(step.StepDescription || stepId)}</span>
+        <span class="mx-step-card-title">${esc(step.StepDescription || stepId)}${diffIconHtml(svc, step)}</span>
         ${statusBadgeHtml(
           step.StatusId || svc.StatusId,
           step.AssignedServiceStepStatusDesc
@@ -1598,7 +1683,7 @@
         requestor_ids: currentRequestorIds,
         olpn_record: currentOlpnRecord
       }),
-      INSTRUCTION_MODE === "config" ? Promise.resolve() : ensureStandardSteps()
+      INSTRUCTION_MODE === "config" && !SHOW_DIFF ? Promise.resolve() : ensureStandardSteps()
     ]);
     setBusy(false);
 

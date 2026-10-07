@@ -63,7 +63,8 @@ Git remote: `https://github.com/sidmsmith/vasexecution` on `main`.
 | `org` | `organization` | Auto-authenticate |
 | `olpn` | `OLPN`, `oLPN`, `olpnId`, `olpn_id` | Prefill + auto-load after auth |
 | `theme` | — | Apply theme key, or `theme=N` to hide theme gear |
-| `instructions` | `auto` | Which step instructions to show: `auto` — the Admin config, unless this oLPN's step differs from the standard VAS definition, then the oLPN's own WMS instructions (with a "Differs from standard" badge); `config` — always the Admin config (previous behavior); `wms` — always the oLPN's WMS instructions. Admin images for a step are kept under WMS instructions. |
+| `instructions` | — | Which step instructions to show (default `auto`): `auto` — the Admin config, unless this oLPN's step differs from the standard VAS definition, then the oLPN's own WMS instructions; `config` — always the Admin config (previous behavior); `wms` — always the oLPN's WMS instructions. Admin images for a step are kept under WMS instructions. Nothing marks a customized step unless `diff` is on. |
+| `diff` | `Yes`, `1`, `true`, `on` | Off by default. `diff=Y` adds a small note icon after the description of each step whose oLPN instructions differ from the standard; clicking it shows **Standard** vs **This oLPN** side by side (added / removed / edited / moved). Works with any `instructions` mode. Leave it off for clean demos. |
 
 Example: `/?org=SS-DEMO&olpn=0000099999000013973&theme=manhattan`
 
